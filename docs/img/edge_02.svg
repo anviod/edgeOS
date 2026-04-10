@@ -1,0 +1,113 @@
+<svg width="1000" height="700" viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bg { fill: #ffffff; }
+    .box-outline { fill: #ffffff; stroke: #334155; stroke-width: 1.5; }
+    .bus-container { fill: #f8fafc; stroke: #475569; stroke-width: 1; stroke-dasharray: 4,2; }
+    .header-text { font-family: 'Monospace', 'Courier New', monospace; font-size: 18px; font-weight: bold; fill: #1e293b; }
+    .section-title { font-family: 'Monospace', 'Courier New', monospace; font-size: 14px; font-weight: bold; fill: #475569; }
+    .content-text { font-family: 'Monospace', 'Courier New', monospace; font-size: 12px; fill: #334155; }
+    .attr-text { font-family: 'Monospace', 'Courier New', monospace; font-size: 11px; fill: #64748b; }
+    
+    /* 基础连接线 */
+    .connection-line { fill: none; stroke: #cbd5e1; stroke-width: 1.5; }
+    
+    /* 粒子流动效果 */
+    .flow-particle {
+      fill: none;
+      stroke: #0ea5e9; /* 天蓝色粒子 */
+      stroke-width: 2;
+      stroke-dasharray: 5, 15;
+      animation: message-flow 4s linear infinite;
+    }
+    
+    @keyframes message-flow {
+      from { stroke-dashoffset: 100; }
+      to { stroke-dashoffset: 0; }
+    }
+  </style>
+
+  <defs>
+    <marker id="arrow-slate" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#cbd5e1"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="700" class="bg" />
+
+  <rect x="50" y="20" width="900" height="40" class="box-outline" />
+  <text x="500" y="47" text-anchor="middle" class="header-text">双向数据通信架构 (Bidirectional Communication)</text>
+
+  <rect x="50" y="80" width="900" height="250" class="bus-container" />
+  <text x="70" y="105" class="section-title">消息总线 (Message Bus)</text>
+
+  <g transform="translate(100, 125)">
+    <rect width="180" height="60" class="box-outline" />
+    <text x="90" y="25" text-anchor="middle" class="section-title">设备上行</text>
+    <text x="90" y="45" text-anchor="middle" class="attr-text">(Telemetry)</text>
+    <path d="M90 60 L90 95" class="connection-line" marker-end="url(#arrow-slate)" />
+  </g>
+
+  <g transform="translate(410, 125)">
+    <rect width="180" height="60" class="box-outline" />
+    <text x="90" y="25" text-anchor="middle" class="section-title">控制下行</text>
+    <text x="90" y="45" text-anchor="middle" class="attr-text">(Command)</text>
+    <path d="M90 60 L90 95" class="connection-line" marker-end="url(#arrow-slate)" />
+  </g>
+
+  <g transform="translate(720, 125)">
+    <rect width="180" height="60" class="box-outline" />
+    <text x="90" y="25" text-anchor="middle" class="section-title">同步消息</text>
+    <text x="90" y="45" text-anchor="middle" class="attr-text">(Sync)</text>
+    <path d="M90 60 L90 95" class="connection-line" marker-end="url(#arrow-slate)" />
+  </g>
+
+  <g transform="translate(100, 240)">
+    <rect width="800" height="70" class="box-outline" stroke="#0ea5e9" stroke-width="2" />
+    <text x="400" y="30" text-anchor="middle" class="section-title" fill="#0ea5e9">消息路由层 (Message Router)</text>
+    <text x="400" y="55" text-anchor="middle" class="attr-text">
+      • 消息分类  • 优先级队列  • QoS 保证  • 流量控制
+    </text>
+  </g>
+
+  <g transform="translate(50, 450)">
+    <rect width="260" height="150" class="box-outline" />
+    <rect width="260" height="30" fill="#f1f5f9" stroke="#334155" />
+    <text x="130" y="20" text-anchor="middle" class="section-title">主母皇节点</text>
+    <text x="30" y="60" class="content-text">• 决策处理 (Decision)</text>
+    <text x="30" y="90" class="content-text">• 任务调度 (Scheduling)</text>
+    <text x="30" y="120" class="content-text">• 群控算法 (Swarm Logic)</text>
+  </g>
+
+  <g transform="translate(370, 450)">
+    <rect width="260" height="150" class="box-outline" />
+    <rect width="260" height="30" fill="#f1f5f9" stroke="#334155" />
+    <text x="130" y="20" text-anchor="middle" class="section-title">备用母皇节点</text>
+    <text x="30" y="60" class="content-text">• 状态同步 (State Sync)</text>
+    <text x="30" y="90" class="content-text">• 热备接收 (Hot-Standby)</text>
+    <text x="30" y="120" class="content-text">• 故障备援 (Failover)</text>
+  </g>
+
+  <g transform="translate(690, 450)">
+    <rect width="260" height="150" class="box-outline" />
+    <rect width="260" height="30" fill="#f1f5f9" stroke="#334155" />
+    <text x="130" y="20" text-anchor="middle" class="section-title">边缘采集网关 #1</text>
+    <text x="30" y="60" class="content-text">• 数据采集 (Ingestion)</text>
+    <text x="30" y="90" class="content-text">• 协议转换 (Adaptation)</text>
+    <text x="30" y="120" class="content-text">• 数据上报 (Reporting)</text>
+  </g>
+
+  <g>
+    <path id="path1" d="M500 310 V 380 H 180 V 450" class="connection-line" marker-end="url(#arrow-slate)" />
+    <path d="M500 310 V 380 H 180 V 450" class="flow-particle" />
+    
+    <path id="path2" d="M500 310 V 450" class="connection-line" marker-end="url(#arrow-slate)" />
+    <path d="M500 310 V 450" class="flow-particle" style="animation-delay: 1s;" />
+    
+    <path id="path3" d="M500 310 V 380 H 820 V 450" class="connection-line" marker-end="url(#arrow-slate)" />
+    <path d="M500 310 V 380 H 820 V 450" class="flow-particle" style="animation-delay: 2s;" />
+  </g>
+
+  <line x1="50" y1="650" x2="950" y2="650" stroke="#e2e8f0" stroke-width="1" />
+  <text x="50" y="675" class="attr-text">EDGE OS v2.4.0 | 双向通信总线架构规范</text>
+  <text x="950" y="675" text-anchor="end" class="attr-text">INTERNAL USE ONLY</text>
+</svg>

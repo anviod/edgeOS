@@ -1,0 +1,160 @@
+<svg width="1000" height="1300" viewBox="0 0 1000 1300" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bg { fill: #ffffff; }
+    .box-outline { fill: #ffffff; stroke: #334155; stroke-width: 1.5; }
+    .container-bg { fill: #f8fafc; stroke: #94a3b8; stroke-width: 1; stroke-dasharray: 4,2; }
+    .header-text { font-family: 'Monospace', 'Courier New', monospace; font-size: 18px; font-weight: bold; fill: #0f172a; }
+    .section-title { font-family: 'Monospace', 'Courier New', monospace; font-size: 14px; font-weight: bold; fill: #475569; }
+    .content-text { font-family: 'Monospace', 'Courier New', monospace; font-size: 12px; fill: #334155; }
+    .label-id { font-family: 'Monospace', 'Courier New', monospace; font-size: 11px; fill: #64748b; }
+    
+    /* 连接线基础样式 */
+    .base-line { fill: none; stroke: #cbd5e1; stroke-width: 1.5; }
+    
+    /* 粒子流动效果 */
+    .up-flow {
+      fill: none;
+      stroke: #0ea5e9; /* 上行天蓝色 */
+      stroke-width: 2;
+      stroke-dasharray: 6, 14;
+      animation: flow-anim 3s linear infinite;
+    }
+    
+    .down-flow {
+      fill: none;
+      stroke: #f59e0b; /* 下行琥珀色 */
+      stroke-width: 2;
+      stroke-dasharray: 6, 14;
+      animation: flow-anim 3s linear infinite;
+    }
+
+    .sync-flow {
+      fill: none;
+      stroke: #6366f1; /* 同步靛青色 */
+      stroke-width: 2;
+      stroke-dasharray: 4, 12;
+      animation: flow-anim 2s linear infinite;
+    }
+    
+    @keyframes flow-anim {
+      from { stroke-dashoffset: 100; }
+      to { stroke-dashoffset: 0; }
+    }
+  </style>
+
+  <defs>
+    <marker id="arrow-slate" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="1300" class="bg" />
+
+  <rect x="50" y="20" width="900" height="40" class="box-outline" />
+  <text x="500" y="47" text-anchor="middle" class="header-text">集群影子设备消息共享流程 (Cluster Message Fabric)</text>
+
+  <text x="50" y="90" class="section-title">01. 设备数据上报 (Telemetry Ingestion)</text>
+  <rect x="50" y="110" width="900" height="420" class="container-bg" />
+  
+  <g transform="translate(80, 140)">
+    <rect width="120" height="60" class="box-outline" />
+    <text x="60" y="35" text-anchor="middle" class="content-text">物理设备</text>
+    
+    <path d="M120 30 H 200" class="base-line" marker-end="url(#arrow-slate)" />
+    <path d="M120 30 H 200" class="up-flow" />
+
+    <rect x="200" y="0" width="140" height="60" class="box-outline" />
+    <text x="270" y="35" text-anchor="middle" class="content-text">边缘采集 #1</text>
+  </g>
+
+  <g transform="translate(450, 140)">
+    <rect width="450" height="120" class="box-outline" />
+    <text x="20" y="30" class="section-title">影子Ingress / 注册表</text>
+    <text x="20" y="60" class="label-id">• 影子设备注册表写入 (Ver. Update)</text>
+    <text x="20" y="80" class="label-id">• 变更消息广播队列生成</text>
+    <text x="20" y="100" class="label-id">• 实时快照版本控制</text>
+  </g>
+
+  <g transform="translate(80, 290)">
+    <rect width="820" height="60" class="box-outline" stroke="#0ea5e9" stroke-width="2" />
+    <text x="410" y="25" text-anchor="middle" class="section-title" fill="#0ea5e9">核心消息总线 (Core Message Bus)</text>
+    <text x="410" y="45" text-anchor="middle" class="label-id">分类路由 | 优先级队列 | QoS 保证 | 分发引擎</text>
+  </g>
+
+  <g transform="translate(80, 390)">
+    <rect width="250" height="110" class="box-outline" />
+    <text x="125" y="30" text-anchor="middle" class="section-title">边缘采集 #2 / #3</text>
+    <text x="20" y="60" class="label-id">• 订阅影子变更消息</text>
+    <text x="20" y="85" class="label-id">• 更新本地影子缓存</text>
+
+    <rect x="570" y="0" width="250" height="110" class="box-outline" />
+    <text x="695" y="30" text-anchor="middle" class="section-title">北向适配器</text>
+    <text x="590" y="60" class="label-id">• 消费影子数据流</text>
+    <text x="590" y="85" class="label-id">• 云端/第三方数据上报</text>
+  </g>
+
+  <text x="50" y="560" class="section-title">02. 跨节点数据同步 (Consistency Sync)</text>
+  <rect x="50" y="580" width="900" height="320" class="container-bg" />
+  
+  <g transform="translate(100, 620)">
+    <rect width="180" height="80" class="box-outline" />
+    <text x="90" y="45" text-anchor="middle" class="content-text">边缘采集 #1</text>
+    
+    <rect x="360" y="0" width="180" height="120" class="box-outline" stroke="#6366f1" />
+    <text x="450" y="30" text-anchor="middle" class="section-title" fill="#6366f1">主母皇节点</text>
+    <text x="375" y="60" class="label-id">• WAL变更记录</text>
+    <text x="375" y="80" class="label-id">• 全局版本控制</text>
+    <text x="375" y="100" class="label-id">• 广播分发确认</text>
+
+    <rect x="360" y="180" width="180" height="100" class="box-outline" />
+    <text x="450" y="210" text-anchor="middle" class="section-title">备用母皇节点</text>
+    <text x="375" y="240" class="label-id">• 增量状态同步</text>
+    <text x="375" y="265" class="label-id">• 热备接管准备</text>
+
+    <path d="M180 40 H 360" class="base-line" marker-end="url(#arrow-slate)" />
+    <path d="M180 40 H 360" class="sync-flow" />
+    
+    <path d="M450 120 V 180" class="base-line" marker-end="url(#arrow-slate)" />
+    <path d="M450 120 V 180" class="sync-flow" />
+
+    <rect x="620" y="0" width="180" height="80" class="box-outline" />
+    <text x="710" y="45" text-anchor="middle" class="content-text">边缘采集 #2</text>
+    <path d="M540 40 H 620" class="base-line" marker-end="url(#arrow-slate)" />
+    <path d="M540 40 H 620" class="sync-flow" />
+  </g>
+
+  <text x="50" y="930" class="section-title">03. 控制指令下发 (Control Command Flow)</text>
+  <rect x="50" y="950" width="900" height="230" class="box-outline" />
+  
+  <g transform="translate(100, 990)">
+    <rect width="140" height="60" class="box-outline" />
+    <text x="70" y="35" text-anchor="middle" class="content-text">北向适配器</text>
+    
+    <path d="M140 30 H 220" class="base-line" marker-end="url(#arrow-slate)" />
+    <path d="M140 30 H 220" class="down-flow" />
+
+    <rect x="220" y="0" width="160" height="60" class="box-outline" />
+    <text x="300" y="35" text-anchor="middle" class="content-text">指令影子写入</text>
+
+    <path d="M380 30 H 460" class="base-line" marker-end="url(#arrow-slate)" />
+    <path d="M380 30 H 460" class="down-flow" />
+
+    <rect x="460" y="0" width="160" height="60" class="box-outline" />
+    <text x="540" y="35" text-anchor="middle" class="content-text">目标网关路由</text>
+
+    <path d="M620 30 H 700" class="base-line" marker-end="url(#arrow-slate)" />
+    <path d="M620 30 H 700" class="down-flow" />
+
+    <rect x="700" y="0" width="100" height="60" class="box-outline" />
+    <text x="750" y="35" text-anchor="middle" class="content-text">物理设备</text>
+
+    <rect x="0" y="100" width="800" height="80" class="container-bg" />
+    <text x="20" y="125" class="label-id" font-weight="bold">指令保障协议 (Command QoS):</text>
+    <text x="20" y="150" class="label-id">• QoS 1: 需要网关回复 ACK | QoS 2: 需要设备侧执行确认完成</text>
+    <text x="20" y="165" class="label-id">• 链路追踪: 影子版本号与指令 ID 强制关联</text>
+  </g>
+
+  <line x1="50" y1="1230" x2="950" y2="1230" stroke="#e2e8f0" stroke-width="1" />
+  <text x="50" y="1255" class="label-id">EDGE OS v2.4.0 | 集群影子设备消息流协议</text>
+  <text x="950" y="1255" text-anchor="end" class="label-id">CONFIDENTIAL PROTOCOL</text>
+</svg>

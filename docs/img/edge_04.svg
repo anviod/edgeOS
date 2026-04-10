@@ -1,0 +1,124 @@
+<svg width="1000" height="920" viewBox="0 0 1000 920" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bg { fill: #ffffff; }
+    .node-rect { fill: #ffffff; stroke: #334155; stroke-width: 1.5; }
+    .cluster-boundary { fill: #f8fafc; stroke: #94a3b8; stroke-width: 1; stroke-dasharray: 4; }
+    .text-header { font-family: 'Monospace', 'Courier New', monospace; font-size: 18px; font-weight: bold; fill: #0f172a; }
+    .text-section { font-family: 'Monospace', 'Courier New', monospace; font-size: 14px; font-weight: bold; fill: #475569; }
+    .text-content { font-family: 'Monospace', 'Courier New', monospace; font-size: 12px; fill: #334155; }
+    .text-detail { font-family: 'Monospace', 'Courier New', monospace; font-size: 11px; fill: #64748b; }
+    
+    /* 连接线基础样式 */
+    .link-line { fill: none; stroke: #cbd5e1; stroke-width: 1.5; }
+    
+    /* 粒子流动动画 */
+    .flow-particle {
+      fill: none;
+      stroke: #6366f1; /* 核心逻辑粒子色 */
+      stroke-width: 2;
+      stroke-dasharray: 4, 12;
+      animation: swarm-flow 3s linear infinite;
+    }
+
+    .heartbeat-particle {
+      fill: none;
+      stroke: #f43f5e; /* 心跳红色粒子 */
+      stroke-width: 2;
+      stroke-dasharray: 2, 8;
+      animation: swarm-flow 1.5s linear infinite;
+    }
+    
+    @keyframes swarm-flow {
+      from { stroke-dashoffset: 60; }
+      to { stroke-dashoffset: 0; }
+    }
+  </style>
+
+  <defs>
+    <marker id="arrow-slate" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="920" class="bg" />
+
+  <rect x="50" y="20" width="900" height="40" class="node-rect" />
+  <text x="500" y="47" text-anchor="middle" class="text-header">蜂群模式架构协议 (Swarm Mode Architecture)</text>
+
+  <rect x="50" y="80" width="900" height="420" class="cluster-boundary" />
+  <text x="70" y="105" class="text-section">母皇集群 (Queen Cluster)</text>
+
+  <g transform="translate(100, 130)">
+    <rect width="250" height="160" class="node-rect" />
+    <rect width="250" height="30" fill="#f1f5f9" stroke="#334155" />
+    <text x="125" y="20" text-anchor="middle" class="text-section">主母皇节点 (Primary)</text>
+    <text x="20" y="60" class="text-content">• 决策制定 (Decision)</text>
+    <text x="20" y="85" class="text-content">• 任务调度 (Scheduling)</text>
+    <text x="20" y="110" class="text-content">• 资源分配 (Resource)</text>
+    <text x="20" y="135" class="text-content">• 故障检测 (Detection)</text>
+  </g>
+
+  <g transform="translate(650, 130)">
+    <rect width="250" height="160" class="node-rect" />
+    <rect width="250" height="30" fill="#f1f5f9" stroke="#334155" />
+    <text x="125" y="20" text-anchor="middle" class="text-section">备用母皇 (Secondary)</text>
+    <text x="20" y="60" class="text-content">• 状态同步 (Sync)</text>
+    <text x="20" y="85" class="text-content">• 故障备援 (Failover)</text>
+    <text x="20" y="110" class="text-content">• 负载均衡 (Balancing)</text>
+    <text x="20" y="135" class="text-content">• 健康检查 (Health)</text>
+  </g>
+
+  <g transform="translate(350, 360)">
+    <rect width="300" height="110" class="node-rect" stroke="#6366f1" stroke-width="2" />
+    <text x="150" y="25" text-anchor="middle" class="text-section" fill="#6366f1">共享状态存储 (bbolt Cluster)</text>
+    <text x="20" y="55" class="text-detail">• 节点注册表 / 任务配置</text>
+    <text x="20" y="75" class="text-detail">• 影子设备表 (Shadow Registry)</text>
+    <text x="20" y="95" class="text-detail">• 事务同步日志 (Sync Logs)</text>
+  </g>
+
+  <path d="M350 210 H 650" class="link-line" stroke-dasharray="2,2" />
+  <path d="M350 190 H 650" class="heartbeat-particle" />
+  <path d="M650 230 H 350" class="heartbeat-particle" />
+  <text x="500" y="205" text-anchor="middle" class="text-detail">心跳 / 状态同步</text>
+
+  <path d="M225 290 V 415 H 350" class="link-line" marker-end="url(#arrow-slate)" />
+  <path d="M775 290 V 415 H 650" class="link-line" marker-end="url(#arrow-slate)" />
+
+  <rect x="50" y="560" width="900" height="280" class="cluster-boundary" />
+  <text x="70" y="585" class="text-section">工作者集群 (Worker Cluster)</text>
+
+  <g transform="translate(80, 610)">
+    <rect x="0" y="0" width="200" height="180" class="node-rect" />
+    <text x="100" y="25" text-anchor="middle" class="text-section">边缘采集 #1</text>
+    <line x1="20" y1="35" x2="180" y2="35" stroke="#cbd5e1" stroke-width="1" />
+    <text x="20" y="65" class="text-detail">• 设备连接</text>
+    <text x="20" y="90" class="text-detail">• 数据采集</text>
+    <text x="20" y="115" class="text-detail">• 协议转换</text>
+    <text x="20" y="140" class="text-detail">• 本地缓存</text>
+
+    <rect x="260" y="0" width="200" height="180" class="node-rect" />
+    <text x="360" y="25" text-anchor="middle" class="text-section">边缘采集 #2</text>
+    <line x1="280" y1="35" x2="440" y2="35" stroke="#cbd5e1" stroke-width="1" />
+    <text x="280" y="65" class="text-detail">• 设备连接</text>
+    <text x="280" y="90" class="text-detail">• 数据采集</text>
+
+    <rect x="520" y="0" width="200" height="180" class="node-rect" />
+    <text x="620" y="25" text-anchor="middle" class="text-section">边缘采集 #3</text>
+    <line x1="540" y1="35" x2="700" y2="35" stroke="#cbd5e1" stroke-width="1" />
+    <text x="540" y="65" class="text-detail">• 设备连接</text>
+    <text x="540" y="90" class="text-detail">• 数据采集</text>
+
+    <text x="780" y="90" class="text-section">...</text>
+  </g>
+
+  <path d="M280 700 H 340" class="link-line" />
+  <path d="M540 700 H 600" class="link-line" />
+
+  <path d="M500 470 V 560" class="link-line" marker-end="url(#arrow-slate)" />
+  <path d="M500 470 V 560" class="flow-particle" />
+  <text x="510" y="525" class="text-detail">任务下发 / 状态上报</text>
+
+  <line x1="50" y1="870" x2="950" y2="870" stroke="#e2e8f0" stroke-width="1" />
+  <text x="50" y="895" class="text-detail">EDGE OS v2.4.0 | 蜂群自治分布式架构 (Swarm Logic)</text>
+  <text x="950" y="895" text-anchor="end" class="text-detail">CONFIDENTIAL SYSTEM ARCHITECTURE</text>
+</svg>

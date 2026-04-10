@@ -1,0 +1,160 @@
+<svg width="1200" height="1100" viewBox="0 0 1200 1100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow-gray" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#6c5ce7"/>
+    </marker>
+    <path id="path_heartbeat" d="M360 215 L440 215" fill="none"/>
+    <path id="path_sync" d="M440 235 L360 235" fill="none"/>
+    <path id="path_dispatch" d="M600 450 L600 550" fill="none"/>
+    <circle id="p_hb" r="2" fill="#6c5ce7"/>
+    <circle id="p_data" r="2" fill="#0ea5e9"/>
+  </defs>
+
+  <rect width="1200" height="1100" fill="#fcfcfd" />
+
+  <text x="600" y="40" text-anchor="middle" font-family="PingFang SC, monospace" font-size="24" font-weight="bold" fill="#1e293b">边缘大脑系统 (Edge Brain System) V1.0</text>
+
+  <g transform="translate(100, 80)">
+    <rect width="1000" height="420" fill="#fff" stroke="#6c5ce7" stroke-width="1.5" rx="4"/>
+    <rect x="0" y="0" width="1000" height="30" fill="#f5f3ff" rx="4"/>
+    <text x="500" y="20" text-anchor="middle" font-family="PingFang SC, monospace" font-size="14" font-weight="bold" fill="#6c5ce7">本地主控大脑 (Local Master Brain) - 双机热备核心</text>
+
+    <g transform="translate(50, 80)">
+      <rect width="250" height="120" fill="#fff" stroke="#6c5ce7" stroke-width="2"/>
+      <text x="125" y="40" text-anchor="middle" font-family="PingFang SC, monospace" font-size="14" font-weight="bold" fill="#1e293b">主母皇节点</text>
+      <text x="125" y="60" text-anchor="middle" font-family="monospace" font-size="11" fill="#64748b">(Primary Queen)</text>
+      <rect x="40" y="80" width="170" height="25" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="125" y="97" text-anchor="middle" font-family="monospace" font-size="10" fill="#22c55e">● ACTIVE / MASTER</text>
+    </g>
+
+    <g transform="translate(450, 80)">
+      <rect width="250" height="120" fill="#fff" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <text x="125" y="40" text-anchor="middle" font-family="PingFang SC, monospace" font-size="14" font-weight="bold" fill="#1e293b">备用母皇节点</text>
+      <text x="125" y="60" text-anchor="middle" font-family="monospace" font-size="11" fill="#64748b">(Secondary Queen)</text>
+      <rect x="40" y="80" width="170" height="25" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="125" y="97" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">○ STANDBY / SLAVE</text>
+    </g>
+
+    <g transform="translate(750, 80)">
+      <rect width="200" height="120" fill="#f8fafc" stroke="#334155" stroke-width="1"/>
+      <text x="100" y="40" text-anchor="middle" font-family="PingFang SC, monospace" font-size="14" font-weight="bold" fill="#1e293b">决策引擎</text>
+      <text x="100" y="60" text-anchor="middle" font-family="monospace" font-size="10" fill="#64748b">(Decision Engine)</text>
+      <text x="20" y="90" font-family="PingFang SC" font-size="10" fill="#475569">优化算法 / 调度计算</text>
+    </g>
+
+    <path d="M300 140 L450 140" stroke="#6c5ce7" stroke-width="1.5" marker-end="url(#arrow-purple)" marker-start="url(#arrow-purple)"/>
+    <text x="375" y="130" text-anchor="middle" font-family="PingFang SC" font-size="10" fill="#6c5ce7">热备/状态同步</text>
+
+    <g transform="translate(50, 240)">
+      <rect width="900" height="150" fill="#fff" stroke="#0ea5e9" stroke-width="1.5" rx="2"/>
+      <text x="450" y="25" text-anchor="middle" font-family="PingFang SC, monospace" font-size="13" font-weight="bold" fill="#0ea5e9">群控算法调度层 (Swarm Control Layer)</text>
+      <line x1="20" y1="40" x2="880" y2="40" stroke="#f1f5f9" stroke-width="1"/>
+      
+      <g font-family="PingFang SC" font-size="11" fill="#334155">
+        <text x="50" y="70">• 影子设备自动发现</text>
+        <text x="50" y="100">• 节能优化算法</text>
+        <text x="350" y="70">• 双向数据通信</text>
+        <text x="350" y="100">• 故障转移控制</text>
+        <text x="650" y="70">• 负载均衡调度</text>
+        <text x="650" y="100">• 状态同步协调</text>
+      </g>
+      
+      <rect x="350" y="115" width="200" height="25" rx="12" fill="#1e293b"/>
+      <text x="450" y="132" text-anchor="middle" font-family="monospace" font-size="10" fill="#fff">共享状态存储 (bbolt DB)</text>
+    </g>
+
+    <path d="M175 200 L175 240" stroke="#cbd5e1" stroke-width="1" fill="none" marker-end="url(#arrow-gray)"/>
+    <path d="M575 200 L575 240" stroke="#cbd5e1" stroke-width="1" fill="none" marker-end="url(#arrow-gray)"/>
+    <path d="M850 200 L850 240" stroke="#cbd5e1" stroke-width="1" fill="none" marker-end="url(#arrow-gray)"/>
+  </g>
+
+  <g transform="translate(100, 580)">
+    <text x="0" y="-20" font-family="PingFang SC, monospace" font-size="14" font-weight="bold" fill="#1e293b">分布式采集网关层 (N 节点)</text>
+    
+    <g transform="translate(0, 0)">
+      <rect width="280" height="180" fill="#fff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="140" y="30" text-anchor="middle" font-family="PingFang SC" font-size="12" font-weight="bold">边缘采集网关 #1</text>
+      <text x="140" y="45" text-anchor="middle" font-family="monospace" font-size="9" fill="#94a3b8">(Edge Collector #1)</text>
+      <g transform="translate(20, 70)" font-size="10" fill="#475569" font-family="PingFang SC">
+        <text x="0" y="20">· 影子设备管理</text>
+        <text x="0" y="45">· 数据采集 (Modbus/S7)</text>
+        <text x="0" y="70">· 协议适配与转换</text>
+      </g>
+    </g>
+
+    <g transform="translate(360, 0)">
+      <rect width="280" height="180" fill="#fff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="140" y="30" text-anchor="middle" font-family="PingFang SC" font-size="12" font-weight="bold">边缘采集网关 #2</text>
+      <text x="140" y="45" text-anchor="middle" font-family="monospace" font-size="9" fill="#94a3b8">(Edge Collector #2)</text>
+      <g transform="translate(20, 70)" font-size="10" fill="#475569" font-family="PingFang SC">
+        <text x="0" y="20">· 影子设备管理</text>
+        <text x="0" y="45">· 数据采集 (OPC-UA)</text>
+        <text x="0" y="70">· 协议适配与转换</text>
+      </g>
+    </g>
+
+    <g transform="translate(720, 0)">
+      <rect width="280" height="180" fill="#fff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="140" y="30" text-anchor="middle" font-family="PingFang SC" font-size="12" font-weight="bold">边缘采集网关 #N</text>
+      <text x="140" y="45" text-anchor="middle" font-family="monospace" font-size="9" fill="#94a3b8">(Edge Collector #N)</text>
+      <g transform="translate(20, 70)" font-size="10" fill="#475569" font-family="PingFang SC">
+        <text x="0" y="20">· 影子设备管理</text>
+        <text x="0" y="45">· 数据采集 (MQTT/HTTP)</text>
+        <text x="0" y="70">· 协议适配与转换</text>
+      </g>
+    </g>
+
+    <path d="M280 90 L360 90" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow-gray)" marker-start="url(#arrow-gray)"/>
+    <path d="M640 90 L720 90" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow-gray)" marker-start="url(#arrow-gray)"/>
+  </g>
+
+  <g transform="translate(100, 850)">
+    <g transform="translate(40, 0)">
+      <rect width="200" height="100" fill="#f1f5f9" stroke="#cbd5e1" rx="2"/>
+      <text x="100" y="40" text-anchor="middle" font-family="PingFang SC" font-size="11">工业设备 A 群组</text>
+      <text x="100" y="65" text-anchor="middle" font-family="monospace" font-size="9" fill="#94a3b8">Devices M1...Mn</text>
+    </g>
+    <g transform="translate(400, 0)">
+      <rect width="200" height="100" fill="#f1f5f9" stroke="#cbd5e1" rx="2"/>
+      <text x="100" y="40" text-anchor="middle" font-family="PingFang SC" font-size="11">工业设备 B 群组</text>
+      <text x="100" y="65" text-anchor="middle" font-family="monospace" font-size="9" fill="#94a3b8">Devices M1...Mn</text>
+    </g>
+    <g transform="translate(760, 0)">
+      <rect width="200" height="100" fill="#f1f5f9" stroke="#cbd5e1" rx="2"/>
+      <text x="100" y="40" text-anchor="middle" font-family="PingFang SC" font-size="11">工业设备 N 群组</text>
+      <text x="100" y="65" text-anchor="middle" font-family="monospace" font-size="9" fill="#94a3b8">Devices M1...Mn</text>
+    </g>
+  </g>
+
+  <path d="M600 500 L600 580" stroke="#0ea5e9" stroke-width="2" marker-end="url(#arrow-gray)"/>
+  <path d="M600 540 L240 540 L240 580" stroke="#0ea5e9" stroke-width="1.5" fill="none" marker-end="url(#arrow-gray)"/>
+  <path d="M600 540 L960 540 L960 580" stroke="#0ea5e9" stroke-width="1.5" fill="none" marker-end="url(#arrow-gray)"/>
+  
+  <path d="M240 760 L240 850" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-gray)"/>
+  <path d="M600 760 L600 850" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-gray)"/>
+  <path d="M960 760 L960 850" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-gray)"/>
+
+  <use href="#p_hb">
+    <animateMotion dur="2s" repeatCount="indefinite">
+      <mpath href="#path_heartbeat"/>
+    </animateMotion>
+  </use>
+  <use href="#p_hb">
+    <animateMotion dur="2s" begin="1s" repeatCount="indefinite">
+      <mpath href="#path_sync"/>
+    </animateMotion>
+  </use>
+  <use href="#p_data">
+    <animateMotion dur="3s" repeatCount="indefinite">
+      <mpath href="#path_dispatch"/>
+    </animateMotion>
+  </use>
+
+  <rect x="100" y="1020" width="1000" height="40" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="600" y="1045" text-anchor="middle" font-family="PingFang SC" font-size="11" fill="#475569">
+    设计原则：N+2 冗余 (1 Primary + 1 Secondary + N Collectors) | 蜂群自治模式 | 影子设备同步
+  </text>
+</svg>
