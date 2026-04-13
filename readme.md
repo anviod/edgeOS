@@ -1,4 +1,4 @@
-# 边缘大脑系统 (Edge Brain System) 规划方案
+# 边缘大脑系统 (Edge Brain Open System) 规划方案
 
 <div align="center">
   <img src="./docs/img/edge_brain.svg" width="100%" />
