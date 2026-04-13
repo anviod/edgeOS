@@ -1,4 +1,4 @@
-# 边缘大脑系统 (Edge Brain System) 规划方案
+# 边缘大脑系统 (Edge Brain Open System) 规划方案
 
 ## 1. 项目概述
 
