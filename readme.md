@@ -1,6 +1,10 @@
 # 边缘大脑系统 (Edge Brain Open System) 规划方案
 
 <div align="center">
+  <img src="./docs/img/dashboard.png" width="100%" />
+</div>
+
+<div align="center">
   <img src="./docs/img/edge_brain.svg" width="100%" />
 </div>
 
@@ -474,9 +478,9 @@ type ShadowSyncMessage struct {
 
 | 配套措施 | 描述 | 实现方式 |
 |----------|------|----------|
-| **消息总线** | 统一的异步消息传输通道 | 自研 / libp2p / gRPC |
-| **注册发现** | 节点自动注册与服务发现 | etcd / Consul / bbolt |
-| **状态同步** | 集群状态一致性同步 | Raft / Gossip |
+| **消息总线** | 统一的异步消息传输通道 | libp2p + QUIC + Raft/Paxos |
+| **注册发现** | 节点自动注册与服务发现 | etcd  / bbolt |
+| **状态同步** | 集群状态一致性同步 |  Gossip |
 | **消息路由** | 智能消息路由与分发 | 主题订阅 / 标签路由 |
 | **QoS保证** | 消息服务质量等级控制 | 持久化 / ACK / 重试 |
 | **流量控制** | 消息流量限制与削峰 | 令牌桶 / 漏桶算法 |
@@ -545,7 +549,7 @@ type ShadowSyncMessage struct {
 
 **里程碑**：
 - [ ] 设备上线自动注册到影子注册表
-- [ ] 支持BACnet/Modbus/OPC UA设备发现
+- [ ] 支持edgex采集通道设备发现
 - [ ] 设备状态变更实时同步到所有节点
 
 ### 9.3 阶段三：双向通信 
