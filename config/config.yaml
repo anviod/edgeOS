@@ -1,0 +1,48 @@
+database:
+    path: ./data
+    type: bolt
+middlewares:
+    - auto_reconnect: true
+      broker: tcp://127.0.0.1:1883
+      ca_file: ""
+      clean_session: true
+      client_cert_file: ""
+      client_id: edgeOS_1
+      client_key_file: ""
+      connect_timeout: 10
+      enabled: true
+      id: 36cc8b96-f4be-414c-9b96-67c1b54c6dce
+      keep_alive: 30
+      mqtt_version: 4
+      name: MQTT
+      password: admin
+      qos: 1
+      reconnect_interval: 5
+      ssl: false
+      subscriptions:
+        - edgex/nodes/register
+        - edgex/nodes/heartbeat
+        - edgex/devices/report
+        - edgex/points/report
+        - edgex/data/#
+        - edgex/alerts/#
+        - edgex/responses/#
+      type: mqtt
+      username: admin
+monitoring:
+    enabled: true
+    prometheus: :9090
+node:
+    listen: :8000
+    node_id: node-001
+    node_type: primary
+    primary_node_id: node-primary
+security:
+    jwt_secret: edgeos-secret-key
+    tls_enabled: false
+users:
+    - enabled: true
+      password: admin
+      roles:
+        - admin
+      username: admin

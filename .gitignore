@@ -1,3 +1,7 @@
 *.exe
 data/*
 /.codebuddy/*
+nul
+.idea/*
+.claude/*
+temp/edgeos.db

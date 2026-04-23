@@ -109,7 +109,7 @@ type SecondaryQueen struct {
 }
 ```
 
-#### 2.3.3 边缘采集网关 (Edge Collector)
+#### 2.3.3 边缘采集网关 (Edgex)
 
 ```go
 // 边缘采集网关核心结构

@@ -1,0 +1,241 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================
+   亮色主题：极简工业风（Light Industrial Minimal）默认
+   基于样式规范白色主题
+   ===================================================== */
+@layer base {
+  :root {
+    /* Tailwind shadcn HSL 变量 - 亮色 */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 199 89% 48%;
+    --radius: 6px;
+
+    /* semantic theme tokens - 亮色 (基于规范) */
+    --bg-primary:    #F8FAFC;
+    --bg-secondary:  #FFFFFF;
+    --bg-tertiary:   #F1F5F9;
+    --bg-hover:      #F8FAFC;
+    --text-primary:  #0F172A;
+    --text-secondary:#64748B;
+    --text-muted:    #94A3B8;
+    --border-color:  #E2E8F0;
+    --border-subtle: #F1F5F9;
+    --shadow-card:   none;
+    --accent-primary:#0EA5E9;
+    --accent-border: #E2E8F0;
+    --sidebar-bg:    #FFFFFF;
+    --header-bg:     #FFFFFF;
+
+    /* functional colors */
+    --color-success: 160 84% 39%;
+    --color-warning: 38 92% 50%;
+    --color-error:   0 84.2% 60.2%;
+    --color-info:    199 89% 48%;
+
+    /* chart colors */
+    --chart-1: 199 89% 48%;
+    --chart-2: 217 91% 60%;
+    --chart-3: 160 84% 39%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 0 84.2% 60.2%;
+  }
+
+  /* ===================================================
+     暗色主题：深色工业仪表盘风（Dark Industrial Dashboard）
+     =================================================== */
+  html.dark {
+    /* Tailwind shadcn HSL 变量 - 暗色 */
+    --background: 222 47% 8%;
+    --foreground: 213 31% 91%;
+    --card: 222 40% 11%;
+    --card-foreground: 213 31% 91%;
+    --popover: 222 40% 10%;
+    --popover-foreground: 213 31% 91%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 222 47% 8%;
+    --secondary: 222 32% 18%;
+    --secondary-foreground: 213 31% 91%;
+    --muted: 222 32% 15%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 222 47% 8%;
+    --destructive: 0 63% 55%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 222 32% 20%;
+    --input: 222 32% 18%;
+    --ring: 199 89% 48%;
+
+    /* semantic theme tokens - 暗色 */
+    --bg-primary:    #0B1220;
+    --bg-secondary:  #111827;
+    --bg-tertiary:   #1F2937;
+    --bg-hover:      rgba(255, 255, 255, 0.05);
+    --text-primary:  #E5E7EB;
+    --text-secondary:#9CA3AF;
+    --text-muted:    #6B7280;
+    --border-color:  #1F2937;
+    --border-subtle: rgba(14, 165, 233, 0.12);
+    --shadow-card:   0 4px 16px rgba(0,0,0,0.4);
+    --accent-primary:#0EA5E9;
+    --accent-border: rgba(14,165,233,0.2);
+    --sidebar-bg:    #0B1220;
+    --header-bg:     #0B1220;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* 强制所有交互组件取消 Ring 偏移，改用内边框 */
+  *:focus {
+    outline: none !important;
+  }
+
+  .focus-visible\:ring-2,
+  *:focus-visible {
+    --tw-ring-offset-width: 0px !important;
+    --tw-ring-width: 0px !important;
+    --tw-ring-offset-color: transparent !important;
+    --tw-ring-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* 按钮点击无阴影 */
+  button:focus,
+  button:focus-visible {
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  /* 输入框 Focus 使用边框色替代 Ring */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #0EA5E9 !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  html, body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* 工业级滚动条 - 亮色 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* 强制无阴影覆盖 */
+  .shadow-none-force {
+    box-shadow: none !important;
+  }
+
+  /* 工业卡片 - 响应主题，使用圆角 */
+  .card-industrial {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+  }
+
+  /* 兼容旧版 card-dark */
+  .card-dark {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+  }
+
+  /* 暗色主题滚动条 */
+  html.dark ::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+  }
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #4B5563;
+  }
+
+  /* 状态脉冲动画 */
+  .pulse-green {
+    @apply relative inline-flex h-2 w-2;
+  }
+  .pulse-green::before {
+    content: '';
+    @apply absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping;
+  }
+  .pulse-green::after {
+    content: '';
+    @apply relative inline-flex h-2 w-2 rounded-full bg-emerald-500;
+  }
+
+  /* 差量高亮动画 */
+  @keyframes delta-flash {
+    0%, 100% { background-color: transparent; }
+    30% { background-color: rgba(14, 165, 233, 0.15); }
+  }
+  .delta-highlight {
+    animation: delta-flash 1.5s ease-out;
+  }
+
+  /* 行闪烁（新设备到达） */
+  @keyframes row-flash {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: rgba(14, 165, 233, 0.12); }
+  }
+  .row-new {
+    animation: row-flash 2s ease-out;
+  }
+
+  /* 渐变边框 */
+  .border-gradient-blue {
+    border-image: linear-gradient(135deg, #0EA5E9, #6366F1) 1;
+  }
+
+  /* 数字字体 - JetBrains Mono 风格 */
+  .font-mono-num {
+    font-variant-numeric: tabular-nums;
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, monospace;
+  }
+}
