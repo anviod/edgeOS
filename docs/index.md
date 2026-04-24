@@ -31,11 +31,11 @@ EdgeOS 是面向工业边缘场景的“边缘大脑系统”，用于配合 Edg
 - 下行控制、配置、任务分发能力
 
 <div align="center">
-  <img src="./img/edge_01.svg" width="90%" alt="影子设备自动发现" />
+  <img src="./img/edge_01.svg" width="100%" alt="影子设备自动发现" />
 </div>
 
 <div align="center">
-  <img src="./img/edge_02.svg" width="90%" alt="双向通信机制" />
+  <img src="./img/edge_02.svg" width="100%" alt="双向通信机制" />
 </div>
 
 ### 3. 群控与节能优化
@@ -64,19 +64,19 @@ EdgeOS 是面向工业边缘场景的“边缘大脑系统”，用于配合 Edg
 - 账务台账
 
 <div align="center">
-  <img src="./img/储能管理.png" width="85%" alt="储能管理页面" />
+  <img src="./img/储能管理.png" width="100%" alt="储能管理页面" />
 </div>
 
 <div align="center">
-  <img src="./img/电源BMS.png" width="85%" alt="电源BMS页面" />
+  <img src="./img/电源BMS.png" width="100%" alt="电源BMS页面" />
 </div>
 
 <div align="center">
-  <img src="./img/能耗监测.png" width="85%" alt="能耗监测页面" />
+  <img src="./img/能耗监测.png" width="100%" alt="能耗监测页面" />
 </div>
 
 <div align="center">
-  <img src="./img/账务台账.png" width="85%" alt="账务台账页面" />
+  <img src="./img/账务台账.png" width="100%" alt="账务台账页面" />
 </div>
 
 ### 群控管理
@@ -87,11 +87,11 @@ EdgeOS 是面向工业边缘场景的“边缘大脑系统”，用于配合 Edg
 - 脚本编排
 
 <div align="center">
-  <img src="./img/节点调度.png" width="85%" alt="节点调度页面" />
+  <img src="./img/节点调度.png" width="100%" alt="节点调度页面" />
 </div>
 
 <div align="center">
-  <img src="./img/场景联动.png" width="85%" alt="场景联动页面" />
+  <img src="./img/场景联动.png" width="100%" alt="场景联动页面" />
 </div>
 
 ---
