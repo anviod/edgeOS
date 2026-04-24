@@ -3,6 +3,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { Zap, Eye, EyeOff, LogIn } from 'lucide-vue-next'
 import { authApi } from '@/api/index'
+import { userStore } from '@/stores/user'
 
 const router = useRouter()
 const showPassword = ref(false)
@@ -24,8 +25,8 @@ async function handleLogin() {
   })
   loading.value = false
   if (result) {
-    localStorage.setItem('token', result.token)
-    localStorage.setItem('username', result.username)
+    const store = userStore()
+    store.setLoginInfo({ username: result.username }, result.permissions, result.token)
     router.push('/dashboard')
   }
 }
