@@ -8,6 +8,13 @@
       name="description"
       content="{{ page.description | default: site.description | strip_html | strip_newlines | escape }}"
     />
+    <script>
+      (function () {
+        var storedTheme = localStorage.getItem('edgeos-docs-theme');
+        var theme = storedTheme === 'light' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
     <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}" />
   </head>
   <body class="page-body">
@@ -26,6 +33,15 @@
             <a href="{{ '/样式规范.html' | relative_url }}">样式规范</a>
             <a href="{{ '/EdgeOS-2026-P3-TODO.html' | relative_url }}">P3 TODO</a>
             <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">返回项目仓库</a>
+            <button
+              class="theme-toggle"
+              type="button"
+              data-theme-toggle
+              aria-label="切换黑白主题"
+              aria-pressed="false"
+            >
+              黑色主题
+            </button>
           </nav>
         </div>
       </header>
@@ -46,5 +62,33 @@
         </div>
       </main>
     </div>
+    <script>
+      (function () {
+        var storageKey = 'edgeos-docs-theme';
+        var root = document.documentElement;
+        var button = document.querySelector('[data-theme-toggle]');
+        if (!button) return;
+
+        var labels = {
+          dark: '黑色主题',
+          light: '白色主题'
+        };
+
+        function syncButton(theme) {
+          button.textContent = labels[theme];
+          button.setAttribute('aria-pressed', String(theme === 'light'));
+        }
+
+        syncButton(root.getAttribute('data-theme') || 'dark');
+
+        button.addEventListener('click', function () {
+          var currentTheme = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+          var nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          root.setAttribute('data-theme', nextTheme);
+          localStorage.setItem(storageKey, nextTheme);
+          syncButton(nextTheme);
+        });
+      })();
+    </script>
   </body>
 </html>
