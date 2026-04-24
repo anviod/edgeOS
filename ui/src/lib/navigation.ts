@@ -41,7 +41,7 @@ export const navSections: NavSection[] = [
     label: '采集运行',
     items: [
       { key: 'dashboard', label: '系统总览', path: '/dashboard', icon: LayoutDashboard, group: 'operations' },
-      { key: 'middleware', label: '中间件连接', path: '/middleware', icon: Radio, group: 'operations' },
+      { key: 'middleware', label: '消息总线', path: '/middleware', icon: Radio, group: 'operations' },
       { key: 'nodes', label: '节点管理', path: '/nodes', icon: Server, group: 'operations' },
       { key: 'control', label: '设备控制', path: '/control', icon: Sliders, group: 'operations' },
       { key: 'alerts', label: '告警管理', path: '/alerts', icon: AlertTriangle, group: 'operations', badge: 'alerts' },

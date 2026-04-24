@@ -50,7 +50,7 @@ const newTopic = ref('')
 const submitting = ref(false)
 const showAdvanced = ref(false)
 
-const title = computed(() => props.editing ? '编辑连接' : '添加中间件连接')
+const title = computed(() => props.editing ? '编辑连接' : '添加消息总线')
 
 // 根据 SSL 状态调整端口默认值
 watch(() => form.value.ssl, (ssl) => {
@@ -145,7 +145,7 @@ async function handleSubmit() {
             <div class="flex items-center justify-between px-6 py-4" style="border-bottom: 1px solid var(--border-color);">
               <div>
                 <h2 class="text-base font-semibold" style="color: var(--text-primary);">{{ title }}</h2>
-                <p class="text-xs mt-0.5" style="color: var(--text-secondary);">配置 MQTT 消息中间件连接参数</p>
+                <p class="text-xs mt-0.5" style="color: var(--text-secondary);">配置 MQTT 消息总线参数</p>
               </div>
               <button @click="emit('close')" class="w-8 h-8 flex items-center justify-center rounded-lg transition-colors" style="color: var(--text-muted);">
                 <X class="w-4 h-4" style="width:16px;height:16px;" />

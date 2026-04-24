@@ -1,0 +1,7 @@
+title: EdgeOS Docs
+description: EdgeOS 边缘大脑系统说明文档与 UI 规划站点
+theme: jekyll-theme-cayman
+markdown: kramdown
+lang: zh-CN
+show_downloads: false
+timezone: Asia/Shanghai

@@ -104,7 +104,7 @@ function formatTime(ts: number) {
         <div class="flex items-center justify-between px-5 py-3.5 border-b" style="border-color: var(--border-color);">
           <div class="flex items-center gap-2">
             <Radio class="w-4 h-4" style="color: var(--accent-primary); width:16px;height:16px;" />
-            <span class="text-sm font-semibold" style="color: var(--text-primary);">中间件连接</span>
+            <span class="text-sm font-semibold" style="color: var(--text-primary);">消息总线</span>
           </div>
           <button @click="router.push('/middleware')" class="flex items-center gap-1 text-xs transition-colors hover:text-sky-400" style="color: var(--text-secondary);">
             管理 <ChevronRight class="w-3 h-3" style="width:12px;height:12px;" />

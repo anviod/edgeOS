@@ -1,7 +1,7 @@
 # EdgeOS UI 规划文档
 
 > 本文档按照 EdgeOS 四个核心功能的顺序规划前端界面：
-> 1. **中间件连接管理**（UI 添加 MQTT/NATS 连接）
+> 1. **消息总线管理**（UI 添加 MQTT/NATS 连接）
 > 2. **EdgeX 节点注册**（注册状态监控）
 > 3. **EdgeX 子设备列表同步**（设备列表管理）
 > 4. **EdgeX 子设备点位同步**（点位查看与实时数据）
@@ -13,7 +13,7 @@
 
 1. [设计规范](#1-设计规范)
 2. [路由结构](#2-路由结构)
-3. [功能一：中间件连接管理](#3-功能一中间件连接管理)
+3. [功能一：消息总线管理](#3-功能一消息总线管理)
 4. [功能二：EdgeX 节点注册](#4-功能二edgex-节点注册)
 5. [功能三：子设备列表同步](#5-功能三子设备列表同步)
 6. [功能四：子设备点位同步](#6-功能四子设备点位同步)
@@ -73,7 +73,7 @@
 /
 ├── /                           → 重定向到 /dashboard
 ├── /dashboard                  → 总览仪表盘
-├── /middlewares                → 中间件连接列表
+├── /middlewares                → 消息总线列表
 │   ├── /middlewares/add        → 添加连接（表单页或弹窗）
 │   └── /middlewares/:id        → 连接详情与订阅主题状态
 ├── /nodes                      → EdgeX 节点列表
@@ -92,7 +92,7 @@
 
 ```
 ◎ 总览
-─ 中间件连接     [+]  ← 核心入口，支持 MQTT/NATS 添加
+─ 消息总线     [+]  ← 核心入口，支持 MQTT/NATS 添加
 ─ EdgeX 节点          ← 注册状态
 ─ 子设备管理          ← 设备列表同步
 ─ 点位监控            ← 点位同步 + 实时数据
@@ -103,15 +103,15 @@
 
 ---
 
-## 3. 功能一：中间件连接管理
+## 3. 功能一：消息总线管理
 
-### 3.1 页面：中间件连接列表（`/middlewares`）
+### 3.1 页面：消息总线列表（`/middlewares`）
 
 **职责：** 展示所有已配置的 MQTT/NATS 连接，支持新增、编辑、删除、连接/断开操作。
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  中间件连接管理                          [+ 添加连接]        │
+│  消息总线管理                          [+ 添加连接]        │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
 │  │ 生产 MQTT     │  │ 测试 NATS    │  │ 备用 MQTT    │      │
@@ -168,7 +168,7 @@
 
 ```
 ┌────────────────────────────────────────────────────┐
-│  添加中间件连接                              [×]    │
+│  添加消息总线                              [×]    │
 ├────────────────────────────────────────────────────┤
 │  连接名称   [___________________________]           │
 │  协议类型   ○ edgeOS(MQTT)  ○ edgeOS(NATS)         │
@@ -208,7 +208,7 @@
   <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
     <div class="bg-gray-900 rounded-2xl w-[560px] border border-gray-700 shadow-2xl">
       <div class="flex items-center justify-between p-6 border-b border-gray-700">
-        <h2 class="text-xl font-semibold text-gray-100">添加中间件连接</h2>
+        <h2 class="text-xl font-semibold text-gray-100">添加消息总线</h2>
         <button @click="$emit('close')" class="text-gray-400 hover:text-gray-200">
           <X class="w-5 h-5" />
         </button>
@@ -760,7 +760,7 @@ export type RealtimeEventType =
   | 'data_update'           // 实时数据更新
   | 'command_response'      // 命令执行响应
   | 'alert'                 // 告警事件
-  | 'middleware_status'     // 中间件连接状态变化
+  | 'middleware_status'     // 消息总线状态变化
 
 export interface RealtimeEvent<T = unknown> {
   type: RealtimeEventType
@@ -1202,7 +1202,7 @@ export const controlTask = (nodeId: string, taskId: string, action: 'pause' | 'r
 | 路径 | 视图文件 | 说明 |
 |------|---------|------|
 | `/dashboard` | `views/DashboardView.vue` | 总览仪表盘 |
-| `/middlewares` | `views/MiddlewareListView.vue` | 中间件连接列表 |
+| `/middlewares` | `views/MiddlewareListView.vue` | 消息总线列表 |
 | `/middlewares/:id` | `views/MiddlewareDetailView.vue` | 连接详情 |
 | `/nodes` | `views/NodeListView.vue` | 节点列表 |
 | `/nodes/:nodeId` | `views/NodeDetailView.vue` | 节点详情 |

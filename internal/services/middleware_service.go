@@ -243,7 +243,7 @@ func (s *MiddlewareService) ListEnabled() ([]*model.MiddlewareConfig, error) {
 	return enabled, nil
 }
 
-// UpdateStatus 更新中间件连接状态
+// UpdateStatus 更新消息总线状态
 func (s *MiddlewareService) UpdateStatus(id, status, lastError string) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucketMiddlewares))

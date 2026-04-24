@@ -28,7 +28,7 @@ const router = createRouter({
           path: 'middleware',
           name: 'Middleware',
           component: () => import('@/views/MiddlewareView.vue'),
-          meta: { title: '中间件连接', sectionTitle: '采集运行' },
+          meta: { title: '消息总线', sectionTitle: '采集运行' },
         },
         {
           path: 'nodes',

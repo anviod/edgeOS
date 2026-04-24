@@ -392,7 +392,7 @@ func (m *Manager) IsConnected(id string) bool {
 	return false
 }
 
-// Stop 停止所有中间件连接
+// Stop 停止所有消息总线
 func (m *Manager) Stop() {
 	m.mu.Lock()
 	defer m.mu.Unlock()

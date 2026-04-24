@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// MiddlewareConfig 中间件连接配置
+// MiddlewareConfig 消息总线配置
 type MiddlewareConfig struct {
 	ID              string   `json:"id"`
 	Name            string   `json:"name"`

@@ -16,7 +16,7 @@
 ### 测试前提条件
 
 1. MQTT Broker 已启动并运行在 `tcp://127.0.0.1:1883`
-2. EdgeOS 已启动并配置好 MQTT 中间件连接
+2. EdgeOS 已启动并配置好 MQTT 消息总线
 3. EdgeX 节点已配置好 MQTT 连接信息
 
 ---

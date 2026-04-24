@@ -73,7 +73,7 @@ async function handleConnect(id: string) {
 }
 
 async function handleDelete(id: string) {
-  if (confirm('确认删除该中间件连接？')) {
+  if (confirm('确认删除该消息总线？')) {
     await mwStore.remove(id)
   }
 }
@@ -105,8 +105,8 @@ async function handleDelete(id: string) {
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-xl font-bold page-title">中间件连接</h1>
-        <p class="text-sm mt-1 page-subtitle">管理 MQTT/NATS 消息中间件连接，订阅 EdgeX 数据主题</p>
+        <h1 class="text-xl font-bold page-title">消息总线</h1>
+        <p class="text-sm mt-1 page-subtitle">管理 MQTT/NATS 消息总线，订阅 EdgeX 数据主题</p>
       </div>
       <div class="flex items-center gap-2">
         <button
@@ -138,7 +138,7 @@ async function handleDelete(id: string) {
       <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 empty-icon-wrapper">
         <Plus class="w-7 h-7 empty-icon" />
       </div>
-      <p class="text-base font-medium mb-1 empty-title">尚未配置中间件连接</p>
+      <p class="text-base font-medium mb-1 empty-title">尚未配置消息总线</p>
       <p class="text-sm mb-5 empty-subtitle">添加 MQTT 连接以开始接收 EdgeX 数据</p>
       <button
         @click="openAdd"
