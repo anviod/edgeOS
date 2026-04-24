@@ -1,3 +1,9 @@
+﻿---
+layout: default
+title: EdgeOS UI 规划文档
+description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
+---
+
 # EdgeOS UI 规划文档
 
 > 本文档按照 EdgeOS 四个核心功能的顺序规划前端界面：

@@ -1,3 +1,9 @@
+﻿---
+layout: default
+title: EdgeOS 2026 P3 TODO
+description: P3 阶段的目标、范围与重点任务清单。
+---
+
 # EdgeOS 2026 P3 TODO
 
 ## 阶段定位

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="{{ page.lang | default: site.lang | default: 'zh-CN' }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
+    <meta
+      name="description"
+      content="{{ page.description | default: site.description | strip_html | strip_newlines | escape }}"
+    />
+    <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}" />
+  </head>
+  <body class="page-body">
+    <div class="site-shell">
+      <header class="site-header">
+        <div class="site-header__inner">
+          <a class="site-brand" href="{{ '/' | relative_url }}">
+            <span class="site-brand__eyebrow">EdgeOS Docs</span>
+            <span class="site-brand__title">{{ site.title }}</span>
+          </a>
+          <nav class="site-nav" aria-label="主导航">
+            <a href="{{ '/' | relative_url }}">首页</a>
+            <a href="{{ '/EdgeX通信协议规范(MQTT-NATS).html' | relative_url }}">协议规范</a>
+            <a href="{{ '/EdgeOS 后端实现指南.html' | relative_url }}">后端实现</a>
+            <a href="{{ '/EdgeOS UI规划文档.html' | relative_url }}">UI 规划</a>
+            <a href="{{ '/样式规范.html' | relative_url }}">样式规范</a>
+            <a href="{{ '/EdgeOS-2026-P3-TODO.html' | relative_url }}">P3 TODO</a>
+            <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">返回项目仓库</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="doc-shell">
+        <div class="doc-shell__inner">
+          <div class="doc-intro">
+            <p class="doc-intro__eyebrow">Documentation</p>
+            <h1>{{ page.title | default: site.title }}</h1>
+            {% if page.description %}
+              <p class="doc-intro__summary">{{ page.description }}</p>
+            {% endif %}
+          </div>
+
+          <article class="doc-content">
+            {{ content }}
+          </article>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

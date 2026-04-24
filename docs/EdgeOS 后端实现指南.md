@@ -1,3 +1,9 @@
+﻿---
+layout: default
+title: EdgeOS 后端实现指南
+description: EdgeOS 后端服务职责、接口协作与实现路径说明。
+---
+
 # EdgeOS 后端实现指南
 
 > 本文档聚焦于 **EdgeOS 通过 UI 添加消息总线（MQTT/NATS），再通过中间件监听指定主题**，按以下四个核心功能顺序完整说明后端实现：

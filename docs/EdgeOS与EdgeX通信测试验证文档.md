@@ -1,3 +1,9 @@
+﻿---
+layout: default
+title: EdgeOS 与 EdgeX 通信测试验证文档
+description: EdgeOS 与 EdgeX 之间 MQTT 通信的测试步骤与验证说明。
+---
+
 # EdgeOS与EdgeX  MQTT 通信测试验证文档
 
 ## 概述

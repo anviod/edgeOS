@@ -1,3 +1,9 @@
+﻿---
+layout: default
+title: EdgeOS 与 EdgeX 通信测试报告
+description: 2026-04-17 联调测试结果、问题与结论记录。
+---
+
 # EdgeOS 与 EdgeX 通信测试验证报告
 
 **测试日期**: 2026/04/17

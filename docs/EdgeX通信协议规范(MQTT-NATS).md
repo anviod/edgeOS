@@ -1,3 +1,9 @@
+﻿---
+layout: default
+title: EdgeX 通信协议规范（MQTT-NATS）
+description: EdgeOS 与 EdgeX 之间的 MQTT / NATS 协议规范说明。
+---
+
 # EdgeX端 通信协议规范 (MQTT/NATS)
 
 ## 概述

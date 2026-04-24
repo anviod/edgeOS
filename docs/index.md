@@ -1,136 +1,150 @@
 ---
-layout: default
+layout: landing
 title: EdgeOS 文档中心
-description: EdgeOS 边缘大脑系统 GitHub Pages 文档首页
+description: 面向 EdgeOS 工业大脑的系统设计、协议规范、后端实现与 UI 工程文档入口。
 ---
 
-# EdgeOS 文档中心
+<section class="hero" id="overview">
+  <div class="hero__grid">
+    <div class="hero__copy">
+      <span class="hero__eyebrow">EdgeOS Industrial Brain Documentation</span>
+      <h1>工业边缘系统文档，先看全局，再快速落到实现。</h1>
+      <p>
+        这里汇总了 EdgeOS 的系统架构、EdgeX 通信协议、后端实现路径、UI 规划与工业控制级样式规范。
+        首页改成宽屏横幅 Hero 后，我们把核心入口压缩成更适合大屏浏览的卡片区，方便团队在设计、研发和联调阶段快速切换。
+      </p>
+      <div class="hero__actions">
+        <a class="button-link button-link--primary" href="#documents">进入文档入口</a>
+        <a class="button-link button-link--secondary" href="./EdgeOS-2026-P3-TODO.html">查看 P3 重点</a>
+      </div>
+    </div>
 
-EdgeOS 是面向工业边缘场景的“边缘大脑系统”，用于配合 EdgeX 边缘采集网关，构建具备 **N+2 冗余架构、群控调度、影子设备协同、业务运营扩展** 的工业级平台。
+    <div class="hero__panel">
+      <div class="status-panel">
+        <div class="status-panel__header">
+          <div class="status-panel__title">
+            <span class="hero__eyebrow">System Snapshot</span>
+            <strong>EdgeOS / EdgeX 协同运行</strong>
+          </div>
+          <span class="status-pill">RUNNING</span>
+        </div>
+        <p>面向工业现场的边缘控制与业务扩展平台，聚焦高可用、设备协同、通道健康和群控编排。</p>
+      </div>
 
----
+      <div class="metric-strip">
+        <div class="metric-strip__item">
+          <span class="metric-strip__label">架构模式</span>
+          <span class="metric-strip__value">N+2</span>
+        </div>
+        <div class="metric-strip__item">
+          <span class="metric-strip__label">核心专题</span>
+          <span class="metric-strip__value">6+</span>
+        </div>
+        <div class="metric-strip__item">
+          <span class="metric-strip__label">前端方向</span>
+          <span class="metric-strip__value">UI / 监控</span>
+        </div>
+        <div class="metric-strip__item">
+          <span class="metric-strip__label">交付阶段</span>
+          <span class="metric-strip__value">P3</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-## 核心能力
+<section class="landing-section" id="capabilities">
+  <div class="section-heading">
+    <h2>核心能力</h2>
+    <p>首页保留系统级视角，先讲平台能力，再把实现文档组织成更清晰的入口，避免旧版单列导航在宽屏上显得稀疏和低效。</p>
+  </div>
 
-### 1. 高可用边缘大脑
+  <div class="feature-grid">
+    <article class="capability-card">
+      <h3>高可用边缘大脑</h3>
+      <p>围绕 N+2 冗余、故障切换、节点协同和运行监测构建工业级边缘控制底座。</p>
+      <ul>
+        <li>主备与多节点协调</li>
+        <li>故障检测与自动切换</li>
+        <li>边缘运行态集中可视化</li>
+      </ul>
+    </article>
 
-- N+2 冗余架构
-- 主母皇 / 备用母皇双机热备
-- 多边缘采集网关统一协调
-- 故障检测与自动切换
+    <article class="capability-card">
+      <h3>设备与通道协同</h3>
+      <p>关注影子设备、上下行通信、协议接入和通道健康指标，支撑现场联调与长期运维。</p>
+      <ul>
+        <li>设备注册与同步</li>
+        <li>MQTT / NATS 通信链路</li>
+        <li>Latency / Loss / Quality 指标</li>
+      </ul>
+    </article>
 
-<div align="center">
-  <img src="./img/edge_brain.svg" width="100%" alt="EdgeOS 总体架构" />
-</div>
+    <article class="capability-card">
+      <h3>业务扩展与群控</h3>
+      <p>从采集接入扩展到业务中心和群控编排，覆盖储能、BMS、能耗监测与节点调度场景。</p>
+      <ul>
+        <li>业务页面规划</li>
+        <li>群控调度与场景联动</li>
+        <li>P3 阶段静态页面范围</li>
+      </ul>
+    </article>
+  </div>
+</section>
 
-### 2. 影子设备与双向通信
+<section class="landing-section" id="documents">
+  <div class="section-heading">
+    <h2>文档入口</h2>
+    <p>卡片区采用大屏 3 列、中屏 2 列、小屏 1 列 的自适应布局。首页负责分流，具体文档页使用更窄的阅读容器，减少长文阅读疲劳。</p>
+  </div>
 
-- 影子设备自动发现
-- 跨边缘节点的设备注册与同步
-- 上行遥测、事件、告警统一接入
-- 下行控制、配置、任务分发能力
+  <div class="card-grid">
+    <a class="doc-card" href="../readme.md">
+      <h3>项目总览</h3>
+      <p>快速了解 EdgeOS 的总体定位、仓库结构和关键模块，适合作为整个文档站的起点。</p>
+      <span class="doc-card__meta">查看总览</span>
+    </a>
 
-<div align="center">
-  <img src="./img/edge_01.svg" width="100%" alt="影子设备自动发现" />
-</div>
+    <a class="doc-card" href="./EdgeX通信协议规范(MQTT-NATS).html">
+      <h3>通信协议规范</h3>
+      <p>聚焦 EdgeX 与 EdgeOS 之间的 MQTT / NATS 设计、消息格式、时序与联调约束。</p>
+      <span class="doc-card__meta">查看协议</span>
+    </a>
 
-<div align="center">
-  <img src="./img/edge_02.svg" width="100%" alt="双向通信机制" />
-</div>
+    <a class="doc-card" href="./EdgeOS与EdgeX通信测试验证文档.html">
+      <h3>通信测试验证</h3>
+      <p>沉淀联调过程中的验证步骤、消息示例与测试链路，方便回归和对照检查。</p>
+      <span class="doc-card__meta">查看验证文档</span>
+    </a>
 
-### 3. 群控与节能优化
+    <a class="doc-card" href="./EdgeOS_与EdgeX通信测试报告_20260417.html">
+      <h3>通信测试报告</h3>
+      <p>记录 2026-04-17 的联调报告、测试结论和现阶段问题，为后续迭代提供依据。</p>
+      <span class="doc-card__meta">查看报告</span>
+    </a>
 
-- 群控算法调度
-- 节点任务分配与负载均衡
-- 业务策略执行
-- 能耗优化与节能调度
+    <a class="doc-card" href="./EdgeOS 后端实现指南.html">
+      <h3>后端实现指南</h3>
+      <p>梳理服务职责、实现路径与工程约束，帮助后端开发和前后端对接保持一致。</p>
+      <span class="doc-card__meta">查看实现指南</span>
+    </a>
 
-<div align="center">
-  <img src="./img/edge_brain_n2.svg" width="100%" alt="N+2 冗余架构" />
-</div>
+    <a class="doc-card" href="./EdgeOS UI规划文档.html">
+      <h3>UI 规划文档</h3>
+      <p>从信息架构、页面拆分到模块化编排说明前端规划，是页面方案设计的主文档。</p>
+      <span class="doc-card__meta">查看 UI 规划</span>
+    </a>
 
----
+    <a class="doc-card" href="./样式规范.html">
+      <h3>工业级样式规范</h3>
+      <p>定义面向工业控制场景的布局、状态、表格、危险操作与样式覆写规范。</p>
+      <span class="doc-card__meta">查看样式规范</span>
+    </a>
 
-## 前端能力现状
-
-当前前端已完成从“采集运行层”向“业务中心 + 群控管理”两大域的扩展，支持 GitHub Pages 文档展示与 UI 规划沉淀。
-
-### 业务中心
-
-- 储能管理
-- 电源BMS
-- 充电管理
-- 能耗监测
-- 账务台账
-
-<div align="center">
-  <img src="./img/储能管理.png" width="100%" alt="储能管理页面" />
-</div>
-
-<div align="center">
-  <img src="./img/电源BMS.png" width="100%" alt="电源BMS页面" />
-</div>
-
-<div align="center">
-  <img src="./img/能耗监测.png" width="100%" alt="能耗监测页面" />
-</div>
-
-<div align="center">
-  <img src="./img/账务台账.png" width="100%" alt="账务台账页面" />
-</div>
-
-### 群控管理
-
-- 节点调度
-- 场景联动
-- 函数执行
-- 脚本编排
-
-<div align="center">
-  <img src="./img/节点调度.png" width="100%" alt="节点调度页面" />
-</div>
-
-<div align="center">
-  <img src="./img/场景联动.png" width="100%" alt="场景联动页面" />
-</div>
-
----
-
-## 文档导航
-
-### 系统与协议
-
-- [项目总说明](../readme.md)
-- [EdgeOS 与 EdgeX 通信测试验证文档](./EdgeOS与EdgeX通信测试验证文档.md)
-- [EdgeOS 与 EdgeX 通信测试报告](./EdgeOS_与EdgeX通信测试报告_20260417.md)
-- [EdgeX 通信协议规范 (MQTT-NATS)](./EdgeX通信协议规范(MQTT-NATS).md)
-- [EdgeOS 后端实现指南](./EdgeOS%20后端实现指南.md)
-
-### UI 与前端规划
-
-- [EdgeOS UI 规划文档](./EdgeOS%20UI规划文档.md)
-- [EdgeOS 工业大脑 UI 开发实操指南](./样式规范.md)
-- [EdgeOS 2026 P3 TODO](./EdgeOS-2026-P3-TODO.md)
-
----
-
-## P3 扩展重点
-
-P3 阶段重点是把前端从“采集接入平台”提升为“业务运营平台 + 群控编排平台”：
-
-- 导航升级为一级分组 + 二级菜单
-- 新增 11 个高仿真静态页面
-- 所有页面统一展示 `Latency / Loss / Quality`
-- 页面从统一模板升级为模块化、差异化独立编排
-- 规划文档中已补齐技术实现路径与依赖关系
-
----
-
-## 建议阅读顺序
-
-1. [项目总说明](../readme.md)
-2. [EdgeX 通信协议规范 (MQTT-NATS)](./EdgeX通信协议规范(MQTT-NATS).md)
-3. [EdgeOS 后端实现指南](./EdgeOS%20后端实现指南.md)
-4. [EdgeOS UI 规划文档](./EdgeOS%20UI规划文档.md)
-5. [EdgeOS 工业大脑 UI 开发实操指南](./样式规范.md)
-6. [EdgeOS 2026 P3 TODO](./EdgeOS-2026-P3-TODO.md)
+    <a class="doc-card" href="./EdgeOS-2026-P3-TODO.html">
+      <h3>P3 任务重点</h3>
+      <p>整理当前阶段的交付目标、页面扩展范围和优先事项，方便团队统一节奏。</p>
+      <span class="doc-card__meta">查看 P3 TODO</span>
+    </a>
+  </div>
+</section>

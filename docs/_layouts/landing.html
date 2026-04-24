@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="{{ page.lang | default: site.lang | default: 'zh-CN' }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
+    <meta
+      name="description"
+      content="{{ page.description | default: site.description | strip_html | strip_newlines | escape }}"
+    />
+    <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}" />
+  </head>
+  <body class="landing-body">
+    <div class="landing-shell">
+      <header class="site-header site-header--landing">
+        <div class="site-header__inner">
+          <a class="site-brand" href="{{ '/' | relative_url }}">
+            <span class="site-brand__eyebrow">Industrial Brain</span>
+            <span class="site-brand__title">{{ site.title }}</span>
+          </a>
+          <nav class="site-nav" aria-label="主导航">
+            <a href="#overview">系统概览</a>
+            <a href="#capabilities">核心能力</a>
+            <a href="#documents">文档入口</a>
+            <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">返回项目仓库</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="landing-main">
+        {{ content }}
+      </main>
+    </div>
+  </body>
+</html>
