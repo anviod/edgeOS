@@ -243,11 +243,38 @@ img {
 }
 
 .metric-card {
-  padding: 18px;
+  position: relative;
+  padding: 20px 18px;
   border-radius: var(--radius-md);
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.06));
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  backdrop-filter: blur(10px);
+  transition: 0.25s ease;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.4), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: 0.25s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.25), 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+.metric-card:hover::before {
+  opacity: 1;
 }
 
 .metric-card strong {
