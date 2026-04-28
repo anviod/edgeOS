@@ -1,7 +1,9 @@
 ﻿---
+
 layout: landing
 title: EdgeOS 文档中心
 description: 面向 EdgeOS 工业大脑的系统设计、协议规范、后端实现与 UI 工程文档入口。
+
 ---
 
 <section class="hero" id="overview">

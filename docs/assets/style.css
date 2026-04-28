@@ -18,12 +18,13 @@
   --success: #22d3ee;
   --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
-  --radius-lg: 28px;
-  --radius-md: 20px;
-  --radius-sm: 14px;
-  /* 宽屏优化：增大内容宽度 */
-  --content-width: 1600px;
-  --reading-width: 1100px;
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  /* 宽度容器 - 参考 edgex 样式 */
+  --shell-width: 1480px;
+  --shell-wide: 1540px;
+  --shell-docs: 1240px;
   --header-bg: rgba(3, 7, 18, 0.85);
   --surface: rgba(10, 22, 40, 0.6);
   --hero-bg: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(3, 7, 18, 0.98) 100%);
@@ -103,7 +104,7 @@ img {
 }
 
 .site-header__inner {
-  width: min(calc(100% - 40px), var(--content-width));
+  width: min(calc(100% - 32px), var(--shell-width));
   margin: 0 auto;
   min-height: 74px;
   display: flex;
@@ -174,42 +175,21 @@ img {
 }
 
 .hero {
-  width: min(calc(100% - 60px), calc(var(--content-width) + 120px));
+  width: min(calc(100% - 32px), var(--shell-wide));
   margin: 32px auto 24px;
-  padding: 56px 64px;
+  padding: clamp(36px, 5vw, 72px);
   border: 1px solid var(--line);
-  border-radius: 36px;
+  border-radius: var(--radius-xl);
   background: var(--hero-bg);
   box-shadow: var(--shadow), var(--shadow-glow);
   overflow: hidden;
   position: relative;
 }
 
-.hero::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--brand), transparent);
-  opacity: 0.6;
-}
-
-.hero::after {
-  content: "";
-  position: absolute;
-  inset: 18px;
-  border-radius: 28px;
-  border: 1px solid var(--line);
-  pointer-events: none;
-  opacity: 0.4;
-}
-
 .hero__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr) minmax(400px, 1.1fr);
+  gap: 40px;
   align-items: center;
 }
 
@@ -231,8 +211,8 @@ img {
 
 .hero h1 {
   margin: 18px 0 16px;
-  font-size: clamp(2.8rem, 5vw, 5.2rem);
-  line-height: 1.02;
+  font-size: clamp(2.8rem, 5vw, 5rem);
+  line-height: 0.98;
   letter-spacing: -0.04em;
   background: linear-gradient(135deg, #ffffff 0%, var(--brand-light) 50%, var(--brand-bright) 100%);
   -webkit-background-clip: text;
@@ -424,17 +404,27 @@ img {
 }
 
 .landing-section {
-  width: min(calc(100% - 60px), var(--content-width));
+  width: min(calc(100% - 32px), var(--shell-width));
   margin: 0 auto;
-  padding: 36px 0;
+  padding: 28px 0;
 }
 
 .section-heading {
-  max-width: 720px;
-  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 2.5vw, 2.6rem);
 }
 
 .section-heading p {
+  margin: 10px 0 0;
+  max-width: 780px;
   color: var(--text-soft);
   line-height: 1.8;
 }
@@ -443,7 +433,7 @@ img {
 .card-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
+  gap: 20px;
 }
 
 /* 文档卡片网格 - 宽屏四栏布局 */
@@ -455,23 +445,23 @@ img {
 .doc-card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 28px 24px;
-  border-radius: var(--radius-md);
+  gap: 14px;
+  padding: 24px;
+  border-radius: var(--radius-lg);
   transition: 0.2s ease;
 }
 
 .capability-card h3,
 .doc-card h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
 
 .capability-card p,
 .doc-card p {
   margin: 0;
   color: var(--text-soft);
-  line-height: 1.8;
+  line-height: 1.75;
   font-size: 1rem;
 }
 
@@ -506,7 +496,7 @@ img {
 }
 
 .doc-shell__inner {
-  width: min(calc(100% - 48px), var(--reading-width));
+  width: min(calc(100% - 32px), var(--shell-docs));
   margin: 0 auto;
 }
 
@@ -649,23 +639,16 @@ img {
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
-@media (max-width: 1024px) {
-  .hero {
-    padding: 40px 48px;
-  }
-
-  .hero__grid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-
+@media (max-width: 1180px) {
+  .hero__grid,
   .feature-grid,
+  .card-grid,
+  .section-heading {
+    grid-template-columns: 1fr;
+  }
+
   .card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .card-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .hero-card-board {
@@ -673,24 +656,15 @@ img {
   }
 }
 
-/* 平板适配 */
-@media (max-width: 900px) {
-  .card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  :root {
-    --content-width: 100%;
-    --reading-width: 100%;
-  }
-
+@media (max-width: 720px) {
+  .shell,
+  .shell--wide,
+  .shell--docs,
   .site-header__inner,
   .landing-section,
   .doc-shell__inner,
   .hero {
-    width: min(calc(100% - 24px), 100%);
+    width: min(calc(100% - 20px), 100%);
   }
 
   .site-header__inner {
@@ -706,14 +680,19 @@ img {
 
   .hero {
     margin-top: 20px;
-    padding: 24px;
-    border-radius: 28px;
+    padding: 26px 20px;
+    border-radius: 24px;
+  }
+
+  .hero h1 {
+    font-size: 2.4rem;
   }
 
   .hero__grid,
   .feature-grid,
   .card-grid,
-  .metric-strip {
+  .metric-strip,
+  .hero-card-board {
     grid-template-columns: 1fr;
   }
 
@@ -731,59 +710,5 @@ img {
     font-size: 0.92rem;
     overflow-x: auto;
     white-space: nowrap;
-  }
-}
-
-/* 超宽屏优化 (1920px+) */
-@media (min-width: 1920px) {
-  :root {
-    --content-width: 1800px;
-    --reading-width: 1200px;
-  }
-
-  body {
-    background:
-      radial-gradient(ellipse 100% 60% at 50% -30%, rgba(59, 130, 246, 0.2) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 50% at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 40% at 20% 90%, rgba(29, 78, 216, 0.08) 0%, transparent 50%),
-      linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
-  }
-
-  .hero {
-    padding: 72px 96px;
-    border-radius: 40px;
-  }
-
-  .hero h1 {
-    font-size: clamp(3rem, 4vw, 5.5rem);
-  }
-
-  .hero p {
-    font-size: 1.2rem;
-    max-width: 70ch;
-  }
-
-  .capability-card,
-  .doc-card {
-    padding: 32px 28px;
-  }
-
-  .capability-card h3,
-  .doc-card h3 {
-    font-size: 1.25rem;
-  }
-
-  .capability-card p,
-  .doc-card p {
-    font-size: 1.05rem;
-  }
-
-  .doc-content {
-    font-size: 1.1rem;
-    padding: 40px 52px 52px;
-  }
-
-  .metric-strip__value {
-    font-size: 2rem;
   }
 }
