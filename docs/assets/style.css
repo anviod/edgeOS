@@ -242,12 +242,12 @@ img {
 .hero {
   width: min(calc(100% - 32px), var(--shell-wide));
   margin: 32px auto 24px;
-  padding: clamp(36px, 5vw, 72px);
+  padding: clamp(32px, 4vw, 64px);
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
   background: var(--hero-bg);
   box-shadow: var(--shadow), var(--shadow-glow);
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 
