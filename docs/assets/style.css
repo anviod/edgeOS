@@ -109,6 +109,20 @@
   box-shadow: 0 12px 40px rgba(37, 99, 235, 0.12);
 }
 
+/* 亮色主题 - 指标卡片描述文字 */
+:root[data-theme="light"] .metric-card span {
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+/* 亮色主题 - body 背景适配 */
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -283,7 +297,7 @@ img {
   max-width: 820px;
   font-size: clamp(1.02rem, 1.5vw, 1.18rem);
   line-height: 1.8;
-  color: rgba(244, 251, 255, 0.86);
+  color: var(--text-soft);
 }
 
 .hero__metrics {
@@ -338,8 +352,12 @@ img {
 .metric-card span {
   display: block;
   margin-top: 6px;
-  color: rgba(244, 251, 255, 0.78);
+  color: var(--text-soft);
   font-size: 0.95rem;
+}
+
+.hero__description {
+  color: var(--text-soft);
 }
 
 .hero__actions {
