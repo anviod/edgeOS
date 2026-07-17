@@ -847,6 +847,37 @@ img {
   color: var(--gold-dark);
 }
 
+/* Scenario card with background image */
+.scenario-card {
+  position: relative;
+  min-height: 220px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.scenario-card__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(9,9,9,0.25) 0%, rgba(9,9,9,0.75) 55%, rgba(9,9,9,0.92) 100%);
+  border-radius: var(--radius-lg);
+  z-index: 0;
+}
+
+.scenario-card h3,
+.scenario-card p {
+  position: relative;
+  z-index: 1;
+}
+
+.scenario-card h3 {
+  text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+}
+
+.scenario-card p {
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
 .doc-card__meta {
   margin-top: auto;
   display: inline-flex;
