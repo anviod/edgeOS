@@ -1,7 +1,14 @@
-title: EdgeOS Docs
-description: EdgeOS 边缘大脑系统说明文档与 UI 规划站点
-theme: jekyll-theme-cayman
+title: "EdgeOS | Industrial AI · Enterprise Edge Platform"
+description: "EdgeOS 工业级边缘计算平台文档 — 高可用边缘大脑、设备协同、通道健康与群控编排。"
 markdown: kramdown
 lang: zh-CN
 show_downloads: false
 timezone: Asia/Shanghai
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+collections:
+  pages:
+    output: true
+    permalink: /:name.html

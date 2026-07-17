@@ -1,33 +1,38 @@
-﻿---
-
+---
 layout: landing
-title: EdgeOS 文档中心
-description: 面向 EdgeOS 工业大脑的系统设计、协议规范、后端实现与 UI 工程文档入口。
-
+title: EdgeOS
+description: Industrial AI · Enterprise Edge Platform — 面向工业现场的高可用边缘计算与设备协同平台。
 ---
 
 <section class="hero" id="overview">
+  <div class="hero__glow"></div>
   <div class="hero__grid">
     <div class="hero__copy">
-      <span class="hero__eyebrow">EdgeOS Doc</span>
-      <h2>边缘计算·核心中枢</h2>
+      <span class="hero__eyebrow">EdgeX AI Gateway</span>
+      <h2>
+        <span class="typewriter-wrap">
+          <span class="typewriter" data-type-lines='["构建一次，随处部署。","N+2 高可用边缘大脑","MQTT / NATS 双通道冗余","ShadowCore 实时推理引擎"]'"></span>
+          <span class="typewriter-ghost" aria-hidden="true">MQTT / NATS 双通道冗余</span>
+          <span class="typewriter-cursor"></span>
+        </span>
+      </h2>
       <p class="hero__description">
-        汇总 EdgeOS 的系统架构、EdgeX 通信协议、后端实现路径、UI 规划与工业控制级样式规范，
-        用于研发、联调与交付阶段的统一参考。
+        EdgeOS 是面向工业 AI 的企业级边缘平台。聚焦高可用边缘大脑、设备通道协同、
+        群控编排与业务扩展，为工业现场提供从采集到决策的完整闭环。
       </p>
       <div class="hero__actions">
-        <a class="button-link button-link--primary" href="#documents">进入文档入口</a>
-        <a class="button-link button-link--secondary" href="./EdgeOS-2026-P3-TODO.html">查看 P3 重点</a>
+        <a class="button-link button-link--primary" href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a class="button-link button-link--secondary" href="./EdgeOS 后端实现指南.html">快速开始</a>
       </div>
 
       <div class="hero__metrics">
         <div class="metric-card">
           <strong>N+2</strong>
-          <span>架构模式</span>
+          <span>高可用架构</span>
         </div>
         <div class="metric-card">
           <strong>6+</strong>
-          <span>核心专题</span>
+          <span>核心能力域</span>
         </div>
         <div class="metric-card">
           <strong>P3</strong>
@@ -50,19 +55,19 @@ description: 面向 EdgeOS 工业大脑的系统设计、协议规范、后端�
 
       <div class="hero-card-board">
         <article class="hero-mini-card">
-          <span class="hero-mini-card__eyebrow">Docs</span>
-          <strong>协议、后端、UI、样式</strong>
-          <p>文档入口按主题分组，首页负责快速分流。</p>
+          <span class="hero-mini-card__eyebrow">Protocol</span>
+          <strong>MQTT / NATS</strong>
+          <p>双通道冗余通信链路，支撑高并发设备接入。</p>
         </article>
         <article class="hero-mini-card">
           <span class="hero-mini-card__eyebrow">Runtime</span>
           <strong>Latency / Loss / Quality</strong>
-          <p>突出工业运行态指标，而不是展示性大图。</p>
+          <p>实时运行态指标监测，工业级可靠性保障。</p>
         </article>
         <article class="hero-mini-card">
-          <span class="hero-mini-card__eyebrow">Workflow</span>
-          <strong>P3 规划持续推进</strong>
-          <p>从架构设计一路落到页面规划和联调记录。</p>
+          <span class="hero-mini-card__eyebrow">AI Ready</span>
+          <strong>ShadowCore Engine</strong>
+          <p>高性能内存快照引擎，支撑实时推理与决策。</p>
         </article>
       </div>
     </div>
@@ -118,50 +123,49 @@ description: 面向 EdgeOS 工业大脑的系统设计、协议规范、后端�
     <a class="doc-card" href="../readme.md">
       <h3>项目总览</h3>
       <p>快速了解 EdgeOS 的总体定位、仓库结构和关键模块，适合作为整个文档站的起点。</p>
-      <span class="doc-card__meta">查看总览</span>
+      <span class="doc-card__meta">查看总览 &rarr;</span>
     </a>
 
     <a class="doc-card" href="./EdgeX通信协议规范(MQTT-NATS).html">
       <h3>通信协议规范</h3>
       <p>聚焦 EdgeX 与 EdgeOS 之间的 MQTT / NATS 设计、消息格式、时序与联调约束。</p>
-      <span class="doc-card__meta">查看协议</span>
+      <span class="doc-card__meta">查看协议 &rarr;</span>
     </a>
 
     <a class="doc-card" href="./EdgeOS与EdgeX通信测试验证文档.html">
       <h3>通信测试验证</h3>
       <p>沉淀联调过程中的验证步骤、消息示例与测试链路，方便回归和对照检查。</p>
-      <span class="doc-card__meta">查看验证文档</span>
+      <span class="doc-card__meta">查看验证文档 &rarr;</span>
     </a>
 
     <a class="doc-card" href="./EdgeOS_与EdgeX通信测试报告_20260417.html">
       <h3>通信测试报告</h3>
       <p>记录 2026-04-17 的联调报告、测试结论和现阶段问题，为后续迭代提供依据。</p>
-      <span class="doc-card__meta">查看报告</span>
+      <span class="doc-card__meta">查看报告 &rarr;</span>
     </a>
 
     <a class="doc-card" href="./EdgeOS 后端实现指南.html">
       <h3>后端实现指南</h3>
       <p>梳理服务职责、实现路径与工程约束，帮助后端开发和前后端对接保持一致。</p>
-      <span class="doc-card__meta">查看实现指南</span>
+      <span class="doc-card__meta">查看实现指南 &rarr;</span>
     </a>
 
     <a class="doc-card" href="./EdgeOS UI规划文档.html">
       <h3>UI 规划文档</h3>
       <p>从信息架构、页面拆分到模块化编排说明前端规划，是页面方案设计的主文档。</p>
-      <span class="doc-card__meta">查看 UI 规划</span>
+      <span class="doc-card__meta">查看 UI 规划 &rarr;</span>
     </a>
 
     <a class="doc-card" href="./样式规范.html">
       <h3>工业级样式规范</h3>
       <p>定义面向工业控制场景的布局、状态、表格、危险操作与样式覆写规范。</p>
-      <span class="doc-card__meta">查看样式规范</span>
+      <span class="doc-card__meta">查看样式规范 &rarr;</span>
     </a>
 
     <a class="doc-card" href="./EdgeOS-2026-P3-TODO.html">
       <h3>P3 任务重点</h3>
       <p>整理当前阶段的交付目标、页面扩展范围和优先事项，方便团队统一节奏。</p>
-      <span class="doc-card__meta">查看 P3 TODO</span>
+      <span class="doc-card__meta">查看 P3 TODO &rarr;</span>
     </a>
   </div>
 </section>
-

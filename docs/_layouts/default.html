@@ -22,25 +22,23 @@
       <header class="site-header">
         <div class="site-header__inner">
           <a class="site-brand" href="{{ '/' | relative_url }}">
-            <span class="site-brand__eyebrow">EdgeOS Docs</span>
-            <span class="site-brand__title">{{ site.title }}</span>
+            <span class="site-brand__eyebrow">Industrial AI</span>
+            <span class="site-brand__title">EdgeOS</span>
           </a>
           <nav class="site-nav" aria-label="主导航">
-            <a href="{{ '/' | relative_url }}">首页</a>
-            <a href="{{ '/EdgeX通信协议规范(MQTT-NATS).html' | relative_url }}">协议规范</a>
-            <a href="{{ '/EdgeOS 后端实现指南.html' | relative_url }}">后端实现</a>
-            <a href="{{ '/EdgeOS UI规划文档.html' | relative_url }}">UI 规划</a>
-            <a href="{{ '/样式规范.html' | relative_url }}">样式规范</a>
-            <a href="{{ '/EdgeOS-2026-P3-TODO.html' | relative_url }}">P3 TODO</a>
-            <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">返回项目仓库</a>
+            <a href="{{ '/' | relative_url }}">文档</a>
+            <a href="{{ '/EdgeOS 后端实现指南.html' | relative_url }}">架构</a>
+            <a href="{{ '/EdgeX通信协议规范(MQTT-NATS).html' | relative_url }}">驱动</a>
+            <a href="{{ '/EdgeOS UI规划文档.html' | relative_url }}">智能</a>
+            <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
             <button
               class="theme-toggle"
               type="button"
               data-theme-toggle
-              aria-label="切换黑白主题"
+              aria-label="切换主题"
               aria-pressed="false"
             >
-              黑色主题
+              <span data-theme-icon>🌙</span>
             </button>
           </nav>
         </div>
@@ -61,32 +59,45 @@
           </article>
         </div>
       </main>
+
+      <footer class="site-footer">
+        <div class="site-footer__row">
+          <span class="site-footer__brand">EdgeOS</span>
+          <span class="site-footer__divider">|</span>
+          <span class="site-footer__tagline">工业智能 · 企业边缘平台</span>
+          <span class="site-footer__divider">|</span>
+          <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <span class="site-footer__divider">|</span>
+          <a href="{{ '/EdgeOS-2026-P3-TODO.html' | relative_url }}">P3 路线图</a>
+          <span class="site-footer__divider">|</span>
+          <a href="{{ '/样式规范.html' | relative_url }}">样式指南</a>
+          <span class="site-footer__divider">|</span>
+          <span class="site-footer__copy">开源 · MIT 许可证</span>
+        </div>
+      </footer>
     </div>
+
     <script>
       (function () {
         var storageKey = 'edgeos-docs-theme';
         var root = document.documentElement;
         var button = document.querySelector('[data-theme-toggle]');
+        var icon = document.querySelector('[data-theme-icon]');
         if (!button) return;
 
-        var labels = {
-          dark: '黑色主题',
-          light: '白色主题'
-        };
-
-        function syncButton(theme) {
-          button.textContent = labels[theme];
+        function syncTheme(theme) {
+          root.setAttribute('data-theme', theme);
+          if (icon) icon.textContent = theme === 'light' ? '☀️' : '🌙';
           button.setAttribute('aria-pressed', String(theme === 'light'));
         }
 
-        syncButton(root.getAttribute('data-theme') || 'dark');
+        syncTheme(root.getAttribute('data-theme') || 'dark');
 
         button.addEventListener('click', function () {
           var currentTheme = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
           var nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-          root.setAttribute('data-theme', nextTheme);
+          syncTheme(nextTheme);
           localStorage.setItem(storageKey, nextTheme);
-          syncButton(nextTheme);
         });
       })();
     </script>

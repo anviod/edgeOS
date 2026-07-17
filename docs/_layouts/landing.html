@@ -19,25 +19,26 @@
   </head>
   <body class="landing-body">
     <div class="landing-shell">
-      <header class="site-header site-header--landing">
+      <header class="site-header site-header--landing" id="landingHeader">
         <div class="site-header__inner">
           <a class="site-brand" href="{{ '/' | relative_url }}">
-            <span class="site-brand__eyebrow">Industrial Brain</span>
-            <span class="site-brand__title">{{ site.title }}</span>
+            <span class="site-brand__eyebrow">Industrial AI</span>
+            <span class="site-brand__title">EdgeOS</span>
           </a>
           <nav class="site-nav" aria-label="主导航">
-            <a href="#overview">系统概览</a>
-            <a href="#capabilities">核心能力</a>
-            <a href="#documents">文档入口</a>
-            <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">返回项目仓库</a>
+            <a href="{{ '/' | relative_url }}">文档</a>
+            <a href="{{ '/EdgeOS 后端实现指南.html' | relative_url }}">架构</a>
+            <a href="{{ '/EdgeX通信协议规范(MQTT-NATS).html' | relative_url }}">驱动</a>
+            <a href="{{ '/EdgeOS UI规划文档.html' | relative_url }}">智能</a>
+            <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
             <button
               class="theme-toggle"
               type="button"
               data-theme-toggle
-              aria-label="切换黑白主题"
+              aria-label="切换主题"
               aria-pressed="false"
             >
-              黑色主题
+              <span data-theme-icon>🌙</span>
             </button>
           </nav>
         </div>
@@ -46,32 +47,107 @@
       <main class="landing-main">
         {{ content }}
       </main>
+
+      <footer class="site-footer">
+        <div class="site-footer__row">
+          <span class="site-footer__brand">EdgeOS</span>
+          <span class="site-footer__divider">|</span>
+          <span class="site-footer__tagline">工业智能 · 企业边缘平台</span>
+          <span class="site-footer__divider">|</span>
+          <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <span class="site-footer__divider">|</span>
+          <a href="{{ '/EdgeOS-2026-P3-TODO.html' | relative_url }}">P3 路线图</a>
+          <span class="site-footer__divider">|</span>
+          <a href="{{ '/样式规范.html' | relative_url }}">样式指南</a>
+          <span class="site-footer__divider">|</span>
+          <span class="site-footer__copy">开源 · MIT 许可证</span>
+        </div>
+      </footer>
     </div>
+
     <script>
       (function () {
+        // Theme toggle
         var storageKey = 'edgeos-docs-theme';
         var root = document.documentElement;
         var button = document.querySelector('[data-theme-toggle]');
-        if (!button) return;
+        var icon = document.querySelector('[data-theme-icon]');
 
-        var labels = {
-          dark: '黑色主题',
-          light: '白色主题'
-        };
-
-        function syncButton(theme) {
-          button.textContent = labels[theme];
-          button.setAttribute('aria-pressed', String(theme === 'light'));
+        function syncTheme(theme) {
+          root.setAttribute('data-theme', theme);
+          if (icon) icon.textContent = theme === 'light' ? '☀️' : '🌙';
+          if (button) button.setAttribute('aria-pressed', String(theme === 'light'));
         }
 
-        syncButton(root.getAttribute('data-theme') || 'dark');
+        var current = root.getAttribute('data-theme') || 'dark';
+        syncTheme(current);
 
-        button.addEventListener('click', function () {
-          var currentTheme = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-          var nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-          root.setAttribute('data-theme', nextTheme);
-          localStorage.setItem(storageKey, nextTheme);
-          syncButton(nextTheme);
+        if (button) {
+          button.addEventListener('click', function () {
+            var now = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            var next = now === 'dark' ? 'light' : 'dark';
+            syncTheme(next);
+            localStorage.setItem(storageKey, next);
+          });
+        }
+
+        // Navbar scroll effect
+        var header = document.getElementById('landingHeader');
+        if (header) {
+          window.addEventListener('scroll', function () {
+            if (window.scrollY > 20) {
+              header.classList.add('scrolled');
+            } else {
+              header.classList.remove('scrolled');
+            }
+          });
+        }
+
+        // Typewriter effect — multi-line rotation, no clipping
+        document.querySelectorAll('.typewriter').forEach(function (el) {
+          var raw = el.getAttribute('data-type-lines') || el.getAttribute('data-type-text') || '';
+          var lines = [];
+          try {
+            lines = JSON.parse(raw);
+          } catch (e) {
+            lines = [raw];
+          }
+          if (!lines.length) return;
+
+          var lineIndex = 0;
+          var i = 0;
+          var deleting = false;
+          var wait = 0;
+
+          function tick() {
+            var text = lines[lineIndex];
+            if (wait > 0) {
+              wait--;
+              setTimeout(tick, 300);
+              return;
+            }
+
+            if (!deleting) {
+              i++;
+              if (i > text.length) {
+                deleting = true;
+                wait = 10; // pause ~3s at full text
+              }
+            } else {
+              i--;
+              if (i < 0) {
+                deleting = false;
+                lineIndex = (lineIndex + 1) % lines.length;
+                i = 0;
+                wait = 2;
+              }
+            }
+
+            el.textContent = text.slice(0, Math.max(0, i));
+            setTimeout(tick, deleting ? 50 : 140);
+          }
+
+          tick();
         });
       })();
     </script>
