@@ -773,51 +773,187 @@ img {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.capability-card,
-.doc-card {
+/* Shared card base */
+.doc-card, .platform-card, .capability-card, .scene-card {
   display: flex;
   flex-direction: column;
   gap: 14px;
   padding: 28px;
   border-radius: var(--radius-lg);
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--gold-border);
   transition: var(--transition-base);
   position: relative;
   overflow: hidden;
 }
 
-.capability-card::before,
+/* ----------------------------------------------------------
+   Document entry cards (unchanged)
+   ---------------------------------------------------------- */
+.doc-card {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--gold-border);
+}
+
 .doc-card::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(200, 167, 91, 0.4), transparent);
   opacity: 0;
   transition: var(--transition-base);
 }
 
-.capability-card:hover,
 .doc-card:hover,
-.capability-card:focus-visible,
 .doc-card:focus-visible {
   transform: translateY(-6px) scale(1.01);
   border-color: var(--gold-border-hover);
   box-shadow: var(--shadow-gold-lg);
 }
 
-.capability-card:hover::before,
-.doc-card:hover::before {
-  opacity: 1;
+.doc-card:hover::before { opacity: 1; }
+
+/* ----------------------------------------------------------
+   1. 平台定位卡片 —「数字化基石」
+   左侧硬核指示条 + 科技微光
+   ---------------------------------------------------------- */
+.platform-card {
+  background: rgba(16, 22, 35, 0.55);
+  border: 1px solid rgba(200, 167, 91, 0.12);
+  border-radius: 6px;
 }
 
-.capability-card h3,
-.doc-card h3 {
+.platform-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold-dark));
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+.platform-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 10% 50%, rgba(200, 167, 91, 0.06), transparent 70%);
+  pointer-events: none;
+}
+
+.platform-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(200, 167, 91, 0.35);
+  background: rgba(16, 22, 35, 0.75);
+  box-shadow: 0 10px 30px rgba(200, 167, 91, 0.08);
+}
+
+.platform-card:hover::before {
+  width: 5px;
+  opacity: 1;
+  box-shadow: 0 0 14px rgba(200, 167, 91, 0.4);
+}
+
+/* ----------------------------------------------------------
+   2. 核心能力卡片 —「军工级边框」
+   对角切线 + 工业微网格 + 荧光绿高亮
+   ---------------------------------------------------------- */
+.capability-card {
+  background: linear-gradient(135deg, rgba(14, 22, 18, 0.7) 0%, rgba(10, 15, 20, 0.8) 100%);
+  border: 1px solid rgba(200, 167, 91, 0.12);
+  border-radius: 4px;
+  background-image:
+    linear-gradient(rgba(200, 167, 91, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 167, 91, 0.03) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+/* 左上角切线 */
+.capability-card::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 10px; height: 10px;
+  border-top: 2px solid var(--gold-light);
+  border-left: 2px solid var(--gold-light);
+}
+
+/* 右下角切线 */
+.capability-card::after {
+  content: "";
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-bottom: 2px solid var(--gold-light);
+  border-right: 2px solid var(--gold-light);
+  opacity: 0.4;
+  transition: all 0.3s ease;
+}
+
+.capability-card:hover {
+  border-color: rgba(200, 167, 91, 0.35);
+  box-shadow: 0 0 24px rgba(200, 167, 91, 0.06);
+  transform: scale(1.02);
+}
+
+.capability-card:hover::after {
+  opacity: 1;
+  width: 14px; height: 14px;
+  box-shadow: 2px 2px 6px rgba(200, 167, 91, 0.3);
+}
+
+/* ----------------------------------------------------------
+   3. 业务场景卡片 —「智能仪表盘」
+   毛玻璃质感 + 多主题色彩发光
+   ---------------------------------------------------------- */
+.scene-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.scene-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* 场景主题色 — 智能电网 */
+.scene-card.grid-node:hover {
+  border-color: rgba(200, 167, 91, 0.5);
+  box-shadow: 0 12px 30px rgba(200, 167, 91, 0.12);
+}
+
+/* 场景主题色 — 充电储能 */
+.scene-card.energy-node:hover {
+  border-color: rgba(0, 200, 120, 0.5);
+  box-shadow: 0 12px 30px rgba(0, 200, 120, 0.12);
+}
+
+/* 场景主题色 — 交通指挥 */
+.scene-card.traffic-node:hover {
+  border-color: rgba(0, 200, 255, 0.5);
+  box-shadow: 0 12px 30px rgba(0, 200, 255, 0.12);
+}
+
+/* 场景主题色 — 图像推理 */
+.scene-card.ai-node:hover {
+  border-color: rgba(180, 80, 255, 0.5);
+  box-shadow: 0 12px 30px rgba(180, 80, 255, 0.12);
+}
+
+/* 场景主题色 — 运营中心 */
+.scene-card.center-node:hover {
+  border-color: rgba(0, 220, 255, 0.5);
+  box-shadow: 0 12px 30px rgba(0, 220, 255, 0.12);
+}
+
+/* ----------------------------------------------------------
+   Shared card content styles
+   ---------------------------------------------------------- */
+.doc-card h3, .platform-card h3, .capability-card h3, .scene-card h3 {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 700;
@@ -825,16 +961,14 @@ img {
   letter-spacing: -0.01em;
 }
 
-.capability-card p,
-.doc-card p {
+.doc-card p, .platform-card p, .capability-card p, .scene-card p {
   margin: 0;
   color: var(--text-muted);
   line-height: 1.75;
   font-size: 0.95rem;
 }
 
-.capability-card ul,
-.doc-card ul {
+.doc-card ul, .platform-card ul, .capability-card ul, .scene-card ul {
   margin: 0;
   padding-left: 1.2rem;
   color: var(--text-dim);
@@ -842,8 +976,10 @@ img {
   font-size: 0.92rem;
 }
 
+.doc-card ul li::marker,
+.platform-card ul li::marker,
 .capability-card ul li::marker,
-.doc-card ul li::marker {
+.scene-card ul li::marker {
   color: var(--gold-dark);
 }
 
@@ -1359,7 +1495,9 @@ img {
 }
 
 :root[data-theme="light"] .capability-card:hover,
-:root[data-theme="light"] .doc-card:hover {
+:root[data-theme="light"] .doc-card:hover,
+:root[data-theme="light"] .platform-card:hover,
+:root[data-theme="light"] .scene-card:hover {
   box-shadow: 0 16px 48px rgba(200, 167, 91, 0.15);
 }
 
@@ -1380,6 +1518,8 @@ img {
   .metric-card:hover,
   .capability-card:hover,
   .doc-card:hover,
+  .platform-card:hover,
+  .scene-card:hover,
   .hero-mini-card:hover,
   .button-link--primary:hover,
   .button-link--secondary:hover {
