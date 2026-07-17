@@ -9,16 +9,11 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
   <div class="hero__grid">
     <div class="hero__copy">
       <span class="hero__eyebrow">EdgeX AI Gateway</span>
-      <h2>
-        <span class="typewriter-wrap">
-          <span class="typewriter" data-type-lines='["构建一次，随处部署。","N+2 高可用边缘大脑","MQTT / NATS 双通道冗余","ShadowCore 实时推理引擎"]'"></span>
-          <span class="typewriter-ghost" aria-hidden="true">MQTT / NATS 双通道冗余</span>
-          <span class="typewriter-cursor"></span>
-        </span>
-      </h2>
+      <h2>构建一次，随处部署。</h2>
       <p class="hero__description">
-        EdgeOS 是面向工业 AI 的企业级边缘平台。聚焦高可用边缘大脑、设备通道协同、
-        群控编排与业务扩展，为工业现场提供从采集到决策的完整闭环。
+        EdgeOS 是 EdgeX 的上层应用平台，部署在服务器或高性能边缘网关。
+        支持群控 EdgeX 节点，可部署 LLM 大模型为边缘侧提供推理能力，
+        是业务场景深入落地的重要通道，专注智能电网、储能场站、交通指挥等垂直领域。
       </p>
       <div class="hero__actions">
         <a class="button-link button-link--primary" href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -74,6 +69,45 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
   </div>
 </section>
 
+<section class="landing-section" id="platform">
+  <div class="section-heading">
+    <h2>平台定位</h2>
+    <p>EdgeOS 作为 EdgeX 的上层应用平台，承载核心业务编排与场景落地能力。</p>
+  </div>
+
+  <div class="feature-grid">
+    <article class="capability-card">
+      <h3>上层应用平台</h3>
+      <p>部署于服务器或高性能边缘网关之上，为 EdgeX 提供统一的业务编排、数据汇聚与管控界面。</p>
+      <ul>
+        <li>EdgeX 节点集中纳管</li>
+        <li>业务逻辑编排与下发</li>
+        <li>南向/北向数据通道统一调度</li>
+      </ul>
+    </article>
+
+    <article class="capability-card">
+      <h3>群控与调度</h3>
+      <p>支持大规模 EdgeX 节点的群控管理与协同调度，实现跨节点、跨场站的统一策略执行。</p>
+      <ul>
+        <li>多节点批量配置下发</li>
+        <li>策略模板与场景联动</li>
+        <li>分布式任务编排</li>
+      </ul>
+    </article>
+
+    <article class="capability-card">
+      <h3>AI 推理引擎</h3>
+      <p>可部署 LLM 及专用推理模型，为 EdgeX 边缘侧提供实时智能决策与业务推理能力。</p>
+      <ul>
+        <li>大模型边缘化部署</li>
+        <li>实时推理与决策反馈</li>
+        <li>模型生命周期管理</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
 <section class="landing-section" id="capabilities">
   <div class="section-heading">
     <h2>核心能力</h2>
@@ -109,6 +143,40 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
         <li>群控调度与场景联动</li>
         <li>P3 阶段静态页面范围</li>
       </ul>
+    </article>
+  </div>
+</section>
+
+<section class="landing-section" id="scenarios">
+  <div class="section-heading">
+    <h2>业务场景</h2>
+    <p>深入垂直行业，专注场景项目落地，覆盖能源、交通、安防与运营等领域。</p>
+  </div>
+
+  <div class="card-grid">
+    <article class="doc-card">
+      <h3>智能电网</h3>
+      <p>电力设备状态监测、负荷预测分析、故障诊断与自愈控制，支撑电网智能化运维。</p>
+    </article>
+
+    <article class="doc-card">
+      <h3>充电储能场站</h3>
+      <p>集中管理充电桩与储能系统，优化能源调度策略，实现场站级能量协同与收益最大化。</p>
+    </article>
+
+    <article class="doc-card">
+      <h3>交通联合指挥</h3>
+      <p>多源感知数据融合、实时路况分析、智能信号控制与应急指挥调度。</p>
+    </article>
+
+    <article class="doc-card">
+      <h3>图像推理</h3>
+      <p>边缘侧实时图像识别、缺陷检测、安全监控与视频结构化分析。</p>
+    </article>
+
+    <article class="doc-card">
+      <h3>运营中心</h3>
+      <p>集中监控大屏、告警统一管理、运维编排自动化与运营决策支持。</p>
     </article>
   </div>
 </section>

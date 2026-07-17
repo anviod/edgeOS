@@ -103,52 +103,7 @@
           });
         }
 
-        // Typewriter effect — multi-line rotation, no clipping
-        document.querySelectorAll('.typewriter').forEach(function (el) {
-          var raw = el.getAttribute('data-type-lines') || el.getAttribute('data-type-text') || '';
-          var lines = [];
-          try {
-            lines = JSON.parse(raw);
-          } catch (e) {
-            lines = [raw];
-          }
-          if (!lines.length) return;
 
-          var lineIndex = 0;
-          var i = 0;
-          var deleting = false;
-          var wait = 0;
-
-          function tick() {
-            var text = lines[lineIndex];
-            if (wait > 0) {
-              wait--;
-              setTimeout(tick, 300);
-              return;
-            }
-
-            if (!deleting) {
-              i++;
-              if (i > text.length) {
-                deleting = true;
-                wait = 10; // pause ~3s at full text
-              }
-            } else {
-              i--;
-              if (i < 0) {
-                deleting = false;
-                lineIndex = (lineIndex + 1) % lines.length;
-                i = 0;
-                wait = 2;
-              }
-            }
-
-            el.textContent = text.slice(0, Math.max(0, i));
-            setTimeout(tick, deleting ? 50 : 140);
-          }
-
-          tick();
-        });
       })();
     </script>
   </body>

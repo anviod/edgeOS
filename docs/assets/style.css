@@ -341,7 +341,7 @@ img {
   z-index: 0;
 }
 
-/* Animated luxury light flow — adapted from edgex */
+/* Mycelium spread effect — bottom-up grid growth */
 .hero__glow {
   position: absolute;
   inset: 0;
@@ -350,44 +350,66 @@ img {
   pointer-events: none;
 }
 
-.hero__glow::before,
+.hero__glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(200, 167, 91, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 167, 91, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(200, 167, 91, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 167, 91, 0.03) 1px, transparent 1px);
+  background-size: 56px 56px, 56px 56px, 14px 14px, 14px 14px;
+  -webkit-mask: linear-gradient(180deg, transparent 0%, #000 30%, #000 100%);
+  mask: linear-gradient(180deg, transparent 0%, #000 30%, #000 100%);
+  animation: mycelium-spread 8s ease-out forwards;
+}
+
 .hero__glow::after {
   content: "";
   position: absolute;
-  top: -60%;
-  width: 40%;
-  height: 220%;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
   background: linear-gradient(
-    90deg,
+    180deg,
     transparent 0%,
-    rgba(232, 213, 163, 0.06) 20%,
-    rgba(200, 167, 91, 0.12) 50%,
-    rgba(232, 213, 163, 0.06) 80%,
-    transparent 100%
+    rgba(200, 167, 91, 0.08) 30%,
+    rgba(200, 167, 91, 0.15) 70%,
+    rgba(200, 167, 91, 0.25) 100%
   );
-  transform: rotate(-20deg);
-  filter: blur(60px);
+  animation: mycelium-glow 8s ease-out forwards;
 }
 
-.hero__glow::before {
-  left: -30%;
-  animation: luxury-flow-a 14s ease-in-out infinite;
+@keyframes mycelium-spread {
+  0% {
+    -webkit-mask: linear-gradient(180deg, transparent 0%, transparent 0%, transparent 0%);
+    mask: linear-gradient(180deg, transparent 0%, transparent 0%, transparent 0%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    -webkit-mask: linear-gradient(180deg, transparent 0%, #000 30%, #000 100%);
+    mask: linear-gradient(180deg, transparent 0%, #000 30%, #000 100%);
+    opacity: 1;
+  }
 }
 
-.hero__glow::after {
-  right: -30%;
-  opacity: 0.5;
-  animation: luxury-flow-b 18s ease-in-out infinite;
-}
-
-@keyframes luxury-flow-a {
-  0%, 100% { transform: rotate(-20deg) translateX(-20%); opacity: 0.2; }
-  50% { transform: rotate(-20deg) translateX(130%); opacity: 0.5; }
-}
-
-@keyframes luxury-flow-b {
-  0%, 100% { transform: rotate(-20deg) translateX(120%); opacity: 0.15; }
-  50% { transform: rotate(-20deg) translateX(-30%); opacity: 0.4; }
+@keyframes mycelium-glow {
+  0% {
+    height: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    height: 40%;
+    opacity: 1;
+  }
 }
 
 .hero__grid {
@@ -403,39 +425,6 @@ img {
   display: flex;
   flex-direction: column;
   max-width: 780px;
-}
-
-/* Typewriter effect — full text visible, no clipping */
-.typewriter-wrap {
-  position: relative;
-  display: inline-block;
-}
-
-.typewriter {
-  position: absolute;
-  left: 0;
-  top: 0;
-  white-space: nowrap;
-  background: linear-gradient(135deg, #FFFFFF 0%, var(--gold-bright) 40%, var(--gold) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.typewriter-ghost {
-  visibility: hidden;
-  pointer-events: none;
-  user-select: none;
-}
-
-.typewriter-cursor {
-  display: inline-block;
-  width: 3px;
-  height: 0.9em;
-  background: var(--gold-light);
-  margin-left: 4px;
-  vertical-align: baseline;
-  animation: cursor-blink 1s step-end infinite;
 }
 
 .hero__eyebrow {
@@ -457,14 +446,11 @@ img {
 
 .hero h2 {
   margin: 0 0 24px;
-  font-size: clamp(2.6rem, 5.5vw, 4.8rem);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
   font-weight: 800;
-  background: linear-gradient(135deg, #FFFFFF 0%, var(--gold-bright) 40%, var(--gold) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #C8A75B;
 }
 
 .hero__description {
@@ -659,11 +645,6 @@ img {
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(0.85); }
-}
-
-@keyframes cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
 }
 
 .status-panel p {

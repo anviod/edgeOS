@@ -4,6 +4,9 @@ markdown: kramdown
 lang: zh-CN
 show_downloads: false
 timezone: Asia/Shanghai
+kramdown:
+  parse_block_html: true
+  parse_span_html: true
 plugins:
   - jekyll-relative-links
 relative_links:
