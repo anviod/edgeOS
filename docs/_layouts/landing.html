@@ -103,7 +103,31 @@
           });
         }
 
-
+        // Typewriter effect
+        var tw = document.querySelector('.hero h2 .typewriter');
+        if (tw) {
+          var lines = [
+            "构建一次，随处部署。",
+            "N+2 高可用边缘大脑",
+            "MQTT / NATS 双通道冗余",
+            "ShadowCore 实时推理引擎"
+          ];
+          var lineIndex = 0, i = 0, deleting = false;
+          function tick() {
+            var text = lines[lineIndex];
+            if (!deleting) {
+              i++;
+              tw.textContent = text.slice(0, i);
+              if (i >= text.length) { deleting = true; setTimeout(tick, 3000); return; }
+            } else {
+              i--;
+              tw.textContent = text.slice(0, i);
+              if (i <= 0) { deleting = false; lineIndex = (lineIndex + 1) % lines.length; setTimeout(tick, 500); return; }
+            }
+            setTimeout(tick, deleting ? 50 : 140);
+          }
+          tick();
+        }
       })();
     </script>
   </body>

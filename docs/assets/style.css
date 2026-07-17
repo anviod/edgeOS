@@ -450,7 +450,28 @@ img {
   line-height: 1.4;
   letter-spacing: -0.02em;
   font-weight: 800;
+  color: var(--text);
+}
+
+.hero h2 .typewriter {
+  display: inline-block;
   color: #C8A75B;
+  min-height: 1em;
+}
+
+.hero h2 .typewriter-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 0.85em;
+  background: #DDBB73;
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .hero__description {

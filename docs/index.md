@@ -9,7 +9,7 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
   <div class="hero__grid">
     <div class="hero__copy">
       <span class="hero__eyebrow">EdgeX AI Gateway</span>
-      <h2>构建一次，随处部署。</h2>
+      <h2><span class="typewriter"></span><span class="typewriter-cursor"></span></h2>
       <p class="hero__description">
         EdgeOS 是 EdgeX 的上层应用平台，部署在服务器或高性能边缘网关。
         支持群控 EdgeX 节点，可部署 LLM 大模型为边缘侧提供推理能力，
