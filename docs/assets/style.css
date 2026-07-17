@@ -847,27 +847,34 @@ img {
   color: var(--gold-dark);
 }
 
-/* Scenario card with background image */
+/* Scenario card with pure CSS geometric backgrounds */
 .scenario-card {
   position: relative;
   min-height: 220px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+.scenario-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--radius-lg);
 }
 
 .scenario-card__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(9,9,9,0.25) 0%, rgba(9,9,9,0.75) 55%, rgba(9,9,9,0.92) 100%);
+  background: linear-gradient(180deg, rgba(9,9,9,0.15) 0%, rgba(9,9,9,0.7) 55%, rgba(9,9,9,0.92) 100%);
   border-radius: var(--radius-lg);
-  z-index: 0;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .scenario-card h3,
 .scenario-card p {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .scenario-card h3 {
@@ -876,6 +883,75 @@ img {
 
 .scenario-card p {
   text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
+/* 智能电网 - 网格电流 */
+.scenario-grid::before {
+  background-color: #0a0d12;
+  background-image:
+    linear-gradient(rgba(200, 167, 91, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 167, 91, 0.08) 1px, transparent 1px),
+    radial-gradient(ellipse at 30% 20%, rgba(200, 167, 91, 0.18), transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgba(90, 120, 200, 0.12), transparent 50%);
+  background-size: 28px 28px, 28px 28px, 100% 100%, 100% 100%;
+}
+
+/* 充电储能场站 - 能量条块 */
+.scenario-energy::before {
+  background-color: #0c0f0a;
+  background-image:
+    linear-gradient(90deg, rgba(200, 167, 91, 0.15) 0%, rgba(200, 167, 91, 0.15) 8%, transparent 8%, transparent 14%),
+    linear-gradient(90deg, rgba(200, 167, 91, 0.1) 0%, rgba(200, 167, 91, 0.1) 12%, transparent 12%, transparent 20%),
+    linear-gradient(90deg, rgba(200, 167, 91, 0.07) 0%, rgba(200, 167, 91, 0.07) 18%, transparent 18%, transparent 28%),
+    radial-gradient(ellipse at 80% 30%, rgba(200, 167, 91, 0.2), transparent 50%),
+    radial-gradient(ellipse at 20% 70%, rgba(120, 180, 100, 0.1), transparent 55%);
+  background-size: 100% 18%, 100% 22%, 100% 28%, 100% 100%, 100% 100%;
+  background-repeat: no-repeat;
+  background-position: 0 20%, 0 42%, 0 68%, 0 0, 0 0;
+}
+
+/* 交通联合指挥 - 节点网络 */
+.scenario-traffic::before {
+  background-color: #0a0c10;
+  background-image:
+    radial-gradient(circle at 25% 30%, rgba(200, 167, 91, 0.5) 2px, transparent 3px),
+    radial-gradient(circle at 60% 20%, rgba(200, 167, 91, 0.4) 2px, transparent 3px),
+    radial-gradient(circle at 80% 55%, rgba(200, 167, 91, 0.5) 2px, transparent 3px),
+    radial-gradient(circle at 35% 70%, rgba(200, 167, 91, 0.4) 2px, transparent 3px),
+    radial-gradient(circle at 70% 80%, rgba(200, 167, 91, 0.35) 2px, transparent 3px),
+    linear-gradient(45deg, rgba(200, 167, 91, 0.06) 1px, transparent 1px),
+    linear-gradient(-45deg, rgba(200, 167, 91, 0.06) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 50%, rgba(100, 130, 200, 0.12), transparent 60%);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 20px 20px, 20px 20px, 100% 100%;
+}
+
+/* 图像推理 - 扫描线 */
+.scenario-vision::before {
+  background-color: #0c0a0d;
+  background-image:
+    linear-gradient(180deg, transparent 0%, transparent 48%, rgba(200, 167, 91, 0.15) 50%, transparent 52%, transparent 100%),
+    repeating-linear-gradient(0deg, rgba(200, 167, 91, 0.04) 0px, rgba(200, 167, 91, 0.04) 1px, transparent 1px, transparent 4px),
+    radial-gradient(ellipse at 50% 35%, rgba(200, 167, 91, 0.18), transparent 50%),
+    conic-gradient(from 0deg at 50% 60%, transparent 0deg, rgba(200, 167, 91, 0.08) 60deg, transparent 120deg);
+  background-size: 100% 200%, 100% 100%, 100% 100%, 100% 100%;
+  animation: scan-line 4s linear infinite;
+}
+
+@keyframes scan-line {
+  0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+  100% { background-position: 0 100%, 0 0, 0 0, 0 0; }
+}
+
+/* 运营中心 - 数据波纹 */
+.scenario-ops::before {
+  background-color: #0a0d0f;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(200, 167, 91, 0.12) 0%, rgba(200, 167, 91, 0.12) 20%, transparent 22%),
+    radial-gradient(circle at 50% 50%, rgba(200, 167, 91, 0.09) 0%, rgba(200, 167, 91, 0.09) 35%, transparent 37%),
+    radial-gradient(circle at 50% 50%, rgba(200, 167, 91, 0.06) 0%, rgba(200, 167, 91, 0.06) 50%, transparent 52%),
+    linear-gradient(rgba(200, 167, 91, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 167, 91, 0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 24px 24px, 24px 24px;
 }
 
 .doc-card__meta {
