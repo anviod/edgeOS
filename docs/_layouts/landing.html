@@ -16,6 +16,122 @@
       })();
     </script>
     <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}?v=2" />
+    <style>
+      /* 平台定位 — 数字化基石 */
+      .platform-card {
+        position: relative;
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--gold-border);
+        border-left: 3px solid var(--gold);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .platform-card::before {
+        content: "";
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, var(--gold-light), var(--gold-dark));
+        box-shadow: 0 0 8px rgba(200, 167, 91, 0.3);
+      }
+      .platform-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 70% 50% at 0% 50%, rgba(200, 167, 91, 0.08), transparent 60%);
+        pointer-events: none;
+      }
+      .platform-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--gold-border-hover);
+        border-left-color: var(--gold-bright);
+        box-shadow: var(--shadow-gold-lg);
+      }
+      .platform-card:hover::before {
+        box-shadow: 0 0 16px rgba(200, 167, 91, 0.5);
+      }
+
+      /* 核心能力 — 军工级边框 */
+      .capability-card {
+        position: relative;
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--gold-border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        background-image:
+          linear-gradient(rgba(200, 167, 91, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(200, 167, 91, 0.06) 1px, transparent 1px);
+        background-size: 12px 12px;
+        background-position: center;
+      }
+      .capability-card::before {
+        content: "";
+        position: absolute;
+        top: 8px; left: 8px;
+        width: 16px; height: 16px;
+        border-top: 2px solid var(--gold-light);
+        border-left: 2px solid var(--gold-light);
+      }
+      .capability-card::after {
+        content: "";
+        position: absolute;
+        bottom: 8px; right: 8px;
+        width: 16px; height: 16px;
+        border-bottom: 2px solid var(--gold-light);
+        border-right: 2px solid var(--gold-light);
+        opacity: 0.5;
+        transition: all 0.3s ease;
+      }
+      .capability-card:hover {
+        border-color: var(--gold-border-hover);
+        box-shadow: var(--shadow-gold-lg);
+        transform: translateY(-6px) scale(1.01);
+      }
+      .capability-card:hover::after {
+        opacity: 1;
+        width: 22px; height: 22px;
+        box-shadow: 3px 3px 8px rgba(200, 167, 91, 0.25);
+      }
+
+      /* 业务场景 — 智能仪表盘 */
+      .scene-card {
+        position: relative;
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--gold-border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .scene-card:hover {
+        transform: translateY(-6px) scale(1.01);
+        background: var(--glass-strong);
+      }
+      .scene-card.grid-node:hover {
+        border-color: rgba(200, 167, 91, 0.6);
+        box-shadow: 0 12px 40px rgba(200, 167, 91, 0.15);
+      }
+      .scene-card.energy-node:hover {
+        border-color: rgba(0, 200, 120, 0.6);
+        box-shadow: 0 12px 40px rgba(0, 200, 120, 0.15);
+      }
+      .scene-card.traffic-node:hover {
+        border-color: rgba(0, 200, 255, 0.6);
+        box-shadow: 0 12px 40px rgba(0, 200, 255, 0.15);
+      }
+      .scene-card.ai-node:hover {
+        border-color: rgba(180, 80, 255, 0.6);
+        box-shadow: 0 12px 40px rgba(180, 80, 255, 0.15);
+      }
+      .scene-card.center-node:hover {
+        border-color: rgba(0, 220, 255, 0.6);
+        box-shadow: 0 12px 40px rgba(0, 220, 255, 0.15);
+      }
+    </style>
   </head>
   <body class="landing-body">
     <div class="landing-shell">
