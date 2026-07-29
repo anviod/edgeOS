@@ -10,6 +10,20 @@ import type {
   CommandRecord,
   WritePointRequest,
 } from '@/types/edgex'
+import type {
+  EANAgentDescriptor,
+  EANCapabilityDescriptor,
+  EANInvokeCallResult,
+  EANInvokeRequest,
+  EANPointChangeEvent,
+  EANAuditRecord,
+  EANTenantPolicy,
+  EANHealth,
+  EANAgentListResponse,
+  EANCapabilityListResponse,
+  EANEventListResponse,
+  EANAuditListResponse,
+} from '@/types/ean'
 import { useRealtimeStore } from '@/stores/realtime'
 
 const API_BASE = 'http://localhost:8000/api'
@@ -229,5 +243,45 @@ export const alertApi = {
   },
   acknowledge(id: string) {
     return post<void>(`/alerts/${id}/acknowledge`)
+  },
+}
+
+// ==================== EAN 2.0 ====================
+
+export const eanApi = {
+  // ---- Agent 管理 ----
+  listAgents() {
+    return request<EANAgentListResponse>('/ean/agents').then(res => res?.agents ?? [])
+  },
+  getAgent(id: string) {
+    return request<EANAgentDescriptor>(`/ean/agents/${id}`)
+  },
+  getAgentCapabilities(agentId: string) {
+    return request<EANCapabilityListResponse>(`/ean/agents/${agentId}/capabilities`).then(res => res?.capabilities ?? [])
+  },
+
+  // ---- Invoke 编排 ----
+  invoke(req: EANInvokeRequest) {
+    return post<EANInvokeCallResult>('/ean/invoke', req)
+  },
+
+  // ---- 事件查询 ----
+  recentEvents(n: number = 100) {
+    return request<EANEventListResponse>(`/ean/events/recent?n=${n}`).then(res => res?.events ?? [])
+  },
+
+  // ---- 审计查询 ----
+  auditRecords(limit: number = 100) {
+    return request<EANAuditListResponse>(`/ean/audit?limit=${limit}`).then(res => res?.records ?? [])
+  },
+
+  // ---- 治理策略 ----
+  setPolicy(policy: EANTenantPolicy) {
+    return post<{ tenant_id: string; policy_set: boolean }>('/ean/governance/policies', policy)
+  },
+
+  // ---- 健康检查 ----
+  health() {
+    return request<EANHealth>('/ean/health')
   },
 }

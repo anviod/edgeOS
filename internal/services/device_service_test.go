@@ -93,3 +93,54 @@ func TestDeviceService_CountDevices(t *testing.T) {
 	}
 	assert.Equal(t, 5, svc.CountDevices())
 }
+
+func TestDeviceService_ReconcileDevices_PrunesMissing(t *testing.T) {
+	db, cleanup := openTestDB(t)
+	defer cleanup()
+
+	svc := NewDeviceService(db)
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "old-a", DeviceName: "A"}))
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "old-b", DeviceName: "B"}))
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "keep", DeviceName: "Keep"}))
+	require.NoError(t, svc.UpsertDevice("n2", &model.EdgeXDeviceInfo{DeviceID: "other", DeviceName: "Other"}))
+
+	upserted, removed, err := svc.ReconcileDevices("n1", []model.EdgeXDeviceInfo{
+		{DeviceID: "keep", DeviceName: "Keep Updated"},
+		{DeviceID: "new-c", DeviceName: "C"},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, 2, upserted)
+	assert.Equal(t, 2, removed)
+
+	devs, err := svc.ListDevices("n1")
+	require.NoError(t, err)
+	require.Len(t, devs, 2)
+	ids := map[string]string{}
+	for _, d := range devs {
+		ids[d.DeviceID] = d.DeviceName
+	}
+	assert.Equal(t, "Keep Updated", ids["keep"])
+	assert.Equal(t, "C", ids["new-c"])
+
+	// 其他节点不受影响
+	other, err := svc.GetDevice("n2", "other")
+	require.NoError(t, err)
+	assert.Equal(t, "Other", other.DeviceName)
+	assert.Equal(t, 3, svc.CountDevices())
+}
+
+func TestDeviceService_ReconcileDevices_EmptyClearsNode(t *testing.T) {
+	db, cleanup := openTestDB(t)
+	defer cleanup()
+
+	svc := NewDeviceService(db)
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "gone"}))
+
+	upserted, removed, err := svc.ReconcileDevices("n1", nil)
+	require.NoError(t, err)
+	assert.Equal(t, 0, upserted)
+	assert.Equal(t, 1, removed)
+	devs, err := svc.ListDevices("n1")
+	require.NoError(t, err)
+	assert.Empty(t, devs)
+}

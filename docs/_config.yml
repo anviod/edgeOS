@@ -1,5 +1,5 @@
-title: "EdgeOS | Industrial AI · Enterprise Edge Platform"
-description: "EdgeOS 工业级边缘计算平台文档 — 高可用边缘大脑、设备协同、通道健康与群控编排。"
+title: "EdgeOS | EAN 2.0 Coordination Platform"
+description: "EdgeOS 工业边缘协调平面文档 — 基于 EAN 2.0 Capability 模型的发现、编排、治理与事件订阅。"
 markdown: kramdown
 lang: zh-CN
 show_downloads: false

@@ -136,10 +136,11 @@ type NodeMQTTHandler struct {
 
 // DeviceMQTTHandler 设备消息处理器
 type DeviceMQTTHandler struct {
-	deviceSvc *services.DeviceService
-	pointSvc  *services.PointService
-	hub       *ws.Hub
-	logger    *zap.Logger
+	deviceSvc   *services.DeviceService
+	pointSvc    *services.PointService
+	registrySvc *services.RegistryService
+	hub         *ws.Hub
+	logger      *zap.Logger
 }
 
 // PointMQTTHandler 点位消息处理器
@@ -185,7 +186,7 @@ func NewManager(
 func (m *Manager) initHandlers() {
 	// publishFn 使用默认客户端（如果有）
 	m.nodeHandler = NewNodeMQTTHandler(m.registrySvc, m.hub, m.logger, m.publishToFirstClient)
-	m.deviceHandler = NewDeviceMQTTHandler(m.dataSvc.DeviceSvc, m.dataSvc.PointService, m.hub, m.logger)
+	m.deviceHandler = NewDeviceMQTTHandler(m.dataSvc.DeviceSvc, m.dataSvc.PointService, m.registrySvc, m.hub, m.logger)
 	m.pointHandler = NewPointMQTTHandler(m.dataSvc.PointService, m.dataSvc.DeviceSvc, m.hub, m.logger)
 	m.controlHandler = NewControlMQTTHandler(m.controlSvc, m.hub, m.logger)
 }
@@ -747,14 +748,16 @@ func (h *NodeMQTTHandler) HandleUnregister(_ pahomqtt.Client, msg pahomqtt.Messa
 func NewDeviceMQTTHandler(
 	deviceSvc *services.DeviceService,
 	pointSvc *services.PointService,
+	registrySvc *services.RegistryService,
 	hub *ws.Hub,
 	logger *zap.Logger,
 ) *DeviceMQTTHandler {
 	return &DeviceMQTTHandler{
-		deviceSvc: deviceSvc,
-		pointSvc:  pointSvc,
-		hub:       hub,
-		logger:    logger,
+		deviceSvc:   deviceSvc,
+		pointSvc:    pointSvc,
+		registrySvc: registrySvc,
+		hub:         hub,
+		logger:      logger,
 	}
 }
 
@@ -784,23 +787,39 @@ func (h *DeviceMQTTHandler) HandleDeviceReport(_ pahomqtt.Client, msg pahomqtt.M
 		return
 	}
 
-	for _, dev := range envelope.Body.Devices {
-		dev.LastSync = time.Now().Unix()
-		if err := h.deviceSvc.UpsertDevice(nodeID, &dev); err != nil {
-			h.logger.Error("HandleDeviceReport: upsert device failed",
-				zap.String("device_id", dev.DeviceID), zap.Error(err))
-		}
+	upserted, removed, err := h.deviceSvc.ReconcileDevices(nodeID, envelope.Body.Devices)
+	if err != nil {
+		h.logger.Error("HandleDeviceReport: reconcile failed",
+			zap.String("node_id", nodeID), zap.Error(err))
+		return
+	}
 
-		// 从 Properties 中提取点位信息并同步
-		if dev.Properties != nil && h.pointSvc != nil {
+	// 设备上报兜底：确保节点存在（V1 注册缺失时避免「有设备无节点」）
+	if h.registrySvc != nil {
+		if err := h.registrySvc.EnsureNodeOnline(nodeID, nodeID, "mqtt"); err != nil {
+			h.logger.Warn("HandleDeviceReport: ensure node online failed",
+				zap.String("node_id", nodeID), zap.Error(err))
+		}
+	}
+
+	// 从 Properties 中提取点位信息并同步（对账后的上报列表）
+	for _, dev := range envelope.Body.Devices {
+		if dev.Properties != nil && h.pointSvc != nil && dev.DeviceID != "" {
 			h.syncPointsFromProperties(nodeID, dev.DeviceID, dev.Properties)
 		}
 	}
 
+	h.logger.Info("HandleDeviceReport: devices reconciled",
+		zap.String("node_id", nodeID),
+		zap.Int("reported", len(envelope.Body.Devices)),
+		zap.Int("upserted", upserted),
+		zap.Int("removed", removed))
+
 	if h.hub != nil {
 		h.hub.BroadcastType(ws.EventDeviceSynced, map[string]interface{}{
 			"node_id": nodeID,
-			"count":   len(envelope.Body.Devices),
+			"count":   upserted,
+			"removed": removed,
 		})
 	}
 }
@@ -1270,6 +1289,9 @@ func (h *ControlMQTTHandler) HandleCommandResponse(_ pahomqtt.Client, msg pahomq
 		status = "error"
 	}
 	h.controlSvc.UpdateCommandStatus(requestID, status, envelope.Body.Message)
+	// 回填 pending channel，触发 WaitResponse / WaitForChannel 返回
+	// 修复: 此前仅更新 DB 未通知等待方，导致 EAN V1 fallback 永久超时
+	h.controlSvc.HandleResponse(requestID, status, envelope.Body.Message)
 
 	h.logger.Info("HandleCommandResponse: broadcasting WebSocket event",
 		zap.String("request_id", requestID),

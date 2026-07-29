@@ -1,9 +1,36 @@
 database:
     path: ./data
     type: bolt
+ean:
+    enabled: true
+    heartbeat:
+        check_interval_sec: 5
+        timeout_multiplier: 3
+    mqtt:
+        broker: tcp://127.0.0.1:18083
+        client_id: edgeos-ean
+        connect_timeout: 10
+        enabled: true
+        keep_alive: 30
+        mqtt_version: 4
+        password: ""
+        qos: 1
+        username: ""
+    nats:
+        client_name: edgeos-ean
+        connect_timeout: 10
+        enabled: true
+        max_reconnects: 5
+        password: ""
+        ping_interval: 0
+        reconnect_wait: 2
+        token: ""
+        url: nats://127.0.0.1:4222
+        username: ""
+    planner_id: edgeos-planner
 middlewares:
     - auto_reconnect: true
-      broker: tcp://127.0.0.1:1883
+      broker: tcp://127.0.0.1:18083
       ca_file: ""
       clean_session: true
       client_cert_file: ""

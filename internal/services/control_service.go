@@ -50,10 +50,36 @@ func (s *ControlService) CreateCommand(nodeID, deviceID, pointID string, value i
 	return cmd, nil
 }
 
+// RegisterPending 注册命令响应等待 channel（在发布命令前调用，避免竞态条件）
+// 返回的 channel 在 HandleResponse 被调用时会收到 *CommandRecord
+// 调用方应在发布命令之前调用此方法，确保响应不会因 channel 未注册而丢失
+func (s *ControlService) RegisterPending(cmdID string) chan *model.CommandRecord {
+	ch := make(chan *model.CommandRecord, 1)
+	s.pending.Store(cmdID, ch)
+	return ch
+}
+
 // WaitResponse 等待命令响应（带超时）
+// 注意: 此方法内部会注册 pending channel，存在与 PublishCommand 的竞态风险
+// 对于需要严格保证时序的场景，请使用 RegisterPending + WaitForChannel 组合
 func (s *ControlService) WaitResponse(cmdID string, timeout time.Duration) (*model.CommandRecord, error) {
 	ch := make(chan *model.CommandRecord, 1)
 	s.pending.Store(cmdID, ch)
+	defer s.pending.Delete(cmdID)
+
+	select {
+	case cmd := <-ch:
+		return cmd, nil
+	case <-time.After(timeout):
+		s.UpdateCommandStatus(cmdID, "timeout", "command timed out")
+		cmd, _ := s.GetCommand(cmdID)
+		return cmd, fmt.Errorf("command timeout: %s", cmdID)
+	}
+}
+
+// WaitForChannel 等待已注册的 pending channel 返回结果（带超时）
+// 配合 RegisterPending 使用: 先 RegisterPending → PublishCommand → WaitForChannel
+func (s *ControlService) WaitForChannel(cmdID string, ch chan *model.CommandRecord, timeout time.Duration) (*model.CommandRecord, error) {
 	defer s.pending.Delete(cmdID)
 
 	select {

@@ -145,3 +145,36 @@ func (s *RegistryService) CountNodes() (int, int) {
 	})
 	return total, online
 }
+
+// EnsureNodeOnline 若节点不存在则创建最小在线记录；若已存在则刷新为 online。
+// 用于 EAN Discovery 镜像与 V1 设备上报兜底，避免「有设备无节点」导致 Dashboard/API 不一致。
+func (s *RegistryService) EnsureNodeOnline(nodeID, nodeName, protocol string) error {
+	if nodeID == "" {
+		return fmt.Errorf("nodeID is required")
+	}
+	if nodeName == "" {
+		nodeName = nodeID
+	}
+	if protocol == "" {
+		protocol = "unknown"
+	}
+
+	existing, err := s.GetNode(nodeID)
+	if err == nil && existing != nil {
+		existing.Status = "online"
+		if existing.NodeName == "" {
+			existing.NodeName = nodeName
+		}
+		if existing.Protocol == "" {
+			existing.Protocol = protocol
+		}
+		return s.UpsertNode(existing)
+	}
+
+	return s.UpsertNode(&model.EdgeXNodeInfo{
+		NodeID:   nodeID,
+		NodeName: nodeName,
+		Protocol: protocol,
+		Status:   "online",
+	})
+}

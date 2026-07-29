@@ -112,6 +112,47 @@ func (s *DeviceService) CountDevices() int {
 	return count
 }
 
+// ReconcileDevices 按节点对账全量设备上报：upsert 上报列表，并删除该节点下未再上报的设备。
+// EdgeX `edgex/devices/report` 为全量快照；若只 upsert 不剪枝，历史已删除设备会残留，导致
+// EdgeOS 设备数与 EdgeX 实际设备数不一致。
+func (s *DeviceService) ReconcileDevices(nodeID string, reported []model.EdgeXDeviceInfo) (upserted, removed int, err error) {
+	if nodeID == "" {
+		return 0, 0, fmt.Errorf("nodeID is required")
+	}
+
+	keep := make(map[string]struct{}, len(reported))
+	for i := range reported {
+		dev := reported[i]
+		if dev.DeviceID == "" {
+			continue
+		}
+		keep[dev.DeviceID] = struct{}{}
+		d := dev
+		if err := s.UpsertDevice(nodeID, &d); err != nil {
+			return upserted, removed, err
+		}
+		upserted++
+	}
+
+	existing, err := s.ListDevices(nodeID)
+	if err != nil {
+		return upserted, removed, err
+	}
+	for _, old := range existing {
+		if old == nil || old.DeviceID == "" {
+			continue
+		}
+		if _, ok := keep[old.DeviceID]; ok {
+			continue
+		}
+		if err := s.DeleteDevice(nodeID, old.DeviceID); err != nil {
+			return upserted, removed, err
+		}
+		removed++
+	}
+	return upserted, removed, nil
+}
+
 // UpdateDeviceStatus 更新设备状态
 func (s *DeviceService) UpdateDeviceStatus(nodeID, deviceID, status string) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {

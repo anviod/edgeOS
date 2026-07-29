@@ -9,12 +9,14 @@ import (
 	"github.com/anviod/edgeOS/internal/config"
 	"github.com/anviod/edgeOS/internal/core"
 	"github.com/anviod/edgeOS/internal/discovery"
+	"github.com/anviod/edgeOS/internal/ean"
 	"github.com/anviod/edgeOS/internal/messaging"
 	"github.com/anviod/edgeOS/internal/services"
 	"github.com/anviod/edgeOS/internal/ws"
 )
 
 // RegisterAllRoutes 注册所有路由
+// eanBus: EAN Bus 实例，可为 nil（EAN 未启用时）
 func RegisterAllRoutes(
 	app *fiber.App,
 	node core.Node,
@@ -29,6 +31,7 @@ func RegisterAllRoutes(
 	discoveryService *discovery.DiscoveryService,
 	cfg *config.Config,
 	logger *zap.Logger,
+	eanBus *ean.Bus,
 ) {
 	api := app.Group("/api")
 
@@ -87,6 +90,7 @@ func RegisterAllRoutes(
 
 	// 设备管理
 	nodes.Get("/:nodeId/devices", handleListDevices(dataSvc))
+	nodes.Post("/:nodeId/devices/reconcile", handleReconcileDevices(dataSvc, registrySvc))
 	nodes.Get("/:nodeId/devices/:deviceId", handleGetDevice(dataSvc))
 
 	// 点位管理
@@ -117,4 +121,9 @@ func RegisterAllRoutes(
 	// Stage 2: EdgeOS 主动触发 EdgeX 节点重新注册
 	edgex.Post("/discover", handleNodeDiscovery(messagingManager))
 	edgex.Post("/discover/:middlewareId", handleNodeDiscoveryTo(messagingManager))
+
+	// ===========================
+	// EAN 2.0 API 路由（与 V1 edgex/* 主题并存，互不影响）
+	// ===========================
+	RegisterEANRoutes(protected, eanBus)
 }

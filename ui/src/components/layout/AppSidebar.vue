@@ -14,6 +14,7 @@ const collapsed = computed(() => appStore.sidebarCollapsed)
 const expandedGroups = reactive<Record<string, boolean>>({
   business: true,
   'group-control': true,
+  ean: true,
 })
 
 function toggleSidebar() {

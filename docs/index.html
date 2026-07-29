@@ -1,19 +1,19 @@
 ---
 layout: landing
 title: EdgeOS
-description: Industrial AI · Enterprise Edge Platform — 面向工业现场的高可用边缘计算与设备协同平台。
+description: EAN 2.0 Coordination Platform — 基于 Capability 模型的发现、编排、治理与事件订阅协调平面。
 ---
 
 <section class="hero" id="overview">
   <div class="hero__glow"></div>
   <div class="hero__grid">
     <div class="hero__copy">
-      <span class="hero__eyebrow">EdgeX AI Gateway</span>
+      <span class="hero__eyebrow">Industrial Edge Platform</span>
       <h2><span class="typewriter"></span><span class="typewriter-cursor"></span></h2>
       <p class="hero__description">
         EdgeOS 是 EdgeX 的上层应用平台，部署在服务器或高性能边缘网关。
-        支持群控 EdgeX 节点，可部署 LLM 大模型为边缘侧提供推理能力，
-        是业务场景深入落地的重要通道，专注智能电网、储能场站、交通指挥等垂直领域。
+        通过 EAN 2.0 统一 Capability 模型纳管 EdgeX 节点，承担发现、编排、治理与事件订阅，
+        将工业协议接入、设备协同与场景落地收拢到同一调度平面。
       </p>
       <div class="hero__actions">
         <a class="button-link button-link--primary" href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -22,16 +22,16 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
 
       <div class="hero__metrics">
         <div class="metric-card">
-          <strong>N+2</strong>
-          <span>高可用架构</span>
+          <strong>63</strong>
+          <span>原生 Capability</span>
         </div>
         <div class="metric-card">
-          <strong>6+</strong>
-          <span>核心能力域</span>
+          <strong>MQTT+NATS</strong>
+          <span>双传输链路</span>
         </div>
         <div class="metric-card">
-          <strong>P3</strong>
-          <span>交付阶段</span>
+          <strong>EAN 2.0</strong>
+          <span>协议版本</span>
         </div>
       </div>
     </div>
@@ -45,24 +45,24 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
           </div>
           <span class="status-pill">RUNNING</span>
         </div>
-        <p>面向工业现场的边缘控制与业务扩展平台，聚焦高可用、设备协同、通道健康和群控编排。</p>
+        <p>发现索引、跨节点 Invoke、事件订阅与心跳治理在同一平面闭环，V1 兼容层并行运行。</p>
       </div>
 
       <div class="hero-card-board">
         <article class="hero-mini-card">
-          <span class="hero-mini-card__eyebrow">Protocol</span>
+          <span class="hero-mini-card__eyebrow">Transport</span>
           <strong>MQTT / NATS</strong>
-          <p>双通道冗余通信链路，支撑高并发设备接入。</p>
+          <p>$edgeos/* 与 edgex/* 双协议并行，Topic 字符串一致。</p>
         </article>
         <article class="hero-mini-card">
-          <span class="hero-mini-card__eyebrow">Runtime</span>
-          <strong>Latency / Loss / Quality</strong>
-          <p>实时运行态指标监测，工业级可靠性保障。</p>
+          <span class="hero-mini-card__eyebrow">Discovery</span>
+          <strong>Agent / Capability</strong>
+          <p>原生 EAN 优先于 V1 合成，60 秒周期重发布。</p>
         </article>
         <article class="hero-mini-card">
-          <span class="hero-mini-card__eyebrow">AI Ready</span>
-          <strong>ShadowCore Engine</strong>
-          <p>高性能内存快照引擎，支撑实时推理与决策。</p>
+          <span class="hero-mini-card__eyebrow">Governance</span>
+          <strong>Permission / Audit</strong>
+          <p>写/admin/AI 能力受租户策略约束，跨节点调用留痕。</p>
         </article>
       </div>
     </div>
@@ -72,17 +72,17 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
 <section class="landing-section" id="platform">
   <div class="section-heading">
     <h2>平台定位</h2>
-    <p>EdgeOS 作为 EdgeX 的上层应用平台，承载核心业务编排与场景落地能力。</p>
+    <p>EdgeOS 作为 EdgeX 的上层应用平台，基于 EAN 2.0 Capability 模型承载发现、编排、治理与事件订阅。</p>
   </div>
 
   <div class="feature-grid">
     <article class="platform-card">
-      <h3>上层应用平台</h3>
-      <p>部署于服务器或高性能边缘网关之上，为 EdgeX 提供统一的业务编排、数据汇聚与管控界面。</p>
+      <h3>协调平面</h3>
+      <p>部署于服务器或高性能边缘网关之上，通过 $edgeos/* Topic 纳管 EdgeX 节点，承担全局发现索引与跨节点编排。</p>
       <ul>
-        <li>EdgeX 节点集中纳管</li>
-        <li>业务逻辑编排与下发</li>
-        <li>南向/北向数据通道统一调度</li>
+        <li>Agent / Capability 发现与索引</li>
+        <li>跨节点 Invoke 编排与 Reply 关联</li>
+        <li>V1 兼容层并行运行</li>
       </ul>
     </article>
 
@@ -97,12 +97,12 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
     </article>
 
     <article class="platform-card">
-      <h3>AI 推理引擎</h3>
-      <p>可部署 LLM 及专用推理模型，为 EdgeX 边缘侧提供实时智能决策与业务推理能力。</p>
+      <h3>事件与治理</h3>
+      <p>订阅 EdgeX 上报的设备事件（含 previous_value），按租户策略约束写/admin/AI 能力，跨节点调用全程留痕。</p>
       <ul>
-        <li>大模型边缘化部署</li>
-        <li>实时推理与决策反馈</li>
-        <li>模型生命周期管理</li>
+        <li>Event 订阅与 previous_value 比较</li>
+        <li>租户级权限与审计</li>
+        <li>心跳超时与离线判定</li>
       </ul>
     </article>
   </div>
@@ -111,37 +111,37 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
 <section class="landing-section" id="capabilities">
   <div class="section-heading">
     <h2>核心能力</h2>
-    <p>围绕高可用、设备协同、通道健康和群控编排，覆盖 EdgeOS 的核心能力与落地方向。</p>
+    <p>围绕发现、编排、事件与治理构建 EAN 2.0 协调平面，覆盖 EdgeOS 的核心能力与落地方向。</p>
   </div>
 
   <div class="feature-grid">
     <article class="capability-card">
-      <h3>高可用边缘大脑</h3>
-      <p>围绕 N+2 冗余、故障切换、节点协同和运行监测构建工业级边缘控制底座。</p>
+      <h3>发现与索引</h3>
+      <p>订阅 $edgeos/discovery/* 建立 Agent 与 Capability 索引，原生 EAN 优先于 V1 合成，60 秒周期重发布。</p>
       <ul>
-        <li>主备与多节点协调</li>
-        <li>故障检测与自动切换</li>
-        <li>边缘运行态集中可视化</li>
+        <li>Agent / Capability / Offline 三级索引</li>
+        <li>source 优先级：native-ean > v1-bridge</li>
+        <li>主动查询与递减频率</li>
       </ul>
     </article>
 
     <article class="capability-card">
-      <h3>设备与通道协同</h3>
-      <p>关注影子设备、上下行通信、协议接入和通道健康指标，支撑现场联调与长期运维。</p>
+      <h3>Invoke 编排</h3>
+      <p>通过 correlation_id + invoke_id 关联 Invoke 与 Reply，EAN 超时后自动回退 V1 协议，40%/60% 时间预算分配。</p>
       <ul>
-        <li>设备注册与同步</li>
-        <li>MQTT / NATS 通信链路</li>
-        <li>Latency / Loss / Quality 指标</li>
+        <li>Reply 订阅 $edgeos/reply/{planner_id}</li>
+        <li>EAN → V1 协议转译桥接</li>
+        <li>跨节点调用审计留痕</li>
       </ul>
     </article>
 
     <article class="capability-card">
-      <h3>业务扩展与群控</h3>
-      <p>从采集接入扩展到业务中心和群控编排，覆盖储能、BMS、能耗监测与节点调度场景。</p>
+      <h3>事件订阅与治理</h3>
+      <p>订阅 EdgeX 上报的设备事件，读取 value 与 previous_value，按租户策略约束能力调用，心跳超时判定离线。</p>
       <ul>
-        <li>业务页面规划</li>
-        <li>群控调度与场景联动</li>
-        <li>P3 阶段静态页面范围</li>
+        <li>device.online / device.offline 事件</li>
+        <li>租户级写/admin/AI 权限</li>
+        <li>心跳超时 3 × heartbeat_interval</li>
       </ul>
     </article>
   </div>
@@ -150,33 +150,103 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
 <section class="landing-section" id="scenarios">
   <div class="section-heading">
     <h2>业务场景</h2>
-    <p>深入垂直行业，专注场景项目落地，覆盖能源、交通、安防与运营等领域。</p>
+    <p>覆盖能源、交通、安防与运营领域，基于 EAN 2.0 Capability 模型落地垂直场景。</p>
   </div>
 
   <div class="card-grid">
     <article class="scene-card grid-node">
       <h3>智能电网</h3>
-      <p>电力设备状态监测、负荷预测分析、故障诊断与自愈控制，支撑电网智能化运维。</p>
+      <p>电力设备状态监测、负荷预测分析、故障诊断与自愈控制，支撑电网运维。</p>
     </article>
 
     <article class="scene-card energy-node">
       <h3>充电储能场站</h3>
-      <p>集中管理充电桩与储能系统，优化能源调度策略，实现场站级能量协同与收益最大化。</p>
+      <p>集中管理充电桩与储能系统，优化能源调度策略，实现场站级能量协同。</p>
     </article>
 
     <article class="scene-card traffic-node">
       <h3>交通联合指挥</h3>
-      <p>多源感知数据融合、实时路况分析、智能信号控制与应急指挥调度。</p>
+      <p>多源感知数据融合、实时路况分析、信号控制与应急指挥调度。</p>
     </article>
 
     <article class="scene-card ai-node">
-      <h3>图像推理</h3>
-      <p>边缘侧实时图像识别、缺陷检测、安全监控与视频结构化分析。</p>
+      <h3>图像识别</h3>
+      <p>边缘侧图像识别、缺陷检测、安全监控与视频结构化分析。</p>
     </article>
 
     <article class="scene-card center-node">
       <h3>运营中心</h3>
       <p>集中监控大屏、告警统一管理、运维编排自动化与运营决策支持。</p>
+    </article>
+  </div>
+</section>
+
+<section class="landing-section" id="ai-capabilities">
+  <div class="section-heading">
+    <h2>AI 能力</h2>
+    <p>EdgeX 侧的 AI 能力通过 Capability Runtime 统一接入 EAN 2.0，EdgeOS 作为协调平面发起 Invoke 并约束权限。所有 AI 产出须经 Human-in-the-loop 确认后落库，不进入采集热路径。</p>
+  </div>
+
+  <div class="ai-feature-grid">
+    <article class="ai-feature-card ai-feature-card--primary">
+      <div class="ai-feature-card__head">
+        <span class="ai-feature-card__tag">Capability</span>
+        <h3>ai.protocol_reverse</h3>
+      </div>
+      <p>EdgeX 侧 AI Agent Client 基于抓包报文与 protocol_knowledge.db 生成候选协议配置，工程师确认后落库。将「2 天分析协议」缩短到「30 分钟生成候选 + 确认」。</p>
+      <div class="ai-feature-card__flow">
+        <span class="flow-step">报文捕获</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">AI 候选配置</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step flow-step--accent">Human Confirm</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">落库</span>
+      </div>
+      <ul>
+        <li>LLM/VLM/Embedding 由远端 AI Model Center 承担</li>
+        <li>protocol_knowledge.db 基于 bbolt 本地存储</li>
+        <li>禁止 AI 调用进入 ScanEngine / Pipeline Worker</li>
+      </ul>
+    </article>
+
+    <article class="ai-feature-card">
+      <div class="ai-feature-card__head">
+        <span class="ai-feature-card__tag">Capability</span>
+        <h3>ai.doc_parse</h3>
+      </div>
+      <p>解析设备手册、协议文档与点位表，自动提取寄存器映射与点位定义，生成可导入的物模型草稿。</p>
+      <ul>
+        <li>支持 PDF / Word / 扫描件输入</li>
+        <li>输出符合 EdgeOS 物模型规范的 JSON</li>
+        <li>产出须经工程师确认后写入</li>
+      </ul>
+    </article>
+
+    <article class="ai-feature-card">
+      <div class="ai-feature-card__head">
+        <span class="ai-feature-card__tag">Runtime</span>
+        <h3>Capability Runtime</h3>
+      </div>
+      <p>EdgeX 侧的 AI Skill、MCP Tool、Driver Command、Workflow Node 统一映射到 Capability 模型，通过 Invoke Dispatcher 路由到对应执行器。</p>
+      <ul>
+        <li>AI Adapter / MCP Adapter / DriverExecutor</li>
+        <li>Capability Registry 统一注册与发现</li>
+        <li>ShadowCore 提供状态缓存与 Event 上报</li>
+      </ul>
+    </article>
+
+    <article class="ai-feature-card">
+      <div class="ai-feature-card__head">
+        <span class="ai-feature-card__tag">Governance</span>
+        <h3>Human-in-the-loop</h3>
+      </div>
+      <p>所有 AI 产出（协议配置、物模型、点位映射）禁止自动写入 config，必须经工程师确认后落库。AI 故障不得影响工业采集与规则执行。</p>
+      <ul>
+        <li>AI Invoke 受 admin/ai 权限约束</li>
+        <li>产出落库前需显式 Confirm / Apply</li>
+        <li>AI 调用与采集热路径物理隔离</li>
+      </ul>
     </article>
   </div>
 </section>
@@ -216,6 +286,12 @@ description: Industrial AI · Enterprise Edge Platform — 面向工业现场的
       <h3>后端实现指南</h3>
       <p>梳理服务职责、实现路径与工程约束，帮助后端开发和前后端对接保持一致。</p>
       <span class="doc-card__meta">查看实现指南 &rarr;</span>
+    </a>
+
+    <a class="doc-card" href="./AI协同组件规划.html">
+      <h3>AI 协同组件规划</h3>
+      <p>EAN 2.0 Capability Runtime 设计、AI Agent Client、协议逆向与文档解析流水线、Human-in-the-loop 约束。</p>
+      <span class="doc-card__meta">查看 AI 规划 &rarr;</span>
     </a>
 
     <a class="doc-card" href="./EdgeOS UI规划文档.html">

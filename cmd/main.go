@@ -20,6 +20,7 @@ import (
 	"github.com/anviod/edgeOS/internal/config"
 	"github.com/anviod/edgeOS/internal/core"
 	"github.com/anviod/edgeOS/internal/discovery"
+	"github.com/anviod/edgeOS/internal/ean"
 	"github.com/anviod/edgeOS/internal/messaging"
 	"github.com/anviod/edgeOS/internal/server"
 	"github.com/anviod/edgeOS/internal/services"
@@ -83,8 +84,52 @@ func main() {
 	defer messagingManager.Stop()
 	zapLogger.Info("Messaging manager started")
 
+	// 初始化 EAN 2.0 Bus（如果启用）
+	var eanBus *ean.Bus
+	var eanBridge *ean.V1ToEANBridge
+	if cfg.EAN.Enabled {
+		busCfg := ean.BusConfig{
+			PlannerID: cfg.EAN.PlannerID,
+			MQTT:      cfg.EAN.MQTT,
+			NATS:      cfg.EAN.NATS,
+			Heartbeat: cfg.EAN.Heartbeat,
+		}
+		// 如果 PlannerID 为空则使用节点 ID
+		if busCfg.PlannerID == "" {
+			busCfg.PlannerID = cfg.Node.NodeID
+		}
+		var err error
+		eanBus, err = ean.NewBus(busCfg, zapLogger)
+		if err != nil {
+			// 与 messaging.Manager 一致：EAN 创建失败不 fatal，进程降级继续
+			zapLogger.Warn("Failed to create EAN Bus, running in degraded mode", zap.Error(err))
+		}
+		if eanBus != nil {
+			if err := eanBus.Start(); err != nil {
+				zapLogger.Warn("Failed to start EAN Bus, running in degraded mode", zap.Error(err))
+			}
+			defer eanBus.Stop()
+			zapLogger.Info("EAN 2.0 Bus started",
+				zap.String("planner_id", busCfg.PlannerID),
+				zap.Bool("mqtt_enabled", busCfg.MQTT.Enabled),
+				zap.Bool("nats_enabled", busCfg.NATS.Enabled),
+				zap.Strings("connected_transports", eanBus.Transport().ConnectedNames()))
+
+			// 启动 V1→EAN 桥接器（过渡期并行：将现有 V1 节点同步到 EAN）
+			eanBridge = ean.NewV1ToEANBridge(eanBus, registrySvc, dataSvc, zapLogger)
+			eanBridge.Start()
+			zapLogger.Info("V1→EAN bridge started for transition period")
+
+			// EAN Agent → V1 节点注册表镜像：避免 EAN 在线但 /api/nodes 为空
+			eanBus.AttachRegistryMirror(registrySvc)
+
+			// OS-P3-01: V1 Invoke Bridge 已移除
+			// 写操作统一通过 EAN Invoke 调用 EdgeX 北向原生 Capability
+		}
+	}
+
 	// 初始化 HTTP 服务器
-	app := initServer(cfg, node, db, hub, registrySvc, dataSvc, alertSvc, middlewareSvc, controlSvc, messagingManager, zapLogger)
+	app := initServer(cfg, node, db, hub, registrySvc, dataSvc, alertSvc, middlewareSvc, controlSvc, messagingManager, eanBus, zapLogger)
 
 	// 启动 HTTP 服务器
 	serverAddr := cfg.Node.Listen
@@ -195,6 +240,7 @@ func initServer(
 	middlewareSvc *services.MiddlewareService,
 	controlSvc *services.ControlService,
 	messagingManager *messaging.Manager,
+	eanBus *ean.Bus,
 	logger *zap.Logger,
 ) *fiber.App {
 	app := fiber.New(fiber.Config{
@@ -229,7 +275,7 @@ func initServer(
 		logger.Error("Failed to start discovery service", zap.Error(err))
 	}
 
-	server.RegisterAllRoutes(app, node, db, hub, registrySvc, dataSvc, alertSvc, middlewareSvc, controlSvc, messagingManager, discoveryService, cfg, logger)
+	server.RegisterAllRoutes(app, node, db, hub, registrySvc, dataSvc, alertSvc, middlewareSvc, controlSvc, messagingManager, discoveryService, cfg, logger, eanBus)
 
 	// 健康检查
 	app.Get("/health", func(c *fiber.Ctx) error {

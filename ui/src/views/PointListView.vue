@@ -6,13 +6,14 @@ import { useRealtimeStore } from '@/stores/realtime'
 import { useEdgeStore } from '@/stores/edge'
 import WritePointModal from '@/components/edge/WritePointModal.vue'
 import StatusBadge from '@/components/edge/StatusBadge.vue'
-import type { EdgeXPointInfo, WritePointRequest } from '@/types/edgex'
-import { controlApi } from '@/api/index'
+import type { EdgeXPointInfo } from '@/types/edgex'
+import { useEanStore } from '@/stores/ean'
 
 const route = useRoute()
 const router = useRouter()
 const rtStore = useRealtimeStore()
 const edgeStore = useEdgeStore()
+const eanStore = useEanStore()
 
 const nodeId = computed(() => route.params.nodeId as string)
 const deviceId = computed(() => route.params.deviceId as string)
@@ -39,10 +40,23 @@ async function load() {
   if (edgeStore.nodes.length === 0) await edgeStore.fetchNodes()
   if (!deviceList.value.length) await edgeStore.fetchDevices(nodeId.value)
   await rtStore.fetchPoints(nodeId.value, deviceId.value)
+  // 预加载 EAN 写能力
+  if (eanStore.isEanEnabled && nodeId.value) {
+    await eanStore.fetchAgentCapabilities(nodeId.value)
+  }
 }
 
 onMounted(load)
 watch([nodeId, deviceId], load)
+
+// EAN 写能力查找
+const writeCapability = computed(() => {
+  const caps = eanStore.capabilitiesByAgent[nodeId.value]
+  if (!caps || caps.length === 0) return null
+  return caps.find(c => c.permission === 'write' && c.id.includes('write')) ||
+         caps.find(c => c.permission === 'write') || null
+})
+const eanAvailable = computed(() => eanStore.isEanEnabled && writeCapability.value !== null)
 
 function openWrite(point: EdgeXPointInfo) {
   writingPoint.value = point
@@ -50,14 +64,22 @@ function openWrite(point: EdgeXPointInfo) {
 }
 
 async function handleWrite(pointId: string, value: unknown) {
-  const req: WritePointRequest = {
-    node_id: nodeId.value,
-    device_id: deviceId.value,
-    point_id: pointId,
-    value,
+  if (!eanAvailable.value) return
+  try {
+    await eanStore.invokeCapability({
+      target: nodeId.value,
+      capability: writeCapability.value!.id,
+      arguments: {
+        device_id: deviceId.value,
+        point_id: pointId,
+        value,
+      },
+      timeout_sec: 30,
+    })
+    writeModalVisible.value = false
+  } catch (error) {
+    console.error('EAN write failed:', error)
   }
-  await controlApi.writePoint(req)
-  writeModalVisible.value = false
 }
 
 function formatValue(v: unknown) {
@@ -179,7 +201,8 @@ function formatTime(ts: number | undefined) {
               <button
                 v-if="point.read_write"
                 @click.stop="openWrite(point)"
-                class="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs transition-colors btn-write ml-auto"
+                :disabled="!eanAvailable"
+                class="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs transition-colors btn-write ml-auto disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Edit3 class="w-3 h-3" style="width:12px;height:12px;" />
                 写入

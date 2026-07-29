@@ -68,29 +68,25 @@ func (h *DeviceHandler) HandleDeviceReport(_ pahomqtt.Client, msg pahomqtt.Messa
 		return
 	}
 
-	successCount := 0
-	for _, device := range envelope.Body.Devices {
-		d := device
-		if err := h.deviceSvc.UpsertDevice(nodeID, &d); err != nil {
-			h.logger.Error("DeviceHandler.HandleDeviceReport: upsert device failed",
-				zap.String("node_id", nodeID),
-				zap.String("device_id", d.DeviceID),
-				zap.Error(err))
-			continue
-		}
-		successCount++
+	upserted, removed, err := h.deviceSvc.ReconcileDevices(nodeID, envelope.Body.Devices)
+	if err != nil {
+		h.logger.Error("DeviceHandler.HandleDeviceReport: reconcile failed",
+			zap.String("node_id", nodeID), zap.Error(err))
+		return
 	}
 
 	h.logger.Info("Devices synced",
 		zap.String("node_id", nodeID),
-		zap.Int("total", len(envelope.Body.Devices)),
-		zap.Int("success", successCount))
+		zap.Int("reported", len(envelope.Body.Devices)),
+		zap.Int("upserted", upserted),
+		zap.Int("removed", removed))
 
 	if h.hub != nil {
 		h.hub.BroadcastType(ws.EventDeviceSynced, map[string]interface{}{
-			"node_id": nodeID,
-			"count":   successCount,
-			"total":   len(envelope.Body.Devices),
+			"node_id":  nodeID,
+			"count":    upserted,
+			"total":    len(envelope.Body.Devices),
+			"removed":  removed,
 		})
 	}
 }

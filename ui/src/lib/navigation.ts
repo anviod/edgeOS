@@ -10,13 +10,17 @@ import {
   FileCode2,
   Fuel,
   LayoutDashboard,
+  Network,
   Radio,
   Receipt,
   Server,
   Settings,
   Sliders,
   Sparkles,
+  Terminal,
+  BookOpen,
   Workflow,
+  Zap,
 } from 'lucide-vue-next'
 
 export interface NavItem {
@@ -46,6 +50,25 @@ export const navSections: NavSection[] = [
       { key: 'control', label: '设备控制', path: '/control', icon: Sliders, group: 'operations' },
       { key: 'alerts', label: '告警管理', path: '/alerts', icon: AlertTriangle, group: 'operations', badge: 'alerts' },
       { key: 'settings', label: '系统设置', path: '/settings', icon: Settings, group: 'operations' },
+    ],
+  },
+  {
+    key: 'ean',
+    label: 'EAN 协调',
+    items: [
+      {
+        key: 'ean-center',
+        label: 'EAN 协调中心',
+        path: '/ean',
+        icon: Network,
+        group: 'ean',
+        children: [
+          { key: 'ean-agents', label: 'Agent 管理', path: '/ean/agents', icon: Server, group: 'ean' },
+          { key: 'ean-invoke', label: '能力调用', path: '/ean/invoke', icon: Terminal, group: 'ean' },
+          { key: 'ean-events', label: '事件流', path: '/ean/events', icon: Zap, group: 'ean' },
+          { key: 'ean-debug', label: '联合调试帮助', path: '/ean/debug', icon: BookOpen, group: 'ean' },
+        ],
+      },
     ],
   },
   {

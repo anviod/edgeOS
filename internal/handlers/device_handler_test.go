@@ -5,6 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/anviod/edgeOS/internal/model"
 )
 
 // ──────────────────── HandleDeviceReport ────────────────────
@@ -88,6 +90,9 @@ func TestDeviceHandler_HandleDeviceReport_EmptyDevices(t *testing.T) {
 
 	h := NewDeviceHandler(svc, newTestHub(), newTestLogger())
 
+	// 先写入历史设备，空全量上报应对账清空
+	require.NoError(t, svc.UpsertDevice("n-empty", &model.EdgeXDeviceInfo{DeviceID: "stale"}))
+
 	payload := map[string]interface{}{
 		"header": map[string]interface{}{},
 		"body": map[string]interface{}{
@@ -99,6 +104,33 @@ func TestDeviceHandler_HandleDeviceReport_EmptyDevices(t *testing.T) {
 
 	count := svc.CountDevices()
 	assert.Equal(t, 0, count)
+}
+
+func TestDeviceHandler_HandleDeviceReport_ReconcilePrunes(t *testing.T) {
+	svc, cleanup := newTestDeviceService(t)
+	defer cleanup()
+
+	h := NewDeviceHandler(svc, newTestHub(), newTestLogger())
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "stale", DeviceName: "Stale"}))
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "keep", DeviceName: "Old"}))
+
+	payload := map[string]interface{}{
+		"header": map[string]interface{}{"source": "n1"},
+		"body": map[string]interface{}{
+			"node_id": "n1",
+			"devices": []interface{}{
+				map[string]interface{}{"device_id": "keep", "device_name": "Keep"},
+				map[string]interface{}{"device_id": "fresh", "device_name": "Fresh"},
+			},
+		},
+	}
+	h.HandleDeviceReport(nil, buildMsg("edgex/devices/report", payload))
+
+	devs, err := svc.ListDevices("n1")
+	require.NoError(t, err)
+	require.Len(t, devs, 2)
+	_, err = svc.GetDevice("n1", "stale")
+	assert.Error(t, err)
 }
 
 func TestDeviceHandler_HandleDeviceReport_InvalidPayload(t *testing.T) {

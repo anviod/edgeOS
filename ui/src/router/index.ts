@@ -67,6 +67,36 @@ const router = createRouter({
           meta: { title: '系统设置', sectionTitle: '采集运行' },
         },
         {
+          path: 'ean',
+          name: 'EanOverview',
+          component: () => import('@/views/ean/EanOverviewView.vue'),
+          meta: { title: 'EAN 协调中心', sectionTitle: 'EAN 协调', pageKey: 'ean-center', parentTitle: 'EAN 协调中心', parentPath: '/ean' },
+        },
+        {
+          path: 'ean/agents',
+          name: 'EanAgents',
+          component: () => import('@/views/ean/EanAgentsView.vue'),
+          meta: { title: 'Agent 管理', sectionTitle: 'EAN 协调', pageKey: 'ean-agents', parentTitle: 'EAN 协调中心', parentPath: '/ean' },
+        },
+        {
+          path: 'ean/invoke',
+          name: 'EanInvoke',
+          component: () => import('@/views/ean/EanInvokeView.vue'),
+          meta: { title: '能力调用', sectionTitle: 'EAN 协调', pageKey: 'ean-invoke', parentTitle: 'EAN 协调中心', parentPath: '/ean' },
+        },
+        {
+          path: 'ean/events',
+          name: 'EanEvents',
+          component: () => import('@/views/ean/EanEventsView.vue'),
+          meta: { title: '事件流', sectionTitle: 'EAN 协调', pageKey: 'ean-events', parentTitle: 'EAN 协调中心', parentPath: '/ean' },
+        },
+        {
+          path: 'ean/debug',
+          name: 'EanDebugHelp',
+          component: () => import('@/views/ean/EanDebugHelpView.vue'),
+          meta: { title: '联合调试帮助', sectionTitle: 'EAN 协调', pageKey: 'ean-debug', parentTitle: 'EAN 协调中心', parentPath: '/ean' },
+        },
+        {
           path: 'business-center',
           name: 'BusinessCenter',
           component: () => import('@/views/business/BusinessView.vue'),

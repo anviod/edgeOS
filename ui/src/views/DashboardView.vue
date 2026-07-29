@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Server, Cpu, Radio, AlertTriangle, Activity, ChevronRight } from 'lucide-vue-next'
+import { Server, Cpu, Radio, AlertTriangle, Activity, ChevronRight, Network } from 'lucide-vue-next'
 import { useEdgeStore } from '@/stores/edge'
 import { useMiddlewareStore } from '@/stores/middleware'
 import { useAlertStore } from '@/stores/alert'
+import { useEanStore } from '@/stores/ean'
 import StatusBadge from '@/components/edge/StatusBadge.vue'
 
 const router = useRouter()
 const edgeStore = useEdgeStore()
 const mwStore = useMiddlewareStore()
 const alertStore = useAlertStore()
+const eanStore = useEanStore()
 
 onMounted(async () => {
   await Promise.all([
@@ -18,6 +20,7 @@ onMounted(async () => {
     edgeStore.fetchNodes(),
     mwStore.fetchList(),
     alertStore.fetchAlerts('active'),
+    eanStore.fetchHealth(),
   ])
 })
 
@@ -165,6 +168,44 @@ function formatTime(ts: number) {
             </div>
             <StatusBadge :status="alert.level" size="sm" />
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EAN 协调中心状态 / EAN Coordination Status -->
+    <div class="rounded-lg border overflow-hidden" style="background: var(--bg-secondary); border-color: var(--border-color);">
+      <div class="flex items-center justify-between px-5 py-3.5 border-b" style="border-color: var(--border-color);">
+        <div class="flex items-center gap-2">
+          <Network class="w-4 h-4" style="color: var(--accent-primary); width:16px;height:16px;" />
+          <span class="text-sm font-semibold" style="color: var(--text-primary);">EAN 协调中心</span>
+          <StatusBadge v-if="eanStore.health" :status="eanStore.isEanEnabled ? 'online' : 'offline'" size="sm" />
+        </div>
+        <button @click="router.push('/ean')" class="flex items-center gap-1 text-xs transition-colors hover:text-sky-400" style="color: var(--text-secondary);">
+          详情 <ChevronRight class="w-3 h-3" style="width:12px;height:12px;" />
+        </button>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 divide-x" style="divide-color: var(--border-color);">
+        <div class="px-5 py-3">
+          <div class="text-xs" style="color: var(--text-muted);">传输层</div>
+          <div class="text-sm font-mono mt-0.5" style="color: var(--text-primary);">
+            {{
+              eanStore.health?.transport_details?.length
+                ? eanStore.health.transport_details.map(d => `${d.name}${d.connected ? '✓' : '○'}`).join(', ')
+                : (eanStore.health?.transports?.join(', ') || '—')
+            }}
+          </div>
+        </div>
+        <div class="px-5 py-3">
+          <div class="text-xs" style="color: var(--text-muted);">在线 Agent</div>
+          <div class="text-sm font-mono mt-0.5" style="color: #10B981;">{{ eanStore.health?.online_agents ?? 0 }}</div>
+        </div>
+        <div class="px-5 py-3">
+          <div class="text-xs" style="color: var(--text-muted);">心跳跟踪</div>
+          <div class="text-sm font-mono mt-0.5" style="color: #6366F1;">{{ eanStore.health?.tracked_agents ?? 0 }}</div>
+        </div>
+        <div class="px-5 py-3">
+          <div class="text-xs" style="color: var(--text-muted);">审计记录</div>
+          <div class="text-sm font-mono mt-0.5" style="color: #F59E0B;">{{ eanStore.health?.audit_count ?? 0 }}</div>
         </div>
       </div>
     </div>

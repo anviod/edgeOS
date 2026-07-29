@@ -1,6 +1,6 @@
 /* ==========================================================================
    EdgeOS Docs — Black Gold Premium Theme
-   Industrial AI · Enterprise Edge Platform
+   EAN 2.0 Coordination Platform
    Reference: edgex bright industrial luxury theme (dark adaptation)
    ========================================================================== */
 
@@ -907,7 +907,7 @@ img {
 }
 
 /* ----------------------------------------------------------
-   3. 业务场景卡片 —「智能仪表盘」
+   3. 业务场景卡片 — 场景主题色
    毛玻璃质感 + 多主题色彩发光
    ---------------------------------------------------------- */
 .scene-card {
@@ -1547,4 +1547,169 @@ img {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--gold);
+}
+
+/* =========================================
+   AI Capability Section
+   ========================================= */
+.ai-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.ai-feature-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px;
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--gold-border);
+  transition: var(--transition-base);
+  overflow: hidden;
+}
+
+.ai-feature-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold-dark));
+  opacity: 0.5;
+  transition: var(--transition-base);
+}
+
+.ai-feature-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold-border-hover);
+  box-shadow: var(--shadow-gold-lg);
+}
+
+.ai-feature-card:hover::before {
+  opacity: 1;
+  box-shadow: 0 0 12px rgba(200, 167, 91, 0.4);
+}
+
+.ai-feature-card--primary {
+  background: linear-gradient(135deg, rgba(200, 167, 91, 0.06), rgba(200, 167, 91, 0.02));
+  border-color: rgba(200, 167, 91, 0.35);
+}
+
+.ai-feature-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ai-feature-card__tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(200, 167, 91, 0.12);
+  border: 1px solid var(--gold-border);
+  color: var(--gold-light);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ai-feature-card h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+}
+
+.ai-feature-card p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.75;
+  font-size: 0.95rem;
+}
+
+.ai-feature-card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--text-dim);
+  line-height: 1.75;
+  font-size: 0.92rem;
+}
+
+.ai-feature-card ul li::marker {
+  color: var(--gold-dark);
+}
+
+.ai-feature-card__flow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(28, 29, 32, 0.5);
+  border: 1px solid rgba(200, 167, 91, 0.12);
+}
+
+.flow-step {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(200, 167, 91, 0.08);
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.flow-step--accent {
+  background: rgba(200, 167, 91, 0.18);
+  border: 1px solid rgba(200, 167, 91, 0.4);
+  color: var(--gold-bright);
+}
+
+.flow-arrow {
+  color: var(--gold-dark);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1180px) {
+  .ai-feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .ai-feature-card {
+    padding: 22px 18px;
+  }
+
+  .ai-feature-card__flow {
+    gap: 6px;
+  }
+
+  .flow-step {
+    padding: 3px 8px;
+    font-size: 0.78rem;
+  }
+}
+
+:root[data-theme="light"] .ai-feature-card--primary {
+  background: linear-gradient(135deg, rgba(200, 167, 91, 0.04), rgba(200, 167, 91, 0.01));
+}
+
+:root[data-theme="light"] .ai-feature-card__flow {
+  background: rgba(240, 240, 242, 0.6);
 }

@@ -152,3 +152,24 @@ func TestRegistryService_CountNodes(t *testing.T) {
 	assert.Equal(t, 3, total)
 	assert.Equal(t, 2, online)
 }
+
+func TestRegistryService_EnsureNodeOnline(t *testing.T) {
+	db, cleanup := openTestDB(t)
+	defer cleanup()
+
+	svc := NewRegistryService(db)
+
+	require.NoError(t, svc.EnsureNodeOnline("ean-1", "Agent One", "ean/nats"))
+	got, err := svc.GetNode("ean-1")
+	require.NoError(t, err)
+	assert.Equal(t, "online", got.Status)
+	assert.Equal(t, "Agent One", got.NodeName)
+	assert.Equal(t, "ean/nats", got.Protocol)
+
+	// 再次调用应保持 online 并刷新 LastSeen
+	require.NoError(t, svc.EnsureNodeOnline("ean-1", "", "ean/mqtt"))
+	got2, err := svc.GetNode("ean-1")
+	require.NoError(t, err)
+	assert.Equal(t, "online", got2.Status)
+	assert.Equal(t, "Agent One", got2.NodeName) // 已有名称不覆盖为空
+}

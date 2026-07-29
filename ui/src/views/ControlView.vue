@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { ChevronDown, Send } from 'lucide-vue-next'
 import { useEdgeStore } from '@/stores/edge'
 import { useRealtimeStore } from '@/stores/realtime'
+import { useEanStore } from '@/stores/ean'
 import { controlApi } from '@/api/index'
 import CommandLogPanel from '@/components/edge/CommandLogPanel.vue'
 import WritePointModal from '@/components/edge/WritePointModal.vue'
@@ -11,6 +12,7 @@ import type { EdgeXPointInfo, CommandRecord, WritePointRequest } from '@/types/e
 
 const edgeStore = useEdgeStore()
 const rtStore = useRealtimeStore()
+const eanStore = useEanStore()
 
 const selectedNodeId = ref('')
 const selectedDeviceId = ref('')
@@ -25,7 +27,7 @@ onMounted(async () => {
   await loadCommands()
 })
 
-// 加载命令记录
+// 加载命令记录（兼容历史 V1 命令）
 async function loadCommands() {
   const cmds = await controlApi.listCommands()
   if (cmds && cmds.length > 0) {
@@ -57,10 +59,16 @@ async function handleClear() {
   }
 }
 
-// When node selected, load devices
+// When node selected, load devices + EAN capabilities
 watch(selectedNodeId, async (nid) => {
   selectedDeviceId.value = ''
-  if (nid) await edgeStore.fetchDevices(nid)
+  if (nid) {
+    await edgeStore.fetchDevices(nid)
+    // 预加载该 Agent 的 EAN Capability（用于查找写操作能力）
+    if (eanStore.isEanEnabled) {
+      await eanStore.fetchAgentCapabilities(nid)
+    }
+  }
 })
 
 // When device selected, load points
@@ -76,6 +84,19 @@ const allPoints = computed(() => {
   return rtStore.getPoints(selectedNodeId.value, selectedDeviceId.value)
 })
 const writablePoints = computed(() => allPoints.value.filter(p => p.read_write))
+
+// EAN 写能力查找：在 Agent 的 Capability 列表中找到写操作能力
+const writeCapability = computed(() => {
+  const caps = eanStore.capabilitiesByAgent[selectedNodeId.value]
+  if (!caps || caps.length === 0) return null
+  // 查找 permission=write 且 ID 包含 write 的能力
+  return caps.find(c => c.permission === 'write' && c.id.includes('write')) ||
+         caps.find(c => c.permission === 'write') ||
+         null
+})
+
+// EAN 是否可用
+const eanAvailable = computed(() => eanStore.isEanEnabled && writeCapability.value !== null)
 
 // Command log from realtime store (cast to CommandRecord shape)
 const commands = computed<CommandRecord[]>(() =>
@@ -95,40 +116,127 @@ const commands = computed<CommandRecord[]>(() =>
 // Write modal
 const writeModalVisible = ref(false)
 const writingPoint = ref<EdgeXPointInfo | null>(null)
+const writeError = ref('')
 
 function openWrite(point: EdgeXPointInfo) {
   writingPoint.value = point
+  writeError.value = ''
   writeModalVisible.value = true
 }
 
+// EAN Invoke 写操作（OS-P3-02: 替代 V1 命令 API）
 async function handleWrite(pointId: string, value: unknown) {
-  const req: WritePointRequest = {
-    node_id: selectedNodeId.value,
-    device_id: selectedDeviceId.value,
-    point_id: pointId,
-    value,
+  const nodeId = selectedNodeId.value
+  const deviceId = selectedDeviceId.value
+  writeError.value = ''
+
+  // 检查 EAN 是否可用
+  if (!eanStore.isEanEnabled) {
+    writeError.value = 'EAN 未启用，无法执行写操作'
+    return
   }
-  await controlApi.writePoint(req)
-  writeModalVisible.value = false
+
+  // 确保已加载 Capability
+  if (!eanStore.capabilitiesByAgent[nodeId]) {
+    await eanStore.fetchAgentCapabilities(nodeId)
+  }
+
+  if (!writeCapability.value) {
+    writeError.value = `节点 ${nodeId} 无可用的写能力（write Capability）`
+    return
+  }
+
+  try {
+    const result = await eanStore.invokeCapability({
+      target: nodeId,
+      capability: writeCapability.value.id,
+      arguments: {
+        device_id: deviceId,
+        point_id: pointId,
+        value,
+      },
+      timeout_sec: 30,
+    })
+
+    // 追踪到命令日志
+    const status = result?.response?.status || 'completed'
+    const errorMsg = result?.response?.result?.error || ''
+    rtStore.addCmdTrack({
+      request_id: result?.response?.invoke_id || `ean-${Date.now()}`,
+      node_id: nodeId,
+      device_id: deviceId,
+      point_id: pointId,
+      value,
+      status: status as any,
+      error: errorMsg,
+      ts: Date.now(),
+    })
+
+    if (status !== 'completed' && status !== 'success') {
+      writeError.value = `写入失败: ${errorMsg || status}`
+    } else {
+      writeModalVisible.value = false
+    }
+  } catch (error) {
+    writeError.value = `EAN Invoke 失败: ${(error as Error).message}`
+  }
 }
 
 async function handleRetry(cmd: CommandRecord) {
-  const req: WritePointRequest = {
-    node_id: cmd.node_id,
-    device_id: cmd.device_id,
-    point_id: cmd.point_id,
-    value: cmd.value,
+  const nodeId = cmd.node_id
+  const deviceId = cmd.device_id
+  const pointId = cmd.point_id
+  const value = cmd.value
+
+  // 检查 EAN 是否可用
+  if (!eanStore.isEanEnabled || !writeCapability.value) {
+    // EAN 不可用时降级到 V1 命令（仅用于重试历史命令）
+    try {
+      const req: WritePointRequest = { node_id: nodeId, device_id: deviceId, point_id: pointId, value }
+      const newCmd = await controlApi.writePoint(req)
+      rtStore.addCmdTrack({
+        request_id: newCmd.id,
+        node_id: nodeId,
+        device_id: deviceId,
+        point_id: pointId,
+        value,
+        status: 'pending',
+        ts: Date.now(),
+      })
+    } catch (error) {
+      console.error('V1 retry failed:', error)
+    }
+    return
   }
-  const newCmd = await controlApi.writePoint(req)
-  rtStore.addCmdTrack({
-    request_id: newCmd.id,
-    node_id: req.node_id,
-    device_id: req.device_id,
-    point_id: req.point_id,
-    value: req.value,
-    status: 'pending',
-    ts: Date.now(),
-  })
+
+  // EAN 重试
+  try {
+    const result = await eanStore.invokeCapability({
+      target: nodeId,
+      capability: writeCapability.value.id,
+      arguments: {
+        device_id: deviceId,
+        point_id: pointId,
+        value,
+      },
+      timeout_sec: 30,
+    })
+
+    const status = result?.response?.status || 'completed'
+    const errorMsg = result?.response?.result?.error || ''
+    rtStore.addCmdTrack({
+      request_id: result?.response?.invoke_id || `ean-retry-${Date.now()}`,
+      node_id: nodeId,
+      device_id: deviceId,
+      point_id: pointId,
+      value,
+      status: status as any,
+      error: errorMsg,
+      ts: Date.now(),
+    })
+  } catch (error) {
+    console.error('EAN retry failed:', error)
+  }
 }
 
 function formatValue(v: unknown) {
@@ -141,9 +249,23 @@ function formatValue(v: unknown) {
 <template>
   <div class="space-y-5">
     <!-- Header -->
-    <div>
-      <h1 class="text-xl font-bold" style="color: var(--text-primary);">设备控制</h1>
-      <p class="text-sm mt-1" style="color: var(--text-secondary);">向可写点位下发控制命令，追踪执行状态</p>
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-xl font-bold" style="color: var(--text-primary);">设备控制</h1>
+        <p class="text-sm mt-1" style="color: var(--text-secondary);">
+          通过 EAN Invoke 向可写点位下发控制命令，追踪执行状态
+          <span v-if="eanAvailable" class="ml-1 px-1.5 py-0.5 rounded text-xs" style="background: rgba(16,185,129,0.12); color: #10B981;">EAN 就绪</span>
+          <span v-else-if="eanStore.isEanEnabled" class="ml-1 px-1.5 py-0.5 rounded text-xs" style="background: rgba(245,158,11,0.12); color: #F59E0B;">无写能力</span>
+          <span v-else class="ml-1 px-1.5 py-0.5 rounded text-xs" style="background: rgba(239,68,68,0.12); color: #EF4444;">EAN 未启用</span>
+        </p>
+      </div>
+      <router-link
+        to="/ean/invoke"
+        class="text-xs px-3 py-1.5 rounded-lg shrink-0 transition-colors hover:bg-white/5"
+        style="color: var(--accent-primary); border: 1px solid var(--border-color);"
+      >
+        EAN 能力控制台 →
+      </router-link>
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-5 gap-5">
@@ -195,6 +317,24 @@ function formatValue(v: unknown) {
           </div>
         </div>
 
+        <!-- Write capability info -->
+        <div v-if="selectedNodeId && eanStore.isEanEnabled && writeCapability" class="flex items-center gap-2 rounded-lg px-3 py-2" style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.15);">
+          <span class="text-xs" style="color: #10B981;">写能力:</span>
+          <code class="text-xs font-mono" style="color: var(--accent-primary);">{{ writeCapability.id }}</code>
+        </div>
+
+        <!-- EAN not enabled warning -->
+        <div v-if="selectedNodeId && !eanStore.isEanEnabled" class="flex items-start gap-2 rounded-lg p-3" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);">
+          <span class="text-xs leading-relaxed" style="color: #EF4444;">
+            EAN Bus 未启用，写操作不可用。请在配置中启用 EAN 功能后重试。
+          </span>
+        </div>
+
+        <!-- Write error -->
+        <div v-if="writeError" class="flex items-start gap-2 rounded-lg p-3" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);">
+          <span class="text-xs leading-relaxed" style="color: #EF4444;">{{ writeError }}</span>
+        </div>
+
         <!-- Writable points -->
         <div class="rounded-xl overflow-hidden" style="background: var(--bg-secondary); border: 1px solid var(--border-color);">
           <div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid var(--border-color);">
@@ -226,7 +366,8 @@ function formatValue(v: unknown) {
               </div>
               <button
                 @click="openWrite(point)"
-                class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ml-3 flex-shrink-0"
+                :disabled="!eanAvailable"
+                class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ml-3 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
                 style="background: rgba(14,165,233,0.1); color: var(--accent-primary); border: 1px solid rgba(14,165,233,0.2);"
               >
                 <Send class="w-3 h-3" style="width:12px;height:12px;" />

@@ -261,6 +261,38 @@ func handleGetDevice(dataSvc *services.DataService) fiber.Handler {
 	}
 }
 
+// handleReconcileDevices 按全量设备快照对账（与 MQTT edgex/devices/report 语义一致）
+// POST /api/nodes/:nodeId/devices/reconcile
+// Body: { "devices": [EdgeXDeviceInfo, ...] }
+func handleReconcileDevices(dataSvc *services.DataService, registrySvc *services.RegistryService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		nodeID := c.Params("nodeId")
+		if nodeID == "" {
+			return apiError(c, fiber.StatusBadRequest, "nodeId is required")
+		}
+		var req struct {
+			Devices []model.EdgeXDeviceInfo `json:"devices"`
+		}
+		if err := c.BodyParser(&req); err != nil {
+			return apiError(c, fiber.StatusBadRequest, "Invalid request body")
+		}
+		upserted, removed, err := dataSvc.DeviceSvc.ReconcileDevices(nodeID, req.Devices)
+		if err != nil {
+			return apiError(c, fiber.StatusInternalServerError, err.Error())
+		}
+		if registrySvc != nil {
+			_ = registrySvc.EnsureNodeOnline(nodeID, nodeID, "api")
+		}
+		return apiSuccess(c, fiber.Map{
+			"node_id":  nodeID,
+			"reported": len(req.Devices),
+			"upserted": upserted,
+			"removed":  removed,
+			"total":    dataSvc.DeviceSvc.CountDevices(),
+		})
+	}
+}
+
 // ===========================
 // 点位管理
 // ===========================

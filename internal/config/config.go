@@ -76,6 +76,9 @@ type Config struct {
 
 	// 中间件配置
 	Middlewares []MiddlewareMiddlewareConfig `yaml:"middlewares"`
+
+	// EAN 2.0 配置
+	EAN EANConfig `yaml:"ean"`
 }
 
 // LoadConfig 加载配置

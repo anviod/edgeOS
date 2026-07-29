@@ -476,6 +476,42 @@ func TestHandleListDevices_Empty(t *testing.T) {
 	assert.Empty(t, data["devices"])
 }
 
+func TestHandleReconcileDevices_PrunesStale(t *testing.T) {
+	app := newTestApp()
+	db, cleanup := openTestDB(t)
+	defer cleanup()
+
+	deviceSvc := services.NewDeviceService(db)
+	registrySvc := services.NewRegistryService(db)
+	require.NoError(t, deviceSvc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "stale"}))
+	require.NoError(t, deviceSvc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "keep"}))
+
+	dataSvc := &services.DataService{DeviceSvc: deviceSvc, PointService: services.NewPointService(db)}
+	app.Post("/api/nodes/:nodeId/devices/reconcile", handleReconcileDevices(dataSvc, registrySvc))
+
+	payload := `{"devices":[{"device_id":"keep","device_name":"Keep"},{"device_id":"fresh","device_name":"Fresh"}]}`
+	req := httptest.NewRequest("POST", "/api/nodes/n1/devices/reconcile", bytes.NewReader([]byte(payload)))
+	req.Header.Set("Content-Type", "application/json")
+	setAuthHeader(req)
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	var body map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&body)
+	data := body["data"].(map[string]interface{})
+	assert.Equal(t, float64(2), data["upserted"])
+	assert.Equal(t, float64(1), data["removed"])
+	assert.Equal(t, float64(2), data["total"])
+
+	_, err = deviceSvc.GetDevice("n1", "stale")
+	assert.Error(t, err)
+	node, err := registrySvc.GetNode("n1")
+	require.NoError(t, err)
+	assert.Equal(t, "online", node.Status)
+}
+
 // ─── handleListPoints 测试 ────────────────────────────────
 
 func TestHandleListPoints_Empty(t *testing.T) {

@@ -332,12 +332,16 @@ func TestManager_PublishCommand_Success(t *testing.T) {
 		if err := json.Unmarshal(rec.payload, &env); err != nil {
 			t.Fatalf("invalid JSON: %v", err)
 		}
+		header, ok := env["header"].(map[string]interface{})
+		if !ok {
+			t.Fatal("missing header")
+		}
+		if header["request_id"] != "req-123" {
+			t.Fatalf("expected request_id=req-123, got %v", header["request_id"])
+		}
 		body, ok := env["body"].(map[string]interface{})
 		if !ok {
 			t.Fatal("missing body")
-		}
-		if body["request_id"] != "req-123" {
-			t.Fatalf("expected request_id=req-123, got %v", body["request_id"])
 		}
 		if body["value"] != float64(42) {
 			t.Fatalf("expected value=42, got %v", body["value"])
@@ -363,8 +367,8 @@ func TestManager_PublishCommand_GeneratesRequestID(t *testing.T) {
 	case rec := <-publishCh:
 		var env map[string]interface{}
 		json.Unmarshal(rec.payload, &env)
-		body := env["body"].(map[string]interface{})
-		if body["request_id"] == "" {
+		header := env["header"].(map[string]interface{})
+		if header["request_id"] == "" {
 			t.Fatal("request_id should be auto-generated")
 		}
 	case <-time.After(time.Second):

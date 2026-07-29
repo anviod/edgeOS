@@ -158,7 +158,7 @@ async function handleSubmit() {
               <!-- Warning -->
               <div class="flex items-start gap-2 rounded-lg p-3" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);">
                 <span class="text-xs leading-relaxed" style="color: #F59E0B;">
-                  注意：写入命令将通过 MQTT 发送到目标设备，操作不可撤销，请确认值正确后再提交。
+                  注意：写入命令将通过 EAN Invoke 发送到目标设备，操作不可撤销，请确认值正确后再提交。
                 </span>
               </div>
             </div>
@@ -177,7 +177,7 @@ async function handleSubmit() {
                 style="background: var(--accent-primary); color: white;"
               >
                 <Send class="w-3.5 h-3.5" style="width:14px;height:14px;" />
-                {{ submitting ? '发送中...' : '发送命令' }}
+                {{ submitting ? 'EAN 调用中...' : '发送命令' }}
               </button>
             </div>
           </div>
