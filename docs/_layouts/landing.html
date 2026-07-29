@@ -16,6 +16,7 @@
       })();
     </script>
     <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}?v=3" />
+    <link rel="stylesheet" href="{{ '/assets/effects.css' | relative_url }}?v=3" />
     <style>
       /* 平台定位 — 数字化基石 */
       .platform-card {
@@ -172,11 +173,9 @@
           <span class="site-footer__divider">|</span>
           <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
           <span class="site-footer__divider">|</span>
-          <a href="{{ '/EdgeOS-2026-P3-TODO.html' | relative_url }}">P3 路线图</a>
-          <span class="site-footer__divider">|</span>
-          <a href="{{ '/样式规范.html' | relative_url }}">样式指南</a>
-          <span class="site-footer__divider">|</span>
           <span class="site-footer__copy">开源 · MIT 许可证</span>
+          <span class="site-footer__divider">|</span>
+          <a href="https://anviod.github.io/edgex/" target="_blank" rel="noopener noreferrer">EdgeX 官方文档</a>
         </div>
       </footer>
     </div>
@@ -219,32 +218,8 @@
           });
         }
 
-        // Typewriter effect
-        var tw = document.querySelector('.hero h2 .typewriter');
-        if (tw) {
-          var lines = [
-            "EAN 2.0 协调平面",
-            "发现 · 编排 · 治理 · 事件",
-            "AI 协议逆向 · 物模型生成",
-            "MQTT + NATS 双传输链路"
-          ];
-          var lineIndex = 0, i = 0, deleting = false;
-          function tick() {
-            var text = lines[lineIndex];
-            if (!deleting) {
-              i++;
-              tw.textContent = text.slice(0, i);
-              if (i >= text.length) { deleting = true; setTimeout(tick, 3000); return; }
-            } else {
-              i--;
-              tw.textContent = text.slice(0, i);
-              if (i <= 0) { deleting = false; lineIndex = (lineIndex + 1) % lines.length; setTimeout(tick, 500); return; }
-            }
-            setTimeout(tick, deleting ? 50 : 140);
-          }
-          tick();
-        }
       })();
     </script>
+    <script src="{{ '/assets/script.js' | relative_url }}?v=3"></script>
   </body>
 </html>

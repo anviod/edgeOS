@@ -511,10 +511,9 @@ function initThemeToggle() {
   }
 }
 
-// Typewriter effect — cycles through EdgeX key features
+// Typewriter effect — cycles through EdgeOS key features
 function initTypewriter() {
-  var tw = document.querySelector('.hero-typewriter .typewriter-text');
-  var cursor = document.querySelector('.hero-typewriter .typewriter-cursor');
+  var tw = document.querySelector('.hero h2 .typewriter');
   if (!tw) return;
 
   var lines = [
@@ -536,7 +535,7 @@ function initTypewriter() {
       tw.textContent = text.slice(0, i);
       if (i <= 0) { deleting = false; lineIndex = (lineIndex + 1) % lines.length; setTimeout(tick, 500); return; }
     }
-    setTimeout(tick, deleting ? 50 : 120);
+    setTimeout(tick, deleting ? 50 : 140);
   }
   tick();
 }

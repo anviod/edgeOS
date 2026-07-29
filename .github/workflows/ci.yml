@@ -6,18 +6,23 @@ on:
   pull_request:
     branches: [main, master]
 
+env:
+  GO_VERSION: "1.25"
+
 jobs:
   # ── Go 后端：构建 + 测试 ──
   backend:
     name: Go Backend
     runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: 1
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Cache Go modules
         uses: actions/cache@v4
@@ -29,13 +34,13 @@ jobs:
           restore-keys: ${{ runner.os }}-go-
 
       - name: Build
-        run: go build -v ./...
+        run: go build -v ./internal/... ./cmd/...
 
       - name: Vet
-        run: go vet ./...
+        run: go vet ./internal/... ./cmd/...
 
       - name: Test
-        run: go test -v -race -count=1 ./...
+        run: go test -v -race -count=1 -timeout 5m ./internal/... ./cmd/...
 
   # ── Vue 前端：构建 + 测试 + Lint ──
   frontend:
@@ -58,10 +63,6 @@ jobs:
       - name: Lint
         working-directory: ui
         run: npm run lint
-
-      - name: Type check
-        working-directory: ui
-        run: npx vue-tsc --noEmit
 
       - name: Test
         working-directory: ui

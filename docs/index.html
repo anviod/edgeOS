@@ -8,175 +8,69 @@ description: EAN 2.0 Coordination Platform — 基于 Capability 模型的发现
   <div class="hero__glow"></div>
   <div class="hero__grid">
     <div class="hero__copy">
-      <span class="hero__eyebrow">Industrial Edge Platform</span>
+      <span class="hero__eyebrow">EAN 2.0 · 63 原生 Capability 已索引</span>
       <h2><span class="typewriter"></span><span class="typewriter-cursor"></span></h2>
       <p class="hero__description">
-        EdgeOS 是 EdgeX 的上层应用平台，部署在服务器或高性能边缘网关。
-        通过 EAN 2.0 统一 Capability 模型纳管 EdgeX 节点，承担发现、编排、治理与事件订阅，
-        将工业协议接入、设备协同与场景落地收拢到同一调度平面。
+        EdgeX 上层协调平面，通过 EAN 2.0 Capability 模型纳管 EdgeX 节点，承担发现、编排、治理与事件订阅。
       </p>
       <div class="hero__actions">
         <a class="button-link button-link--primary" href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a class="button-link button-link--secondary" href="./EdgeOS 后端实现指南.html">快速开始</a>
+        <a class="button-link button-link--secondary" href="./EdgeX通信协议规范(MQTT-NATS).html">通信协议</a>
       </div>
-
       <div class="hero__metrics">
-        <div class="metric-card">
-          <strong>63</strong>
-          <span>原生 Capability</span>
-        </div>
         <div class="metric-card">
           <strong>MQTT+NATS</strong>
           <span>双传输链路</span>
         </div>
         <div class="metric-card">
-          <strong>EAN 2.0</strong>
-          <span>协议版本</span>
+          <strong>63</strong>
+          <span>原生 Capability</span>
+        </div>
+        <div class="metric-card">
+          <strong>V1</strong>
+          <span>兼容层</span>
         </div>
       </div>
     </div>
-
-    <div class="hero__panel">
-      <div class="status-panel">
-        <div class="status-panel__header">
-          <div class="status-panel__title">
-            <span class="hero__eyebrow">System Snapshot</span>
-            <strong>EdgeOS / EdgeX 协同运行</strong>
-          </div>
-          <span class="status-pill">RUNNING</span>
-        </div>
-        <p>发现索引、跨节点 Invoke、事件订阅与心跳治理在同一平面闭环，V1 兼容层并行运行。</p>
-      </div>
-
-      <div class="hero-card-board">
-        <article class="hero-mini-card">
-          <span class="hero-mini-card__eyebrow">Transport</span>
-          <strong>MQTT / NATS</strong>
-          <p>$edgeos/* 与 edgex/* 双协议并行，Topic 字符串一致。</p>
-        </article>
-        <article class="hero-mini-card">
-          <span class="hero-mini-card__eyebrow">Discovery</span>
-          <strong>Agent / Capability</strong>
-          <p>原生 EAN 优先于 V1 合成，60 秒周期重发布。</p>
-        </article>
-        <article class="hero-mini-card">
-          <span class="hero-mini-card__eyebrow">Governance</span>
-          <strong>Permission / Audit</strong>
-          <p>写/admin/AI 能力受租户策略约束，跨节点调用留痕。</p>
-        </article>
-      </div>
-    </div>
+    <div class="hero-visual" aria-hidden="true" data-hero-visual></div>
   </div>
 </section>
 
-<section class="landing-section" id="platform">
+<section class="landing-section" id="subsystems">
   <div class="section-heading">
-    <h2>平台定位</h2>
-    <p>EdgeOS 作为 EdgeX 的上层应用平台，基于 EAN 2.0 Capability 模型承载发现、编排、治理与事件订阅。</p>
-  </div>
-
-  <div class="feature-grid">
-    <article class="platform-card">
-      <h3>协调平面</h3>
-      <p>部署于服务器或高性能边缘网关之上，通过 $edgeos/* Topic 纳管 EdgeX 节点，承担全局发现索引与跨节点编排。</p>
-      <ul>
-        <li>Agent / Capability 发现与索引</li>
-        <li>跨节点 Invoke 编排与 Reply 关联</li>
-        <li>V1 兼容层并行运行</li>
-      </ul>
-    </article>
-
-    <article class="platform-card">
-      <h3>群控与调度</h3>
-      <p>支持大规模 EdgeX 节点的群控管理与协同调度，实现跨节点、跨场站的统一策略执行。</p>
-      <ul>
-        <li>多节点批量配置下发</li>
-        <li>策略模板与场景联动</li>
-        <li>分布式任务编排</li>
-      </ul>
-    </article>
-
-    <article class="platform-card">
-      <h3>事件与治理</h3>
-      <p>订阅 EdgeX 上报的设备事件（含 previous_value），按租户策略约束写/admin/AI 能力，跨节点调用全程留痕。</p>
-      <ul>
-        <li>Event 订阅与 previous_value 比较</li>
-        <li>租户级权限与审计</li>
-        <li>心跳超时与离线判定</li>
-      </ul>
-    </article>
-  </div>
-</section>
-
-<section class="landing-section" id="capabilities">
-  <div class="section-heading">
-    <h2>核心能力</h2>
-    <p>围绕发现、编排、事件与治理构建 EAN 2.0 协调平面，覆盖 EdgeOS 的核心能力与落地方向。</p>
+    <h2>核心子系统</h2>
   </div>
 
   <div class="feature-grid">
     <article class="capability-card">
-      <h3>发现与索引</h3>
-      <p>订阅 $edgeos/discovery/* 建立 Agent 与 Capability 索引，原生 EAN 优先于 V1 合成，60 秒周期重发布。</p>
-      <ul>
-        <li>Agent / Capability / Offline 三级索引</li>
-        <li>source 优先级：native-ean > v1-bridge</li>
-        <li>主动查询与递减频率</li>
-      </ul>
+      <h3>Capability 发现</h3>
+      <p>订阅 $edgeos/discovery/* 建立 Agent 与 Capability 索引，60 秒周期重发布。</p>
     </article>
 
     <article class="capability-card">
       <h3>Invoke 编排</h3>
-      <p>通过 correlation_id + invoke_id 关联 Invoke 与 Reply，EAN 超时后自动回退 V1 协议，40%/60% 时间预算分配。</p>
-      <ul>
-        <li>Reply 订阅 $edgeos/reply/{planner_id}</li>
-        <li>EAN → V1 协议转译桥接</li>
-        <li>跨节点调用审计留痕</li>
-      </ul>
+      <p>correlation_id + invoke_id 关联 Invoke 与 Reply，EAN 超时自动回退 V1 协议。</p>
     </article>
 
     <article class="capability-card">
-      <h3>事件订阅与治理</h3>
-      <p>订阅 EdgeX 上报的设备事件，读取 value 与 previous_value，按租户策略约束能力调用，心跳超时判定离线。</p>
-      <ul>
-        <li>device.online / device.offline 事件</li>
-        <li>租户级写/admin/AI 权限</li>
-        <li>心跳超时 3 × heartbeat_interval</li>
-      </ul>
-    </article>
-  </div>
-</section>
-
-<section class="landing-section" id="scenarios">
-  <div class="section-heading">
-    <h2>业务场景</h2>
-    <p>覆盖能源、交通、安防与运营领域，基于 EAN 2.0 Capability 模型落地垂直场景。</p>
-  </div>
-
-  <div class="card-grid">
-    <article class="scene-card grid-node">
-      <h3>智能电网</h3>
-      <p>电力设备状态监测、负荷预测分析、故障诊断与自愈控制，支撑电网运维。</p>
+      <h3>事件订阅</h3>
+      <p>订阅设备事件并读取 previous_value，按租户策略约束写/admin/AI 能力。</p>
     </article>
 
-    <article class="scene-card energy-node">
-      <h3>充电储能场站</h3>
-      <p>集中管理充电桩与储能系统，优化能源调度策略，实现场站级能量协同。</p>
+    <article class="capability-card">
+      <h3>治理审计</h3>
+      <p>跨节点 Invoke 记录审计日志，心跳超时判定离线，Capability 来源优先级管理。</p>
     </article>
 
-    <article class="scene-card traffic-node">
-      <h3>交通联合指挥</h3>
-      <p>多源感知数据融合、实时路况分析、信号控制与应急指挥调度。</p>
+    <article class="capability-card">
+      <h3>双传输链路</h3>
+      <p>MQTT + NATS 并行传输，Topic/Subject 字符串一致，NATS 保留斜杠分隔符。</p>
     </article>
 
-    <article class="scene-card ai-node">
-      <h3>图像识别</h3>
-      <p>边缘侧图像识别、缺陷检测、安全监控与视频结构化分析。</p>
-    </article>
-
-    <article class="scene-card center-node">
-      <h3>运营中心</h3>
-      <p>集中监控大屏、告警统一管理、运维编排自动化与运营决策支持。</p>
+    <article class="capability-card">
+      <h3>V1 兼容桥接</h3>
+      <p>自动合成 V1 协议 Capability，原生 EAN 优先升级，跳过已存在原生能力的 Agent。</p>
     </article>
   </div>
 </section>
@@ -184,132 +78,95 @@ description: EAN 2.0 Coordination Platform — 基于 Capability 模型的发现
 <section class="landing-section" id="ai-capabilities">
   <div class="section-heading">
     <h2>AI 能力</h2>
-    <p>EdgeX 侧的 AI 能力通过 Capability Runtime 统一接入 EAN 2.0，EdgeOS 作为协调平面发起 Invoke 并约束权限。所有 AI 产出须经 Human-in-the-loop 确认后落库，不进入采集热路径。</p>
   </div>
 
-  <div class="ai-feature-grid">
-    <article class="ai-feature-card ai-feature-card--primary">
-      <div class="ai-feature-card__head">
-        <span class="ai-feature-card__tag">Capability</span>
-        <h3>ai.protocol_reverse</h3>
-      </div>
-      <p>EdgeX 侧 AI Agent Client 基于抓包报文与 protocol_knowledge.db 生成候选协议配置，工程师确认后落库。将「2 天分析协议」缩短到「30 分钟生成候选 + 确认」。</p>
-      <div class="ai-feature-card__flow">
-        <span class="flow-step">报文捕获</span>
-        <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">AI 候选配置</span>
-        <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step flow-step--accent">Human Confirm</span>
-        <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">落库</span>
-      </div>
-      <ul>
-        <li>LLM/VLM/Embedding 由远端 AI Model Center 承担</li>
-        <li>protocol_knowledge.db 基于 bbolt 本地存储</li>
-        <li>禁止 AI 调用进入 ScanEngine / Pipeline Worker</li>
-      </ul>
+  <div class="feature-grid">
+    <article class="capability-card">
+      <h3>ai.protocol_reverse</h3>
+      <p>基于抓包报文生成候选协议配置，工程师确认后落库。</p>
     </article>
 
-    <article class="ai-feature-card">
-      <div class="ai-feature-card__head">
-        <span class="ai-feature-card__tag">Capability</span>
-        <h3>ai.doc_parse</h3>
-      </div>
-      <p>解析设备手册、协议文档与点位表，自动提取寄存器映射与点位定义，生成可导入的物模型草稿。</p>
-      <ul>
-        <li>支持 PDF / Word / 扫描件输入</li>
-        <li>输出符合 EdgeOS 物模型规范的 JSON</li>
-        <li>产出须经工程师确认后写入</li>
-      </ul>
+    <article class="capability-card">
+      <h3>ai.doc_parse</h3>
+      <p>解析设备手册与点位表，自动提取寄存器映射，生成物模型草稿。</p>
     </article>
 
-    <article class="ai-feature-card">
-      <div class="ai-feature-card__head">
-        <span class="ai-feature-card__tag">Runtime</span>
-        <h3>Capability Runtime</h3>
-      </div>
-      <p>EdgeX 侧的 AI Skill、MCP Tool、Driver Command、Workflow Node 统一映射到 Capability 模型，通过 Invoke Dispatcher 路由到对应执行器。</p>
-      <ul>
-        <li>AI Adapter / MCP Adapter / DriverExecutor</li>
-        <li>Capability Registry 统一注册与发现</li>
-        <li>ShadowCore 提供状态缓存与 Event 上报</li>
-      </ul>
+    <article class="capability-card">
+      <h3>Human-in-the-loop</h3>
+      <p>AI 产出禁止自动写入 config，受 admin/ai 权限约束，与采集热路径物理隔离。</p>
     </article>
+  </div>
+</section>
 
-    <article class="ai-feature-card">
-      <div class="ai-feature-card__head">
-        <span class="ai-feature-card__tag">Governance</span>
-        <h3>Human-in-the-loop</h3>
-      </div>
-      <p>所有 AI 产出（协议配置、物模型、点位映射）禁止自动写入 config，必须经工程师确认后落库。AI 故障不得影响工业采集与规则执行。</p>
-      <ul>
-        <li>AI Invoke 受 admin/ai 权限约束</li>
-        <li>产出落库前需显式 Confirm / Apply</li>
-        <li>AI 调用与采集热路径物理隔离</li>
-      </ul>
-    </article>
+<section class="landing-section" id="pipeline">
+  <div class="section-heading">
+    <h2>流水线架构</h2>
+  </div>
+
+  <div class="arch-flow" data-arch-flow>
+    <canvas class="arch-particles" data-arch-canvas></canvas>
+    <div class="arch-step">
+      <span class="arch-step__status"></span>
+      <span class="arch-step__num">01</span>
+      <span class="arch-step__label">Capability 发现</span>
+    </div>
+    <span class="arch-arrow">&#8594;</span>
+    <div class="arch-step">
+      <span class="arch-step__status"></span>
+      <span class="arch-step__num">02</span>
+      <span class="arch-step__label">Invoke 编排</span>
+    </div>
+    <span class="arch-arrow">&#8594;</span>
+    <div class="arch-step">
+      <span class="arch-step__status"></span>
+      <span class="arch-step__num">03</span>
+      <span class="arch-step__label">事件订阅</span>
+    </div>
+    <span class="arch-arrow">&#8594;</span>
+    <div class="arch-step">
+      <span class="arch-step__status"></span>
+      <span class="arch-step__num">04</span>
+      <span class="arch-step__label">治理审计</span>
+    </div>
+    <span class="arch-arrow">&#8594;</span>
+    <div class="arch-step">
+      <span class="arch-step__status"></span>
+      <span class="arch-step__num">05</span>
+      <span class="arch-step__label">V1 桥接</span>
+    </div>
+    <span class="arch-arrow">&#8594;</span>
+    <div class="arch-step">
+      <span class="arch-step__status"></span>
+      <span class="arch-step__num">06</span>
+      <span class="arch-step__label">AI 协同</span>
+    </div>
   </div>
 </section>
 
 <section class="landing-section" id="documents">
   <div class="section-heading">
-    <h2>文档入口</h2>
-    <p>按主题进入架构、协议、实现、联调、UI 与样式规范文档。</p>
+    <h2>文档导航</h2>
   </div>
 
   <div class="card-grid">
     <a class="doc-card" href="../readme.md">
       <h3>项目总览</h3>
-      <p>快速了解 EdgeOS 的总体定位、仓库结构和关键模块，适合作为整个文档站的起点。</p>
-      <span class="doc-card__meta">查看总览 &rarr;</span>
+      <span class="doc-card__meta">查看 &rarr;</span>
     </a>
 
     <a class="doc-card" href="./EdgeX通信协议规范(MQTT-NATS).html">
       <h3>通信协议规范</h3>
-      <p>聚焦 EdgeX 与 EdgeOS 之间的 MQTT / NATS 设计、消息格式、时序与联调约束。</p>
-      <span class="doc-card__meta">查看协议 &rarr;</span>
-    </a>
-
-    <a class="doc-card" href="./EdgeOS与EdgeX通信测试验证文档.html">
-      <h3>通信测试验证</h3>
-      <p>沉淀联调过程中的验证步骤、消息示例与测试链路，方便回归和对照检查。</p>
-      <span class="doc-card__meta">查看验证文档 &rarr;</span>
-    </a>
-
-    <a class="doc-card" href="./EdgeOS_与EdgeX通信测试报告_20260417.html">
-      <h3>通信测试报告</h3>
-      <p>记录 2026-04-17 的联调报告、测试结论和现阶段问题，为后续迭代提供依据。</p>
-      <span class="doc-card__meta">查看报告 &rarr;</span>
+      <span class="doc-card__meta">查看 &rarr;</span>
     </a>
 
     <a class="doc-card" href="./EdgeOS 后端实现指南.html">
       <h3>后端实现指南</h3>
-      <p>梳理服务职责、实现路径与工程约束，帮助后端开发和前后端对接保持一致。</p>
-      <span class="doc-card__meta">查看实现指南 &rarr;</span>
+      <span class="doc-card__meta">查看 &rarr;</span>
     </a>
 
-    <a class="doc-card" href="./AI协同组件规划.html">
+    <a class="doc-card" href="./edgeos/AI协同组件规划.html">
       <h3>AI 协同组件规划</h3>
-      <p>EAN 2.0 Capability Runtime 设计、AI Agent Client、协议逆向与文档解析流水线、Human-in-the-loop 约束。</p>
-      <span class="doc-card__meta">查看 AI 规划 &rarr;</span>
-    </a>
-
-    <a class="doc-card" href="./EdgeOS UI规划文档.html">
-      <h3>UI 规划文档</h3>
-      <p>从信息架构、页面拆分到模块化编排说明前端规划，是页面方案设计的主文档。</p>
-      <span class="doc-card__meta">查看 UI 规划 &rarr;</span>
-    </a>
-
-    <a class="doc-card" href="./样式规范.html">
-      <h3>工业级样式规范</h3>
-      <p>定义面向工业控制场景的布局、状态、表格、危险操作与样式覆写规范。</p>
-      <span class="doc-card__meta">查看样式规范 &rarr;</span>
-    </a>
-
-    <a class="doc-card" href="./EdgeOS-2026-P3-TODO.html">
-      <h3>P3 任务重点</h3>
-      <p>整理当前阶段的交付目标、页面扩展范围和优先事项，方便团队统一节奏。</p>
-      <span class="doc-card__meta">查看 P3 TODO &rarr;</span>
+      <span class="doc-card__meta">查看 &rarr;</span>
     </a>
   </div>
 </section>
