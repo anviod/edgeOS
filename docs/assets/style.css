@@ -80,9 +80,7 @@
   --radius-xs: 6px;
 
   /* Layout */
-  --shell-width: 1400px;
-  --shell-wide: 1460px;
-  --shell-docs: 1200px;
+  --shell-width: 1920px;
 
   /* Animation */
   --transition-fast: 150ms ease;
@@ -263,6 +261,12 @@ img {
   color: var(--text);
 }
 
+/* Layout shells */
+.shell, .shell--wide {
+  width: min(100% - 48px, var(--shell-width));
+  margin: 0 auto;
+}
+
 /* =========================================
    Header & Navigation
    ========================================= */
@@ -386,11 +390,11 @@ img {
 }
 
 /* =========================================
-   Hero Section — with Golden Blueprint Grid & Light Flow
+   Landing — Hero Section
    ========================================= */
-.hero {
-  width: min(calc(100% - 48px), var(--shell-wide));
-  margin: 40px auto 32px;
+.hero-section {
+  width: 100%;
+  margin: 0 0 32px;
   padding: clamp(40px, 5vw, 72px);
   border: 1px solid var(--gold-border);
   border-radius: var(--radius-xl);
@@ -402,237 +406,162 @@ img {
   position: relative;
 }
 
-/* Golden blueprint grid overlay — industrial engineering feel */
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(200, 167, 91, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(200, 167, 91, 0.05) 1px, transparent 1px),
-    linear-gradient(rgba(200, 167, 91, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(200, 167, 91, 0.03) 1px, transparent 1px);
-  background-size: 56px 56px, 56px 56px, 14px 14px, 14px 14px;
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.35) 70%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.35) 70%, transparent 100%);
-}
-
-/* Aurora glow inside hero */
-.hero::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 80%;
-  height: 120%;
-  background: radial-gradient(ellipse at center, rgba(200, 167, 91, 0.14) 0%, rgba(184, 115, 51, 0.07) 30%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Mycelium spread effect — bottom-up grid growth */
-.hero__glow {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.hero__glow::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(200, 167, 91, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(200, 167, 91, 0.06) 1px, transparent 1px),
-    linear-gradient(rgba(200, 167, 91, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(200, 167, 91, 0.03) 1px, transparent 1px);
-  background-size: 56px 56px, 56px 56px, 14px 14px, 14px 14px;
-  -webkit-mask: linear-gradient(180deg, transparent 0%, #000 30%, #000 100%);
-  mask: linear-gradient(180deg, transparent 0%, #000 30%, #000 100%);
-  animation: mycelium-spread 8s ease-out forwards;
-}
-
-.hero__glow::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40%;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(200, 167, 91, 0.08) 30%,
-    rgba(200, 167, 91, 0.15) 70%,
-    rgba(200, 167, 91, 0.25) 100%
-  );
-  animation: mycelium-glow 8s ease-out forwards;
-}
-
-@keyframes mycelium-spread {
-  0% {
-    -webkit-mask: linear-gradient(180deg, transparent 0%, transparent 0%, transparent 0%);
-    mask: linear-gradient(180deg, transparent 0%, transparent 0%, transparent 0%);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    -webkit-mask: linear-gradient(180deg, transparent 0%, #000 30%, #000 100%);
-    mask: linear-gradient(180deg, transparent 0%, #000 30%, #000 100%);
-    opacity: 1;
-  }
-}
-
-@keyframes mycelium-glow {
-  0% {
-    height: 0%;
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  100% {
-    height: 40%;
-    opacity: 1;
-  }
-}
-
-.hero__grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.9fr);
-  gap: 56px;
-  align-items: stretch;
+/* Two-column hero layout */
+.hero-inner {
   position: relative;
   z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 5vw, 64px);
+  align-items: center;
 }
 
-.hero__copy {
+/* Engineering panel accent — uniform top border */
+.hero-section::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.45;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.hero-section::after {
+  content: "RUNTIME";
+  position: absolute;
+  top: 14px; right: 18px;
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--gold-dark);
+  opacity: 0.7;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   max-width: 780px;
 }
 
-.hero__eyebrow {
+.hero-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   align-self: flex-start;
   margin-bottom: 20px;
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: rgba(200, 167, 91, 0.12);
-  border: 1px solid rgba(200, 167, 91, 0.25);
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-border);
   color: var(--gold-light);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
-.hero h2 {
-  margin: 0 0 24px;
-  font-size: clamp(1.8rem, 3.5vw, 3rem);
-  line-height: 1.4;
-  letter-spacing: -0.02em;
+.hero-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  margin-right: 8px;
+  box-shadow: 0 0 6px var(--success-glow);
+}
+
+.hero-copy h1 {
+  font-size: clamp(2.4rem, 5vw, 4rem);
   font-weight: 800;
   color: var(--text);
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
-.hero h2 .typewriter {
+.hero-copy h2 {
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  font-weight: 500;
+  color: var(--text-soft);
+  margin: 8px 0 20px;
+  letter-spacing: -0.01em;
+  max-width: 620px;
+}
+
+/* Typewriter effect — engineering mono telemetry line */
+.hero-typewriter {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 14px;
+  min-height: 32px;
+  font-size: clamp(0.95rem, 1.3vw, 1.05rem);
+  font-weight: 600;
+  color: var(--gold-light);
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, monospace;
+}
+
+.typewriter-cursor {
   display: inline-block;
-  color: #C8A75B;
-  min-height: 1em;
+  color: var(--gold);
+  font-weight: 300;
+  animation: tw-cursor-blink 0.9s steps(1) infinite;
 }
 
-.hero h2 .typewriter-cursor {
+.typewriter-text {
   display: inline-block;
-  width: 3px;
-  height: 0.85em;
-  background: #DDBB73;
-  margin-left: 4px;
-  vertical-align: middle;
-  animation: cursor-blink 1s step-end infinite;
+  min-width: 1ch;
 }
 
-@keyframes cursor-blink {
+@keyframes tw-cursor-blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
 
-.hero__description {
-  margin: 0;
-  max-width: 640px;
-  font-size: clamp(1rem, 1.4vw, 1.15rem);
+.hero-desc {
+  font-size: clamp(0.95rem, 1.2vw, 1.05rem);
+  color: var(--text-muted);
   line-height: 1.85;
-  color: var(--text-muted);
-  font-weight: 400;
+  margin-bottom: 24px;
+  max-width: 680px;
 }
 
-.hero__metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 40px;
+/* Hero values + actions */
+.hero-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
 }
 
-.metric-card {
-  position: relative;
-  padding: 22px 20px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, rgba(200, 167, 91, 0.08), rgba(200, 167, 91, 0.03));
-  border: 1px solid var(--gold-border);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: var(--transition-base);
-  overflow: hidden;
-}
-
-.metric-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(200, 167, 91, 0.5), transparent 60%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: var(--transition-base);
-}
-
-.metric-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--gold-border-hover);
-  box-shadow: var(--shadow-gold);
-}
-
-.metric-card:hover::before {
-  opacity: 1;
-}
-
-.metric-card strong {
-  display: block;
-  font-size: 1.6rem;
-  line-height: 1.1;
-  color: var(--gold-light);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.metric-card span {
-  display: block;
-  margin-top: 8px;
-  color: var(--text-muted);
-  font-size: 0.9rem;
+.value-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(200, 167, 91, 0.05);
+  border: 1px solid rgba(200, 167, 91, 0.15);
+  border-radius: var(--radius-xs);
+  font-size: 0.78rem;
+  color: var(--text-soft);
   font-weight: 500;
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, monospace;
+}
+
+.value-tag::before {
+  content: "·";
+  color: var(--gold);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .hero__actions {
@@ -821,33 +750,35 @@ img {
 }
 
 .landing-section {
-  width: min(calc(100% - 48px), var(--shell-width));
-  margin: 0 auto;
-  padding: 32px 0;
+  margin-bottom: 24px;
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  backdrop-filter: var(--blur-xs);
+  -webkit-backdrop-filter: var(--blur-xs);
+  border: 1px solid var(--gold-border);
+  box-shadow: var(--shadow);
 }
 
 .section-heading {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 20px;
-  align-items: end;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gold-line);
 }
 
 .section-heading h2 {
-  margin: 0;
-  font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+  margin: 0 0 6px;
+  font-size: clamp(1.4rem, 2.2vw, 1.8rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text);
 }
 
 .section-heading p {
-  margin: 10px 0 0;
-  max-width: 680px;
+  margin: 0;
   color: var(--text-muted);
-  line-height: 1.75;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.7;
 }
 
 /* =========================================

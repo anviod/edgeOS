@@ -162,7 +162,9 @@
       </header>
 
       <main class="landing-main">
-        {{ content }}
+        <div class="shell">
+          {{ content }}
+        </div>
       </main>
 
       <footer class="site-footer">
@@ -174,6 +176,8 @@
           <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
           <span class="site-footer__divider">|</span>
           <span class="site-footer__copy">开源 · MIT 许可证</span>
+          <span class="site-footer__divider">|</span>
+          <a href="{{ '/样式规范.html' | relative_url }}">样式指南</a>
           <span class="site-footer__divider">|</span>
           <a href="https://anviod.github.io/edgex/" target="_blank" rel="noopener noreferrer">EdgeX 官方文档</a>
         </div>

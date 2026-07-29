@@ -1,5 +1,5 @@
 ---
-layout: section-index
+layout: default
 title: EdgeOS 集成
 description: EdgeX 与 EdgeOS 集成文档 — 通信协议规范、测试方案与北向推送优化
 hero_eyebrow: EdgeOS Integration
@@ -8,9 +8,7 @@ hero_buttons:
   - text: 通信协议规范
     url: EdgeX通信协议规范%28MQTT-NATS%29.html
     style: primary
-  - text: 用户手册
-    url: ../guide/USER_MANUAL.html#安装指南
-    style: secondary
+  
   - text: 样式规范
     url: 样式规范.html
     style: secondary
@@ -26,7 +24,7 @@ hero_buttons:
 > **权威：** [EdgeX 通信协议规范 (MQTT/NATS)](EdgeX通信协议规范%28MQTT-NATS%29.html)
 
 - [EdgeX 通信协议规范 (MQTT/NATS)](EdgeX通信协议规范%28MQTT-NATS%29.html) — EdgeX ↔ edgeOS 专用 Topic/消息体
-- 通用 MQTT 北向插件格式见 [MQTT 数据上下行格式](../northbound/MQTT数据上下行格式.html)
+
 
 ### 测试与验证
 
