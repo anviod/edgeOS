@@ -92,10 +92,10 @@
   --header-bg: rgba(9, 9, 9, 0.75);
   --header-border: rgba(200, 167, 91, 0.18);
 
-  /* Button */
-  --button-primary-text: #111111;
-  --button-primary-bg: linear-gradient(135deg, #C8A75B 0%, #DDBB73 100%);
-  --button-secondary-bg: rgba(200, 167, 91, 0.08);
+  /* Button — flat engineering controls, no marketing gradients */
+  --button-primary-text: #0D0D0F;
+  --button-primary-bg: #C8A75B;
+  --button-secondary-bg: transparent;
   --button-border: rgba(200, 167, 91, 0.35);
 
   /* Code Blocks */
@@ -118,28 +118,44 @@
 }
 
 /* =========================================
-   Light Theme Override
+   Light Theme
    ========================================= */
-:root[data-theme="light"] {
-  --bg-deep: #FAFAFA;
-  --bg: #F5F5F7;
-  --bg-soft: #FFFFFF;
-  --bg-elevated: #F0F0F2;
+[data-theme="light"] {
+  --bg-deep: #F5F5F7;
+  --bg: #FAFAFA;
+  --bg-soft: #F0F0F2;
+  --bg-elevated: #E8E8ED;
   --bg-panel: #FFFFFF;
-  --bg-surface: #F8F8FA;
+  --bg-surface: #FBFBFD;
 
-  --text: #111111;
-  --text-soft: #444444;
-  --text-muted: #777777;
+  --text: #1D1D1F;
+  --text-soft: #3A3A3C;
+  --text-muted: #6E6E73;
   --text-dim: #999999;
 
-  --gold-border: rgba(200, 167, 91, 0.35);
-  --gold-line: rgba(200, 167, 91, 0.20);
-  --gold-ghost: rgba(200, 167, 91, 0.04);
-  --gold-ghost-strong: rgba(200, 167, 91, 0.06);
-  --gold-selection: rgba(200, 167, 91, 0.30);
+  --gold: #B8933F;
+  --gold-light: #A07D2C;
+  --gold-bright: #C8A75B;
+  --gold-deep: #8B6914;
+  --gold-dark: #6B5210;
+  --gold-hover: #D4A84B;
+  --gold-glow: rgba(184, 147, 63, 0.15);
+  --gold-glow-strong: rgba(184, 147, 63, 0.3);
+  --gold-soft: rgba(184, 147, 63, 0.08);
+  --gold-bg: rgba(184, 147, 63, 0.05);
+  --gold-bg-strong: rgba(184, 147, 63, 0.07);
+  --gold-border: rgba(184, 147, 63, 0.2);
+  --gold-border-hover: rgba(160, 125, 44, 0.45);
+  --gold-line: rgba(184, 147, 63, 0.12);
+  --gold-ghost: rgba(184, 147, 63, 0.03);
+  --gold-ghost-strong: rgba(184, 147, 63, 0.05);
+  --gold-selection: rgba(184, 147, 63, 0.3);
 
   /* Semantic */
+  --success: #16a34a;
+  --warning: #B8933F;
+  --error: #dc2626;
+  --tip: #3b82f6;
   --success-bg: rgba(22, 163, 74, 0.1);
   --success-border: rgba(22, 163, 74, 0.25);
   --success-glow: rgba(22, 163, 74, 0.45);
@@ -150,44 +166,40 @@
   --tip-border: rgba(59, 130, 246, 0.25);
   --tip-soft: rgba(59, 130, 246, 0.05);
 
-  --glass: rgba(255, 255, 255, 0.72);
-  --glass-strong: rgba(255, 255, 255, 0.92);
-  --blur-xs: 12px;
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-strong: rgba(255, 255, 255, 0.85);
 
-  /* Radius */
-  --radius-xs: 6px;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.10);
+  --shadow-gold: 0 4px 24px rgba(184, 147, 63, 0.08);
+  --shadow-gold-lg: 0 8px 40px rgba(184, 147, 63, 0.12);
+  --shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.04);
 
-  /* Animation */
-  --transition-scene: 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --header-bg: rgba(245, 245, 247, 0.75);
+  --header-border: rgba(184, 147, 63, 0.15);
 
-  --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.12);
-  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.04);
+  --button-primary-text: #FFFFFF;
+  --button-primary-bg: #B8933F;
+  --button-secondary-bg: transparent;
+  --button-border: rgba(184, 147, 63, 0.4);
 
-  --header-bg: rgba(250, 250, 250, 0.82);
-  --header-border: rgba(200, 167, 91, 0.25);
-
-  --button-primary-text: #111111;
-  --button-secondary-bg: rgba(200, 167, 91, 0.10);
-  --button-border: rgba(200, 167, 91, 0.40);
-
-  /* Code Blocks */
+  /* Code Blocks (light) */
   --code-inline-bg: rgba(0, 0, 0, 0.06);
   --code-inline-color: #8B6914;
-  --code-inline-border: rgba(200, 167, 91, 0.20);
+  --code-inline-border: rgba(184, 147, 63, 0.2);
   --code-block-bg: #F0F0F3;
   --code-block-color: #1D1D1F;
   --tok-keyword: #2563eb;
   --tok-string: #059669;
   --tok-number: #dc2626;
 
-  /* Arch Flow */
+  /* Arch Flow (light) */
   --arch-bg: rgba(240, 240, 243, 0.72);
   --arch-step-bg: rgba(255, 255, 255, 0.88);
   --arch-step-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  --arch-flow-shadow: inset 0 0 40px rgba(0, 0, 0, 0.04), 0 0 24px rgba(200, 167, 91, 0.06);
-  --arch-status-bar-bg: rgba(200, 167, 91, 0.08);
-  --arch-status-bar-border: rgba(200, 167, 91, 0.12);
+  --arch-flow-shadow: inset 0 0 40px rgba(0, 0, 0, 0.04), 0 0 24px rgba(184, 147, 63, 0.06);
+  --arch-status-bar-bg: rgba(184, 147, 63, 0.08);
+  --arch-status-bar-border: rgba(184, 147, 63, 0.12);
 }
 
 /* =========================================

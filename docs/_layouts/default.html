@@ -38,7 +38,7 @@
               aria-label="切换主题"
               aria-pressed="false"
             >
-              <span data-theme-icon>🌙</span>
+              <span data-theme-icon>暗黑</span>
             </button>
           </nav>
         </div>
@@ -86,7 +86,7 @@
 
         function syncTheme(theme) {
           root.setAttribute('data-theme', theme);
-          if (icon) icon.textContent = theme === 'light' ? '☀️' : '🌙';
+          if (icon) icon.textContent = theme === 'light' ? '暗黑' : '明亮';
           button.setAttribute('aria-pressed', String(theme === 'light'));
         }
 

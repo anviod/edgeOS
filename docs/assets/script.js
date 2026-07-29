@@ -1,6 +1,6 @@
 // Syntax highlighting — only explicit language-tagged code blocks; skip HTML examples and UI regions.
 function shouldSkipBlock(block) {
-  if (block.closest('.hero-actions, .section-index-hero, .hero-section, .hero-banner, .hero-panel, .feature-card__links, .quick-links, .doc-zone')) {
+  if (block.closest('.hero-actions, .section-index-hero, .hero-section, .hero-banner, .hero-panel, .feature-card__links, .quick-links, .doc-zone, .hero-copy, .hero-typewriter')) {
     return true;
   }
 
@@ -76,7 +76,6 @@ window.addEventListener('DOMContentLoaded', () => {
   highlightCode();
   addCopyButtons();
   initTypewriter();
-  initThemeToggle();
   initArchParticles();
 });
 
@@ -513,7 +512,7 @@ function initThemeToggle() {
 
 // Typewriter effect — cycles through EdgeOS key features
 function initTypewriter() {
-  var tw = document.querySelector('.hero h2 .typewriter');
+  var tw = document.querySelector('.hero-typewriter .typewriter-text');
   if (!tw) return;
 
   var lines = [
