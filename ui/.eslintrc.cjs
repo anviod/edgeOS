@@ -17,9 +17,16 @@ module.exports = {
     node: true,
     es2022: true,
   },
+  globals: {
+    h: "readonly",
+    NodeJS: "readonly",
+  },
   rules: {
     "vue/multi-word-component-names": "off",
-    "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-undef": "off",
   },
   ignorePatterns: [
     "dist/",
