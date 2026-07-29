@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -214,13 +215,14 @@ func TestHeartbeat_TimeoutMarksOffline(t *testing.T) {
 	dc := NewDiscoveryCenter(DiscoveryConfig{}, testLogger(t))
 	dc.HandleAgentOnline(TopicDiscoveryAgent, []byte(`{"id":"n1","kind":"device","heartbeat_interval_sec":1,"metadata":{}}`), "mqtt")
 
-	var timedOut string
+	var timedOut atomic.Value
+	timedOut.Store("")
 	hm := NewHeartbeatMonitor(HeartbeatMonitorConfig{
 		CheckInterval:     20 * time.Millisecond,
 		TimeoutMultiplier: 1,
 		Discovery:         dc,
 		OnTimeout: func(agentID string, lastSeen time.Time, missedCount int) {
-			timedOut = agentID
+			timedOut.Store(agentID)
 		},
 	}, testLogger(t))
 
@@ -230,7 +232,7 @@ func TestHeartbeat_TimeoutMarksOffline(t *testing.T) {
 
 	require.Eventually(t, func() bool {
 		agent, ok := dc.GetAgent("n1")
-		return ok && agent.Status == AgentOffline && timedOut == "n1"
+		return ok && agent.Status == AgentOffline && timedOut.Load().(string) == "n1"
 	}, 2*time.Second, 20*time.Millisecond)
 }
 

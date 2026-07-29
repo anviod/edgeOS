@@ -276,12 +276,16 @@ func (dc *DiscoveryCenter) ListAgents(statusFilter ...AgentStatus) []*AgentDescr
 	return result
 }
 
-// GetAgent 获取指定 Agent 描述符
+// GetAgent 获取指定 Agent 描述符副本
 func (dc *DiscoveryCenter) GetAgent(agentID string) (*AgentDescriptor, bool) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	a, ok := dc.agents[agentID]
-	return a, ok
+	if !ok {
+		return nil, false
+	}
+	cp := *a
+	return &cp, true
 }
 
 // ListCapabilities 列出所有 Capability
