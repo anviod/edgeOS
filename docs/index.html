@@ -1,7 +1,7 @@
 ---
 layout: landing
 title: EdgeOS
-description: EAN 2.0 Coordination Platform — 基于 Capability 模型的发现、编排、治理与事件订阅协调平面。
+description: EdgeOS — EdgeX 上层协调平面，统一管理边缘节点的发现、调度、事件监听与运行治理。
 ---
 
 <section class="hero-section" id="overview">
@@ -9,12 +9,12 @@ description: EAN 2.0 Coordination Platform — 基于 Capability 模型的发现
     <div class="hero-copy">
       <span class="hero-badge"><span class="hero-badge__dot"></span>EAN 2.0 · 63 原生 Capability 已索引</span>
       <h1>EdgeOS</h1>
-      <h2>EdgeX 上层协调平面</h2>
+      <h2>EdgeX 节点集群的 AI 中枢 群控大脑</h2>
       <div class="hero-typewriter">
         <span class="typewriter-text"></span><span class="typewriter-cursor">|</span>
       </div>
       <p class="hero-desc">
-        通过 EAN 2.0 Capability 模型纳管 EdgeX 节点，承担发现、编排、治理与事件订阅。
+        统一管理 EdgeX 边缘节点，自动发现设备、调度指令、监听事件，让边缘集群协作如一台整机。
       </p>
       <div class="hero-values">
         <span class="value-tag">分布式架构</span>
@@ -39,33 +39,33 @@ description: EAN 2.0 Coordination Platform — 基于 Capability 模型的发现
 
   <div class="feature-grid">
     <article class="capability-card">
-      <h3>Capability 发现</h3>
-      <p>订阅 $edgeos/discovery/* 建立 Agent 与 Capability 索引，60 秒周期重发布。</p>
+      <h3>自动发现节点</h3>
+      <p>自动扫描并识别网络中的 EdgeX 节点，收集各节点提供的能力清单，建立统一的管理目录。</p>
     </article>
 
     <article class="capability-card">
-      <h3>Invoke 编排</h3>
-      <p>correlation_id + invoke_id 关联 Invoke 与 Reply，EAN 超时自动回退 V1 协议。</p>
+      <h3>指令编排调度</h3>
+      <p>向各节点发送控制指令并跟踪执行结果。新协议无响应时，自动改用旧协议重试。</p>
     </article>
 
     <article class="capability-card">
-      <h3>事件订阅</h3>
-      <p>订阅设备事件并读取 previous_value，按租户策略约束写/admin/AI 能力。</p>
+      <h3>设备事件监听</h3>
+      <p>实时接收设备上报的状态变化和告警信息，记录历史数据用于追溯分析。</p>
     </article>
 
     <article class="capability-card">
-      <h3>治理审计</h3>
-      <p>跨节点 Invoke 记录审计日志，心跳超时判定离线，Capability 来源优先级管理。</p>
+      <h3>运行治理</h3>
+      <p>监控节点健康状态，超时自动判定离线。记录所有操作日志，优先使用官方原生能力。</p>
     </article>
 
     <article class="capability-card">
-      <h3>双传输链路</h3>
-      <p>MQTT + NATS 并行传输，Topic/Subject 字符串一致，NATS 保留斜杠分隔符。</p>
+      <h3>双通道传输</h3>
+      <p>同时支持 MQTT 和 NATS 两种消息通道，两端使用相同地址格式，确保消息可靠送达。</p>
     </article>
 
     <article class="capability-card">
-      <h3>V1 兼容桥接</h3>
-      <p>自动合成 V1 协议 Capability，原生 EAN 优先升级，跳过已存在原生能力的 Agent。</p>
+      <h3>旧版兼容</h3>
+      <p>为仅支持旧协议的节点自动生成兼容接口，新节点则直接使用原生能力，互不干扰。</p>
     </article>
   </div>
 </section>
@@ -77,18 +77,18 @@ description: EAN 2.0 Coordination Platform — 基于 Capability 模型的发现
 
   <div class="feature-grid">
     <article class="capability-card">
-      <h3>ai.protocol_reverse</h3>
-      <p>基于抓包报文生成候选协议配置，工程师确认后落库。</p>
+      <h3>协议逆向</h3>
+      <p>AI 分析设备通信报文，自动生成协议配置草案，工程师确认后生效。</p>
     </article>
 
     <article class="capability-card">
-      <h3>ai.doc_parse</h3>
-      <p>解析设备手册与点位表，自动提取寄存器映射，生成物模型草稿。</p>
+      <h3>文档解析</h3>
+      <p>AI 读取设备手册和点位表，自动提取寄存器信息，生成设备模型草稿。</p>
     </article>
 
     <article class="capability-card">
-      <h3>Human-in-the-loop</h3>
-      <p>AI 产出禁止自动写入 config，受 admin/ai 权限约束，与采集热路径物理隔离。</p>
+      <h3>人工确认</h3>
+      <p>AI 生成的所有配置须经工程师审核确认后才可写入系统，确保安全可靠。</p>
     </article>
   </div>
 </section>
@@ -103,37 +103,37 @@ description: EAN 2.0 Coordination Platform — 基于 Capability 模型的发现
     <div class="arch-step">
       <span class="arch-step__status"></span>
       <span class="arch-step__num">01</span>
-      <span class="arch-step__label">Capability 发现</span>
+      <span class="arch-step__label">发现节点</span>
     </div>
     <span class="arch-arrow">&#8594;</span>
     <div class="arch-step">
       <span class="arch-step__status"></span>
       <span class="arch-step__num">02</span>
-      <span class="arch-step__label">Invoke 编排</span>
+      <span class="arch-step__label">调度指令</span>
     </div>
     <span class="arch-arrow">&#8594;</span>
     <div class="arch-step">
       <span class="arch-step__status"></span>
       <span class="arch-step__num">03</span>
-      <span class="arch-step__label">事件订阅</span>
+      <span class="arch-step__label">监听事件</span>
     </div>
     <span class="arch-arrow">&#8594;</span>
     <div class="arch-step">
       <span class="arch-step__status"></span>
       <span class="arch-step__num">04</span>
-      <span class="arch-step__label">治理审计</span>
+      <span class="arch-step__label">治理监控</span>
     </div>
     <span class="arch-arrow">&#8594;</span>
     <div class="arch-step">
       <span class="arch-step__status"></span>
       <span class="arch-step__num">05</span>
-      <span class="arch-step__label">V1 桥接</span>
+      <span class="arch-step__label">兼容旧版</span>
     </div>
     <span class="arch-arrow">&#8594;</span>
     <div class="arch-step">
       <span class="arch-step__status"></span>
       <span class="arch-step__num">06</span>
-      <span class="arch-step__label">AI 协同</span>
+      <span class="arch-step__label">AI 辅助</span>
     </div>
   </div>
 </section>

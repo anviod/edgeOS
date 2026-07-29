@@ -3,12 +3,12 @@ layout: default
 title: EdgeOS 集成
 description: EdgeX 与 EdgeOS 集成文档 — 通信协议规范、测试方案与北向推送优化
 hero_eyebrow: EdgeOS Integration
-hero_lead: EdgeX 与 EdgeOS 集成文档 — MQTT/NATS 通信协议规范、联调测试方案、设备级数据推送验证与北向推送优化。
+hero_lead: EdgeX 与 EdgeOS 集成文档 — 通信协议规范、联调测试方案、设备级数据推送验证与北向推送优化。
 hero_buttons:
   - text: 通信协议规范
     url: EdgeX通信协议规范%28MQTT-NATS%29.html
     style: primary
-  
+
   - text: 样式规范
     url: 样式规范.html
     style: secondary
