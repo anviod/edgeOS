@@ -397,13 +397,13 @@ function initHeroVisual() {
       var pathPatrolA = 'M 150 45 C 240 45, 250 255, 150 255 C 50 255, 60 45, 150 45 Z';
       var pathPatrolB = 'M 45 150 C 45 60, 255 50, 255 150 C 255 240, 45 230, 45 150 Z';
       var pathForager = 'M 150 150 C 260 30, 260 270, 150 150 C 40 270, 40 30, 150 150 Z';
-      var beesHtml = '';
+      var particlesHtml = '';
       for (var g = 0; g < 8; g++) {
         var gDur = (4.0 + (g % 3) * 0.5).toFixed(1) + 's';
         var gDel = (g * 0.45).toFixed(2) + 's';
         var jx = ((Math.random() - 0.5) * 4).toFixed(1) + 'px';
         var jy = ((Math.random() - 0.5) * 4).toFixed(1) + 'px';
-        beesHtml += '<circle class="fx-swarm__bee--guard" r="2.2" style="offset-path: path(\'' + pathGuard + '\');--dur:' + gDur + ';--delay:' + gDel + ';--jx:' + jx + ';--jy:' + jy + ';"/>';
+        particlesHtml += '<circle class="fx-swarm__particle fx-swarm__particle--inner" r="2.2" style="offset-path: path(\'' + pathGuard + '\');--dur:' + gDur + ';--delay:' + gDel + ';--jx:' + jx + ';--jy:' + jy + ';"/>';
       }
       for (var p = 0; p < 20; p++) {
         var pPath = (p % 2 === 0) ? pathPatrolA : pathPatrolB;
@@ -411,7 +411,7 @@ function initHeroVisual() {
         var pDel = (p * 0.35).toFixed(2) + 's';
         var pJx = ((Math.random() - 0.5) * 6).toFixed(1) + 'px';
         var pJy = ((Math.random() - 0.5) * 6).toFixed(1) + 'px';
-        beesHtml += '<circle class="fx-swarm__bee--patrol" r="2.6" style="offset-path: path(\'' + pPath + '\');--dur:' + pDur + ';--delay:' + pDel + ';--jx:' + pJx + ';--jy:' + pJy + ';"/>';
+        particlesHtml += '<circle class="fx-swarm__particle fx-swarm__particle--mid" r="2.6" style="offset-path: path(\'' + pPath + '\');--dur:' + pDur + ';--delay:' + pDel + ';--jx:' + pJx + ';--jy:' + pJy + ';"/>';
       }
       for (var f = 0; f < 8; f++) {
         var fDur = (9.0 + (f % 2) * 1.2).toFixed(1) + 's';
@@ -420,11 +420,11 @@ function initHeroVisual() {
         var cy = (Math.cos(f * 1.2) * 18).toFixed(1) + 'px';
         var fJx = ((Math.random() - 0.5) * 8).toFixed(1) + 'px';
         var fJy = ((Math.random() - 0.5) * 8).toFixed(1) + 'px';
-        beesHtml += '<circle class="fx-swarm__bee--forager" r="3.0" style="offset-path: path(\'' + pathForager + '\');--dur:' + fDur + ';--delay:' + fDel + ';--cx:' + cx + ';--cy:' + cy + ';--jx:' + fJx + ';--jy:' + fJy + ';"/>';
+        particlesHtml += '<circle class="fx-swarm__particle fx-swarm__particle--outer" r="3.0" style="offset-path: path(\'' + pathForager + '\');--dur:' + fDur + ';--delay:' + fDel + ';--cx:' + cx + ';--cy:' + cy + ';--jx:' + fJx + ';--jy:' + fJy + ';"/>';
       }
       innerContent =
         '<div class="fx-swarm">' + logo +
-          '<div class="fx-swarm__hive-core"></div>' +
+          '<div class="fx-swarm__core"></div>' +
           '<div class="fx-swarm__boundary"></div>' +
           '<div class="fx-swarm__ticks">' + generateTicks(24, 130, 4) + '</div>' +
           '<svg class="fx-swarm__svg" viewBox="0 0 300 300">' +
@@ -434,7 +434,7 @@ function initHeroVisual() {
               '<path class="fx-swarm__orbit-guide" d="' + pathPatrolA + '"/>' +
               '<path class="fx-swarm__orbit-guide" d="' + pathPatrolB + '"/>' +
               '<path class="fx-swarm__orbit-guide" d="' + pathForager + '"/>' +
-              beesHtml +
+              particlesHtml +
             '</g>' +
           '</svg>' +
         '</div>';

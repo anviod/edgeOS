@@ -62,7 +62,7 @@
   color: var(--gold, #b8954f);
   margin: 8px 0 16px;
   min-height: 28px;
-  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  font-family: 'Noto Sans SC', monospace;
 }
 .typewriter-cursor {
   animation: cursor-blink 1s step-end infinite;
@@ -972,7 +972,7 @@
   100% { opacity: 1; transform: scale(1.4); }
 }
 
-/* ── Effect 12: Quantum Swarm V2 ── */
+/* ── Effect 12: Swarm ── */
 .fx-swarm__boundary {
   position: absolute;
   width: 260px; height: 260px;
@@ -994,18 +994,18 @@
   pointer-events: none;
 }
 
-.fx-swarm__hive-core {
+.fx-swarm__core {
   position: absolute;
   top: 50%; left: 50%;
   width: 80px; height: 80px;
   margin: -40px 0 0 -40px;
   border-radius: 50%;
   background: radial-gradient(circle, var(--gold-glow-strong) 0%, rgba(200, 167, 91, 0.05) 60%, transparent 80%);
-  animation: fx-hive-pulse 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: fx-core-pulse 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   pointer-events: none;
 }
 
-@keyframes fx-hive-pulse {
+@keyframes fx-core-pulse {
   0%, 100% { transform: scale(0.9); opacity: 0.65; }
   50% { transform: scale(1.15); opacity: 1; }
 }
@@ -1018,44 +1018,44 @@
   opacity: 0.2;
 }
 
-.fx-swarm__bee--guard {
+.fx-swarm__particle--inner {
   fill: #FFFFFF;
   filter: drop-shadow(0 0 6px var(--gold-bright));
   offset-distance: 0%;
-  animation: fx-bee-guard-flight var(--dur) linear infinite;
+  animation: fx-particle-inner var(--dur) linear infinite;
   animation-delay: var(--delay);
 }
 
-@keyframes fx-bee-guard-flight {
+@keyframes fx-particle-inner {
   0% { offset-distance: 0%; opacity: 0.5; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.2) translate(var(--jx, 1px), var(--jy, -1px)); }
   100% { offset-distance: 100%; opacity: 0.5; transform: scale(0.8); }
 }
 
-.fx-swarm__bee--patrol {
+.fx-swarm__particle--mid {
   fill: var(--gold-bright);
   filter: drop-shadow(0 0 5px var(--gold-glow-strong));
   offset-distance: 0%;
-  animation: fx-bee-patrol-flight var(--dur) cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  animation: fx-particle-mid var(--dur) cubic-bezier(0.37, 0, 0.63, 1) infinite;
   animation-delay: var(--delay);
 }
 
-@keyframes fx-bee-patrol-flight {
+@keyframes fx-particle-mid {
   0% { offset-distance: 0%; opacity: 0.3; transform: scale(0.7); }
   25% { opacity: 0.9; transform: scale(1.1) translate(var(--jx, 2px), var(--jy, -2px)); }
   60% { opacity: 0.95; transform: scale(1) translate(calc(-1 * var(--jx, 2px)), var(--jy, 2px)); }
   100% { offset-distance: 100%; opacity: 0.3; transform: scale(0.7); }
 }
 
-.fx-swarm__bee--forager {
+.fx-swarm__particle--outer {
   fill: var(--gold-light);
   filter: drop-shadow(0 0 7px var(--gold-glow-strong));
   offset-distance: 0%;
-  animation: fx-bee-forager-life var(--dur) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: fx-particle-outer var(--dur) cubic-bezier(0.4, 0, 0.2, 1) infinite;
   animation-delay: var(--delay);
 }
 
-@keyframes fx-bee-forager-life {
+@keyframes fx-particle-outer {
   0% { offset-distance: 0%; opacity: 0.1; transform: scale(0.4) translate(0, 0); }
   30% { opacity: 0.9; transform: scale(1.2) translate(var(--jx, 3px), var(--jy, -3px)); }
   50% { opacity: 1; transform: scale(1.1) translate(calc(-1 * var(--jx, 3px)), calc(-1 * var(--jy, 3px))); }
@@ -1084,7 +1084,7 @@
   border: 1px solid var(--gold-border, rgba(200,167,91,0.25));
   box-shadow: var(--arch-flow-shadow, inset 0 0 40px rgba(0, 0, 0, 0.35), 0 0 24px rgba(200, 167, 91, 0.06));
   overflow: hidden;
-  font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, monospace;
+  font-family: "SF Mono", Consolas, monospace;
 }
 
 /* Top status bar */
@@ -1278,7 +1278,7 @@
   .fx-nexus__svg,
   .fx-flux__svg,
   .fx-swarm__svg { width: 225px; height: 225px; }
-  .fx-swarm__hive-core { width: 60px; height: 60px; margin: -30px 0 0 -30px; }
+  .fx-swarm__core { width: 60px; height: 60px; margin: -30px 0 0 -30px; }
   .fx-beam__axis { width: 195px; margin: -1px 0 0 -97.5px; }
 
   .arch-flow {
@@ -1328,10 +1328,10 @@
   .fx-flux__arc-cw,
   .fx-flux__arc-ccw,
   .fx-flux__spark,
-  .fx-swarm__hive-core,
-  .fx-swarm__bee--guard,
-  .fx-swarm__bee--patrol,
-  .fx-swarm__bee--forager,
+  .fx-swarm__core,
+  .fx-swarm__particle--inner,
+  .fx-swarm__particle--mid,
+  .fx-swarm__particle--outer,
   .fx-core__pulse-wave { animation: none !important; }
 
   .fx-scene {

@@ -208,7 +208,7 @@ html {
 }
 
 body {
-  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   color: var(--text);
   background: var(--bg-deep);
   line-height: 1.6;
@@ -349,16 +349,20 @@ img {
 
 .theme-toggle {
   min-height: 36px;
-  padding: 8px 16px;
+  padding: 8px 14px;
   border: 1px solid var(--gold-border);
   border-radius: 999px;
   background: transparent;
   color: var(--text-soft);
   font: inherit;
   font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
   margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .theme-toggle:hover,
@@ -366,6 +370,19 @@ img {
   background: var(--gold-soft);
   border-color: var(--gold-border-hover);
   color: var(--gold-light);
+}
+
+.theme-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  color: inherit;
 }
 
 /* =========================================
@@ -1237,7 +1254,7 @@ img {
   background: rgba(28, 29, 32, 0.8);
   color: var(--gold-bright);
   font-size: 0.9em;
-  font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, monospace;
+  font-family: "SF Mono", Consolas, monospace;
   border: 1px solid rgba(200, 167, 91, 0.15);
 }
 

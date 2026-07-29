@@ -155,7 +155,7 @@
               aria-label="切换主题"
               aria-pressed="false"
             >
-              <span data-theme-icon>🌙</span>
+              <span data-theme-icon class="theme-icon">A</span>
             </button>
           </nav>
         </div>
@@ -190,7 +190,7 @@
 
         function syncTheme(theme) {
           root.setAttribute('data-theme', theme);
-          if (icon) icon.textContent = theme === 'light' ? '☀️' : '🌙';
+          if (icon) icon.textContent = theme === 'light' ? 'A' : 'A';
           if (button) button.setAttribute('aria-pressed', String(theme === 'light'));
         }
 
