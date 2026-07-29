@@ -56,6 +56,7 @@ type client struct {
 	conn *fiberws.Conn
 	send chan []byte
 	done chan struct{}
+	mu   sync.Mutex // 保护 send channel 的写入与关闭
 }
 
 // Hub WebSocket Hub
@@ -90,9 +91,12 @@ func (h *Hub) Broadcast(event RealtimeEvent) {
 	h.mu.RUnlock()
 
 	for _, c := range clients {
+		c.mu.Lock()
 		select {
 		case c.send <- data:
+			c.mu.Unlock()
 		default:
+			c.mu.Unlock()
 			h.removeClient(c)
 		}
 	}
@@ -173,6 +177,8 @@ func (h *Hub) removeClient(c *client) {
 	defer h.mu.Unlock()
 	if _, ok := h.clients[c]; ok {
 		delete(h.clients, c)
+		c.mu.Lock()
+		defer c.mu.Unlock()
 		select {
 		case <-c.send:
 		default:
