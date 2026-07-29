@@ -34,6 +34,9 @@
   --gold-border: rgba(200, 167, 91, 0.25);
   --gold-border-hover: rgba(221, 187, 115, 0.55);
   --gold-line: rgba(200, 167, 91, 0.15);
+  --gold-ghost: rgba(200, 167, 91, 0.04);
+  --gold-ghost-strong: rgba(200, 167, 91, 0.06);
+  --gold-selection: rgba(200, 167, 91, 0.35);
 
   /* Accent Colors */
   --amber: #B8860B;
@@ -45,10 +48,20 @@
   --warning: #C8A75B;
   --error: #EF4444;
   --tip: #60A5FA;
+  --success-bg: rgba(74, 222, 128, 0.12);
+  --success-border: rgba(74, 222, 128, 0.3);
+  --success-glow: rgba(74, 222, 128, 0.5);
+  --error-bg: rgba(239, 68, 68, 0.12);
+  --error-border: rgba(239, 68, 68, 0.3);
+  --error-soft: rgba(239, 68, 68, 0.06);
+  --tip-bg: rgba(96, 165, 250, 0.12);
+  --tip-border: rgba(96, 165, 250, 0.3);
+  --tip-soft: rgba(96, 165, 250, 0.06);
 
   /* Glass */
   --glass: rgba(25, 25, 25, 0.55);
   --glass-strong: rgba(22, 24, 27, 0.85);
+  --blur-xs: 12px;
   --blur-sm: 18px;
   --blur-md: 24px;
 
@@ -64,6 +77,7 @@
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 10px;
+  --radius-xs: 6px;
 
   /* Layout */
   --shell-width: 1400px;
@@ -74,6 +88,7 @@
   --transition-fast: 150ms ease;
   --transition-base: 250ms cubic-bezier(0.25, 1, 0.5, 1);
   --transition-slow: 350ms cubic-bezier(0.25, 1, 0.5, 1);
+  --transition-scene: 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Header */
   --header-bg: rgba(9, 9, 9, 0.75);
@@ -83,6 +98,25 @@
   --button-primary-text: #111111;
   --button-primary-bg: linear-gradient(135deg, #C8A75B 0%, #DDBB73 100%);
   --button-secondary-bg: rgba(200, 167, 91, 0.08);
+  --button-border: rgba(200, 167, 91, 0.35);
+
+  /* Code Blocks */
+  --code-inline-bg: rgba(28, 29, 32, 0.8);
+  --code-inline-color: #E8D5A3;
+  --code-inline-border: rgba(200, 167, 91, 0.15);
+  --code-block-bg: #111111;
+  --code-block-color: #D7D7D7;
+  --tok-keyword: #7dd3fc;
+  --tok-string: #86efac;
+  --tok-number: #fca5a5;
+
+  /* Arch Flow */
+  --arch-bg: rgba(12, 13, 15, 0.72);
+  --arch-step-bg: rgba(22, 23, 26, 0.85);
+  --arch-step-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  --arch-flow-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35), 0 0 24px rgba(200, 167, 91, 0.06);
+  --arch-status-bar-bg: rgba(200, 167, 91, 0.08);
+  --arch-status-bar-border: rgba(200, 167, 91, 0.12);
 }
 
 /* =========================================
@@ -103,9 +137,30 @@
 
   --gold-border: rgba(200, 167, 91, 0.35);
   --gold-line: rgba(200, 167, 91, 0.20);
+  --gold-ghost: rgba(200, 167, 91, 0.04);
+  --gold-ghost-strong: rgba(200, 167, 91, 0.06);
+  --gold-selection: rgba(200, 167, 91, 0.30);
+
+  /* Semantic */
+  --success-bg: rgba(22, 163, 74, 0.1);
+  --success-border: rgba(22, 163, 74, 0.25);
+  --success-glow: rgba(22, 163, 74, 0.45);
+  --error-bg: rgba(220, 38, 38, 0.1);
+  --error-border: rgba(220, 38, 38, 0.25);
+  --error-soft: rgba(220, 38, 38, 0.05);
+  --tip-bg: rgba(59, 130, 246, 0.1);
+  --tip-border: rgba(59, 130, 246, 0.25);
+  --tip-soft: rgba(59, 130, 246, 0.05);
 
   --glass: rgba(255, 255, 255, 0.72);
   --glass-strong: rgba(255, 255, 255, 0.92);
+  --blur-xs: 12px;
+
+  /* Radius */
+  --radius-xs: 6px;
+
+  /* Animation */
+  --transition-scene: 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 
   --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.12);
@@ -116,6 +171,25 @@
 
   --button-primary-text: #111111;
   --button-secondary-bg: rgba(200, 167, 91, 0.10);
+  --button-border: rgba(200, 167, 91, 0.40);
+
+  /* Code Blocks */
+  --code-inline-bg: rgba(0, 0, 0, 0.06);
+  --code-inline-color: #8B6914;
+  --code-inline-border: rgba(200, 167, 91, 0.20);
+  --code-block-bg: #F0F0F3;
+  --code-block-color: #1D1D1F;
+  --tok-keyword: #2563eb;
+  --tok-string: #059669;
+  --tok-number: #dc2626;
+
+  /* Arch Flow */
+  --arch-bg: rgba(240, 240, 243, 0.72);
+  --arch-step-bg: rgba(255, 255, 255, 0.88);
+  --arch-step-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  --arch-flow-shadow: inset 0 0 40px rgba(0, 0, 0, 0.04), 0 0 24px rgba(200, 167, 91, 0.06);
+  --arch-status-bar-bg: rgba(200, 167, 91, 0.08);
+  --arch-status-bar-border: rgba(200, 167, 91, 0.12);
 }
 
 /* =========================================
