@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Play, RefreshCw, Shield, Terminal, CheckCircle, AlertCircle,
-  Loader2, ChevronDown, Clock,
+  Loader2, ChevronDown, Clock, ArrowLeft, Copy, Check,
 } from 'lucide-vue-next'
 import { useEanStore } from '@/stores/ean'
 import type { EANInvokeCallResult, EANCapabilityDescriptor } from '@/types/ean'
@@ -25,6 +25,7 @@ const invokeError = ref('')
 const capabilities = ref<EANCapabilityDescriptor[]>([])
 const capsLoading = ref(false)
 const skipNextAgentWatch = ref(false)
+const copiedResult = ref(false)
 
 /** 从联合调试页 query 填充示例 */
 async function applyFillFromQuery() {
@@ -143,6 +144,25 @@ async function handleInvoke() {
   }
 }
 
+const invokeResultText = computed(() => {
+  if (!invokeResult.value) return ''
+  if (invokeResult.value.response?.result?.values) {
+    return JSON.stringify(invokeResult.value.response.result.values, null, 2)
+  }
+  return JSON.stringify(invokeResult.value, null, 2)
+})
+
+async function copyInvokeResult() {
+  if (!invokeResult.value) return
+  try {
+    await navigator.clipboard.writeText(invokeResultText.value)
+    copiedResult.value = true
+    setTimeout(() => { copiedResult.value = false }, 1600)
+  } catch {
+    copiedResult.value = false
+  }
+}
+
 function formatTime(ts: number) {
   if (!ts) return '—'
   return new Date(ts < 1e12 ? ts * 1000 : ts).toLocaleString('zh-CN', {
@@ -162,6 +182,16 @@ const permissionColors: Record<string, string> = {
   <div class="space-y-5">
     <div class="flex items-center justify-between">
       <div>
+        <div class="flex items-center gap-2 mb-1">
+          <router-link
+            to="/ean"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors hover:bg-white/5"
+            style="color: var(--text-secondary); border: 1px solid var(--border-color);"
+          >
+            <ArrowLeft class="w-4 h-4" style="width:16px;height:16px;" />
+            返回 EAN 协调中心
+          </router-link>
+        </div>
         <h1 class="text-xl font-bold" style="color: var(--text-primary);">能力调用</h1>
         <p class="text-sm mt-1" style="color: var(--text-secondary);">跨节点 Invoke 编排 + Reply 关联 + 审计追踪</p>
       </div>
@@ -301,6 +331,16 @@ const permissionColors: Record<string, string> = {
           <div class="px-5 py-3.5 border-b flex items-center gap-2" style="border-color: var(--border-color);">
             <component :is="invokeError ? AlertCircle : CheckCircle" class="w-4 h-4" :style="{ width:'16px', height:'16px', color: invokeError ? '#EF4444' : '#10B981' }" />
             <span class="text-sm font-semibold" style="color: var(--text-primary);">调用结果</span>
+            <button
+              v-if="invokeResult && !invokeError"
+              type="button"
+              @click="copyInvokeResult"
+              class="ml-auto inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors hover:bg-white/5"
+              style="color: var(--text-secondary); border: 1px solid var(--border-color);"
+            >
+              <component :is="copiedResult ? Check : Copy" class="w-3 h-3" style="width:12px;height:12px;" />
+              {{ copiedResult ? '已复制' : '复制结果' }}
+            </button>
           </div>
           <div class="p-5">
             <div v-if="invokeError" class="text-sm" style="color: #EF4444;">

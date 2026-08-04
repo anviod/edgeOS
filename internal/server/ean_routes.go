@@ -22,6 +22,7 @@ func RegisterEANRoutes(router fiber.Router, eanBus *ean.Bus) {
 	eanGroup.Get("/agents", handleEANListAgents(eanBus))
 	eanGroup.Get("/agents/:id", handleEANGetAgent(eanBus))
 	eanGroup.Get("/agents/:id/capabilities", handleEANListCapabilities(eanBus))
+	eanGroup.Delete("/agents/:id", handleEANDeleteAgent(eanBus))
 
 	// ---- Invoke 编排 ----
 	eanGroup.Post("/invoke", handleEANInvoke(eanBus))
@@ -68,6 +69,23 @@ func handleEANGetAgent(eanBus *ean.Bus) fiber.Handler {
 			return apiError(c, fiber.StatusNotFound, "Agent 未找到")
 		}
 		return apiSuccess(c, agent)
+	}
+}
+
+// handleEANDeleteAgent 删除指定 Agent（彻底移除，含能力索引；同步清理 /api/nodes 对应节点）
+// DELETE /api/ean/agents/:id
+func handleEANDeleteAgent(eanBus *ean.Bus) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		if eanBus == nil {
+			return apiError(c, fiber.StatusServiceUnavailable, "EAN Bus 未启用")
+		}
+		agentID := c.Params("id")
+		dc := eanBus.GetDiscovery()
+		if _, ok := dc.GetAgent(agentID); !ok {
+			return apiError(c, fiber.StatusNotFound, "Agent 未找到")
+		}
+		dc.DeleteAgent(agentID)
+		return apiSuccess(c, fiber.Map{"deleted": agentID})
 	}
 }
 

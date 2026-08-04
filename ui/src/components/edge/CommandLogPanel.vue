@@ -26,8 +26,24 @@ interface StatusStyle {
 }
 
 function getStyle(status: string): StatusStyle {
+  // EAN Invoke 状态（InvokeStatus）: completed / failed / timeout / rejected / queued / running
+  // 修复：completed → 成功样式；failed/rejected → 失败样式；queued/running → 执行中；未识别才回退超时。
   const map: Record<string, StatusStyle> = {
     pending: {
+      icon: Clock,
+      iconColor: '#F59E0B',
+      bgColor: 'rgba(245,158,11,0.06)',
+      borderColor: 'rgba(245,158,11,0.15)',
+      label: '执行中',
+    },
+    queued: {
+      icon: Clock,
+      iconColor: '#F59E0B',
+      bgColor: 'rgba(245,158,11,0.06)',
+      borderColor: 'rgba(245,158,11,0.15)',
+      label: '排队中',
+    },
+    running: {
       icon: Clock,
       iconColor: '#F59E0B',
       bgColor: 'rgba(245,158,11,0.06)',
@@ -41,12 +57,33 @@ function getStyle(status: string): StatusStyle {
       borderColor: 'rgba(16,185,129,0.15)',
       label: '成功',
     },
+    completed: {
+      icon: CheckCircle2,
+      iconColor: '#10B981',
+      bgColor: 'rgba(16,185,129,0.06)',
+      borderColor: 'rgba(16,185,129,0.15)',
+      label: '成功',
+    },
     error: {
       icon: XCircle,
       iconColor: '#EF4444',
       bgColor: 'rgba(239,68,68,0.06)',
       borderColor: 'rgba(239,68,68,0.15)',
       label: '失败',
+    },
+    failed: {
+      icon: XCircle,
+      iconColor: '#EF4444',
+      bgColor: 'rgba(239,68,68,0.06)',
+      borderColor: 'rgba(239,68,68,0.15)',
+      label: '失败',
+    },
+    rejected: {
+      icon: XCircle,
+      iconColor: '#EF4444',
+      bgColor: 'rgba(239,68,68,0.06)',
+      borderColor: 'rgba(239,68,68,0.15)',
+      label: '拒绝',
     },
     timeout: {
       icon: XCircle,

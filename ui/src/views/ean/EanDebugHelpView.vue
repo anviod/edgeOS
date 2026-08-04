@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   BookOpen, ChevronRight, Copy, Check, Play, RefreshCw,
-  ListOrdered, Bug, Terminal, Radio, ExternalLink,
+  ListOrdered, Bug, Terminal, Radio, ExternalLink, ArrowLeft,
 } from 'lucide-vue-next'
 import { useEanStore } from '@/stores/ean'
 import EanDisabledBanner from '@/components/ean/EanDisabledBanner.vue'
@@ -63,6 +63,16 @@ function goStep(path: string) {
     <!-- 页头 -->
     <div class="flex items-center justify-between gap-3 flex-wrap">
       <div>
+        <div class="flex items-center gap-2 mb-1">
+          <router-link
+            to="/ean"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors hover:bg-white/5"
+            style="color: var(--text-secondary); border: 1px solid var(--border-color);"
+          >
+            <ArrowLeft class="w-4 h-4" style="width:16px;height:16px;" />
+            返回 EAN 协调中心
+          </router-link>
+        </div>
         <h1 class="text-xl font-bold" style="color: var(--text-primary);">联合调试帮助</h1>
         <p class="text-sm mt-1" style="color: var(--text-secondary);">
           EAN 端到端流程 · 可复制 Topic/JSON · 常见失败排查 · 深链到各页面

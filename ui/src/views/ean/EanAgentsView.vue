@@ -2,10 +2,11 @@
 import { ref, onMounted, computed } from 'vue'
 import {
   Server, RefreshCw, Cpu, Search,
-  Eye, Layers, Clock, Radio,
+  Eye, Layers, Clock, Radio, ArrowLeft, Trash2,
 } from 'lucide-vue-next'
 import { useEanStore } from '@/stores/ean'
 import StatusBadge from '@/components/edge/StatusBadge.vue'
+import DangerDialog from '@/components/edge/DangerDialog.vue'
 import EanDisabledBanner from '@/components/ean/EanDisabledBanner.vue'
 import type { EANAgentDescriptor, EANCapabilityDescriptor } from '@/types/ean'
 
@@ -17,6 +18,9 @@ const showDetailModal = ref(false)
 const selectedAgent = ref<EANAgentDescriptor | null>(null)
 const selectedCapabilities = ref<EANCapabilityDescriptor[]>([])
 const capsLoading = ref(false)
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<EANAgentDescriptor | null>(null)
+const deleteError = ref('')
 
 onMounted(async () => {
   await Promise.all([eanStore.fetchHealth(), eanStore.fetchAgents()])
@@ -55,13 +59,28 @@ function closeDetail() {
   selectedCapabilities.value = []
 }
 
-function formatTime(ts: string | undefined) {
-  if (!ts) return '—'
-  const date = new Date(ts)
-  if (isNaN(date.getTime())) return ts
-  return date.toLocaleString('zh-CN', {
-    month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
-  })
+async function deleteAgent(agent: EANAgentDescriptor) {
+  deleteError.value = ''
+  deleteTarget.value = agent
+  showDeleteDialog.value = true
+}
+
+async function confirmDeleteAgent() {
+  const agent = deleteTarget.value
+  if (!agent) return
+  deleteTarget.value = null
+  showDeleteDialog.value = false
+  try {
+    const { eanApi } = await import('@/api/index')
+    await eanApi.deleteAgent(agent.id)
+    if (showDetailModal.value && selectedAgent.value?.id === agent.id) {
+      closeDetail()
+    }
+    await eanStore.fetchAgents()
+    await eanStore.fetchHealth()
+  } catch (error) {
+    deleteError.value = (error as Error).message
+  }
 }
 
 const categoryColors: Record<string, string> = {
@@ -85,6 +104,16 @@ const permissionColors: Record<string, string> = {
     <!-- 页头 / Page Header -->
     <div class="flex items-center justify-between">
       <div>
+        <div class="flex items-center gap-2 mb-1">
+          <router-link
+            to="/ean"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors hover:bg-white/5"
+            style="color: var(--text-secondary); border: 1px solid var(--border-color);"
+          >
+            <ArrowLeft class="w-4 h-4" style="width:16px;height:16px;" />
+            返回 EAN 协调中心
+          </router-link>
+        </div>
         <h1 class="text-xl font-bold" style="color: var(--text-primary);">Agent 管理</h1>
         <p class="text-sm mt-1" style="color: var(--text-secondary);">发现中心索引的 Edge Agent 注册表</p>
       </div>
@@ -106,6 +135,17 @@ const permissionColors: Record<string, string> = {
       style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); color: #EF4444;"
     >
       {{ eanStore.lastError }}
+    </div>
+
+    <div
+      v-if="deleteError"
+      class="rounded-xl border px-4 py-2.5 text-xs flex items-center gap-2"
+      style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); color: #EF4444;"
+    >
+      <span class="flex-1">删除失败：{{ deleteError }}</span>
+      <button type="button" class="hover:opacity-80 transition-opacity" @click="deleteError = ''">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
     </div>
 
     <!-- 筛选栏 / Filter Bar -->
@@ -188,20 +228,40 @@ const permissionColors: Record<string, string> = {
               <td class="px-5 py-3 text-xs font-mono" style="color: var(--text-secondary);">{{ agent.heartbeat_interval_sec }}s</td>
               <td class="px-5 py-3"><StatusBadge :status="agent.status" size="sm" /></td>
               <td class="px-5 py-3 text-right">
-                <button
-                  @click="openDetail(agent)"
-                  class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs transition-colors hover:bg-sky-500/10"
-                  style="color: var(--accent-primary); background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.2);"
-                >
-                  <Eye class="w-3.5 h-3.5" style="width:14px;height:14px;" />
-                  详情
-                </button>
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    @click="openDetail(agent)"
+                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs transition-colors hover:bg-sky-500/10"
+                    style="color: var(--accent-primary); background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.2);"
+                  >
+                    <Eye class="w-3.5 h-3.5" style="width:14px;height:14px;" />
+                    详情
+                  </button>
+                  <button
+                    @click="deleteAgent(agent)"
+                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs transition-colors hover:bg-red-500/10"
+                    style="color: #EF4444; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2);"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" style="width:14px;height:14px;" />
+                    删除
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+
+    <!-- Delete confirmation modal -->
+    <DangerDialog
+      v-model:open="showDeleteDialog"
+      title="删除 Agent"
+      :description="`确认删除 Agent ${deleteTarget?.id}？将同时移除该 Agent 的能力索引，若对应节点存在也会一并删除。`"
+      actionName="删除"
+      variant="danger"
+      @confirm="confirmDeleteAgent"
+    />
 
     <!-- Agent 详情弹窗 / Agent Detail Modal -->
     <Transition enter-active-class="transition-all duration-300 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4" leave-active-class="transition-all duration-200 ease-in" leave-to-class="opacity-0 scale-95 translate-y-4">

@@ -112,9 +112,21 @@ type Manager struct {
 	pointHandler   *PointMQTTHandler
 	controlHandler *ControlMQTTHandler
 
+	// V1CommandEnabled V1 命令面开关（Phase 3→4 过渡期默认 true；false 时移除 V1 命令 Topic 订阅与下发）
+	// V1 command plane switch (Phase 3→4 transition default true; false removes V1 command topic sub/pub)
+	v1CommandEnabled bool
+
 	mu      sync.RWMutex
 	clients map[string]*mqttClientEntry // middlewareID -> client
 	stopped bool
+}
+
+// SetV1CommandEnabled 设置 V1 命令面开关。
+// SetV1CommandEnabled sets the V1 command plane switch.
+func (m *Manager) SetV1CommandEnabled(enabled bool) {
+	m.v1CommandEnabled = enabled
+	m.logger.Info("V1 command plane switch updated",
+		zap.Bool("enabled", enabled))
 }
 
 // mqttClientEntry 单个 MQTT 客户端条目
@@ -132,6 +144,7 @@ type NodeMQTTHandler struct {
 	hub         *ws.Hub
 	logger      *zap.Logger
 	publishFn   func(topic string, payload []byte) error
+	brokerHost  string // MQTT broker 主机地址，用于修正 endpoint.host=127.0.0.1 | broker host for endpoint fix
 }
 
 // DeviceMQTTHandler 设备消息处理器
@@ -169,14 +182,15 @@ func NewManager(
 	logger *zap.Logger,
 ) *Manager {
 	m := &Manager{
-		middlewareSvc: middlewareSvc,
-		registrySvc:   registrySvc,
-		dataSvc:       dataSvc,
-		alertSvc:      alertSvc,
-		controlSvc:    controlSvc,
-		hub:           hub,
-		logger:        logger,
-		clients:       make(map[string]*mqttClientEntry),
+		middlewareSvc:     middlewareSvc,
+		registrySvc:       registrySvc,
+		dataSvc:           dataSvc,
+		alertSvc:          alertSvc,
+		controlSvc:        controlSvc,
+		hub:               hub,
+		logger:            logger,
+		clients:           make(map[string]*mqttClientEntry),
+		v1CommandEnabled: false, // Phase 4: V1 命令面全面下线——默认 false
 	}
 	m.initHandlers()
 	return m
@@ -337,11 +351,25 @@ func (m *Manager) Connect(id string) error {
 	// 订阅所有主题
 	m.subscribeAllTopics(entry)
 
+	// 设置 brokerHost 用于修正 endpoint.host=127.0.0.1 | set brokerHost for endpoint fix
+	m.nodeHandler.brokerHost = cfg.Host
+
 	m.middlewareSvc.UpdateStatus(id, "connected", "")
 	m.logger.Info("Middleware connected",
 		zap.String("id", id),
 		zap.String("broker", broker),
 		zap.Strings("topics", cfg.Subscriptions))
+
+	// 主动发布节点发现请求，触发 EdgeX 重新注册
+	// Active discovery: trigger EdgeX to re-register after we subscribe
+	go func() {
+		time.Sleep(2 * time.Second) // 等待订阅完成 | wait for subscriptions to settle
+		if err := m.PublishNodeDiscoveryTo(id); err != nil {
+			m.logger.Debug("Active node discovery publish failed", zap.Error(err))
+		} else {
+			m.logger.Info("Active node discovery request sent", zap.String("middleware_id", id))
+		}
+	}()
 
 	// WebSocket 广播
 	if m.hub != nil {
@@ -408,10 +436,21 @@ func (m *Manager) Stop() {
 }
 
 // PublishCommand 发布设备控制命令（发送到第一个连接的客户端）
+// Phase 4 (OS-P4): V1 命令面标记 deprecated——命令统一通过 EAN Invoke 下发（$edgeos/invoke/{agent}）。
+// 由 V1CommandEnabled 开关控制：关闭时不再下发 V1 命令。
+// | V1 command plane marked DEPRECATED; use EAN Invoke exclusively. Gated by V1CommandEnabled.
 func (m *Manager) PublishCommand(nodeID, deviceID, pointID string, value interface{}, requestID string) error {
+	if !m.v1CommandEnabled {
+		m.logger.Warn("PublishCommand skipped: V1 command plane disabled (use EAN Invoke)",
+			zap.String("node_id", nodeID), zap.String("device_id", deviceID))
+		return fmt.Errorf("V1 command plane disabled (use EAN Invoke)")
+	}
 	if requestID == "" {
 		requestID = uuid.New().String()
 	}
+
+	m.logger.Warn("DEPRECATED: V1 command publish (edgex/cmd/{node}/{device}/write); use EAN Invoke",
+		zap.String("node_id", nodeID), zap.String("device_id", deviceID))
 
 	payload, err := json.Marshal(map[string]interface{}{
 		"header": map[string]interface{}{
@@ -450,8 +489,12 @@ func (m *Manager) PublishCommand(nodeID, deviceID, pointID string, value interfa
 
 // PublishNodeDiscovery 主动向第一个已连接的中间件发布节点发现请求
 // 触发 EdgeX 节点重新注册：edgex/cmd/nodes/register
-// 典型流程：EdgeOS → MQTT → EdgeX 节点 → edgex/nodes/register → MQTT → EdgeOS
+// Phase 4 (OS-P4): V1 命令面开关控制；EAN Discovery Query（$edgeos/discovery/query）已替代主动发现。
 func (m *Manager) PublishNodeDiscovery() error {
+	if !m.v1CommandEnabled {
+		m.logger.Debug("PublishNodeDiscovery skipped: V1 command plane disabled (use EAN Discovery Query)")
+		return nil
+	}
 	msg := map[string]interface{}{
 		"header": map[string]interface{}{
 			"message_type": "discovery_request",
@@ -468,7 +511,13 @@ func (m *Manager) PublishNodeDiscovery() error {
 }
 
 // PublishNodeDiscoveryTo 向指定 middlewareID 发布节点发现请求
+// Phase 4 (OS-P4): V1 命令面开关控制。
 func (m *Manager) PublishNodeDiscoveryTo(middlewareID string) error {
+	if !m.v1CommandEnabled {
+		m.logger.Debug("PublishNodeDiscoveryTo skipped: V1 command plane disabled (use EAN Discovery Query)",
+			zap.String("middleware_id", middlewareID))
+		return nil
+	}
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	entry, ok := m.clients[middlewareID]
@@ -498,22 +547,78 @@ func (m *Manager) subscribeAllTopics(entry *mqttClientEntry) {
 	bindings := []struct {
 		topic   string
 		handler pahomqtt.MessageHandler
-	}{
-		{"edgex/nodes/register", m.nodeHandler.HandleRegister},
-		{"edgex/nodes/+/heartbeat", m.nodeHandler.HandleHeartbeat},
-		{"edgex/nodes/+/status", m.nodeHandler.HandleHeartbeat},
-		{"edgex/nodes/unregister", m.nodeHandler.HandleUnregister},
-		{"edgex/devices/report", m.deviceHandler.HandleDeviceReport},
-		{"edgex/devices/+/+/online", m.deviceHandler.HandleDeviceOnline},
-		{"edgex/devices/+/+/offline", m.deviceHandler.HandleDeviceOffline},
-		{"edgex/points/report", m.pointHandler.HandlePointReport},
-		{"edgex/points/+/+", m.pointHandler.HandlePointSync},
-		{"edgex/data/+/+", m.pointHandler.HandleRealtimeData},
-		{"edgex/events/alert", m.handleAlert},
-		{"edgex/events/error", m.handleAlert},
-		{"edgex/events/info", m.handleAlert},
-		{"edgex/cmd/responses/#", m.controlHandler.HandleCommandResponse},
+	}{}
+	// Phase 4 (OS-P4): V1 命令面全面下线（v1_command_enabled=false）时，V1 节点面（edgex/nodes/*）
+	// 一并移除——节点注册/心跳/状态由 EAN Discovery + Registry 镜像替代。
+	// V1 数据面（devices/points/data）与告警（events）始终保留。
+	// | Phase 4: when V1 command plane is off, V1 node plane (edgex/nodes/*) is also removed;
+	// | node register/heartbeat/status superseded by EAN Discovery + registry mirror.
+	if m.v1CommandEnabled {
+		bindings = append(bindings,
+			struct {
+				topic   string
+				handler pahomqtt.MessageHandler
+			}{"edgex/nodes/register", m.nodeHandler.HandleRegister},
+			struct {
+				topic   string
+				handler pahomqtt.MessageHandler
+			}{"edgex/nodes/+/heartbeat", m.nodeHandler.HandleHeartbeat},
+			struct {
+				topic   string
+				handler pahomqtt.MessageHandler
+			}{"edgex/nodes/+/status", m.nodeHandler.HandleHeartbeat},
+			struct {
+				topic   string
+				handler pahomqtt.MessageHandler
+			}{"edgex/nodes/unregister", m.nodeHandler.HandleUnregister},
+		)
 	}
+	bindings = append(bindings,
+		struct {
+			topic   string
+			handler pahomqtt.MessageHandler
+		}{"edgex/devices/report", m.deviceHandler.HandleDeviceReport},
+		struct {
+			topic   string
+			handler pahomqtt.MessageHandler
+		}{"edgex/devices/+/+/online", m.deviceHandler.HandleDeviceOnline},
+		struct {
+			topic   string
+			handler pahomqtt.MessageHandler
+		}{"edgex/devices/+/+/offline", m.deviceHandler.HandleDeviceOffline},
+		struct {
+			topic   string
+			handler pahomqtt.MessageHandler
+		}{"edgex/points/report", m.pointHandler.HandlePointReport},
+		struct {
+			topic   string
+			handler pahomqtt.MessageHandler
+		}{"edgex/points/+/+", m.pointHandler.HandlePointSync},
+		struct {
+			topic   string
+			handler pahomqtt.MessageHandler
+		}{"edgex/data/+/+", m.pointHandler.HandleRealtimeData},
+		struct {
+			topic   string
+			handler pahomqtt.MessageHandler
+		}{"edgex/events/alert", m.handleAlert},
+		struct {
+			topic   string
+			handler pahomqtt.MessageHandler
+		}{"edgex/events/error", m.handleAlert},
+		struct {
+			topic   string
+			handler pahomqtt.MessageHandler
+		}{"edgex/events/info", m.handleAlert},
+		// Phase 4 (OS-P4): V1 命令响应 Topic（edgex/cmd/responses/#）已移除——命令统一走 EAN Invoke。
+		// | V1 command response topic removed; commands use EAN Invoke exclusively.
+		// EAN 2.0 主题订阅：接收 EdgeX 北向 EAN 事件（设备上下线、点位变化）
+		// EAN 2.0 topic subscription: receive EdgeX northbound EAN events
+		struct {
+			topic   string
+			handler pahomqtt.MessageHandler
+		}{"$edgeos/event/#", m.handleEANEvent},
+	)
 
 	// 动态订阅配置的主题
 	for _, topic := range cfg.Subscriptions {
@@ -582,6 +687,135 @@ func (m *Manager) handleAlert(_ pahomqtt.Client, msg pahomqtt.Message) {
 	}
 }
 
+// handleEANEvent 处理 EAN 2.0 事件消息（$edgeos/event/#）
+// 将 EdgeX 北向 EAN 事件路由到 V1 设备/点位服务
+// Handle EAN 2.0 event messages: route EdgeX northbound EAN events to V1 device/point services
+func (m *Manager) handleEANEvent(_ pahomqtt.Client, msg pahomqtt.Message) {
+	// 解析 EAN 2.0 信封 | parse EAN 2.0 envelope
+	var envelope struct {
+		Header struct {
+			MessageType string `json:"message_type"`
+			Source      string `json:"source"`
+			Version     string `json:"version"`
+		} `json:"header"`
+		Body struct {
+			EventType     string                 `json:"event_type"`
+			AgentID       string                 `json:"agent_id"`
+			DeviceID      string                 `json:"device_id"`
+			DeviceName    string                 `json:"device_name"`
+			PointID       string                 `json:"point_id"`
+			Value         interface{}            `json:"value"`
+			PreviousValue interface{}            `json:"previous_value"`
+			Timestamp     int64                  `json:"timestamp"`
+			Severity      string                 `json:"severity"`
+			Metadata      map[string]interface{} `json:"metadata"`
+		} `json:"body"`
+	}
+	if err := json.Unmarshal(msg.Payload(), &envelope); err != nil {
+		m.logger.Error("handleEANEvent: unmarshal failed",
+			zap.Error(err), zap.String("topic", msg.Topic()))
+		return
+	}
+
+	// agent_id 映射为 V1 node_id | map agent_id to V1 node_id
+	nodeID := envelope.Body.AgentID
+	if nodeID == "" {
+		nodeID = envelope.Header.Source
+	}
+	if nodeID == "" {
+		m.logger.Warn("handleEANEvent: missing agent_id/source",
+			zap.String("topic", msg.Topic()))
+		return
+	}
+
+	deviceID := envelope.Body.DeviceID
+	eventType := envelope.Body.EventType
+	ts := envelope.Body.Timestamp
+	if ts == 0 {
+		ts = time.Now().UnixMilli()
+	}
+
+	m.logger.Debug("handleEANEvent: processing EAN event",
+		zap.String("topic", msg.Topic()),
+		zap.String("event_type", eventType),
+		zap.String("agent_id", nodeID),
+		zap.String("device_id", deviceID),
+		zap.String("point_id", envelope.Body.PointID))
+
+	switch {
+	case eventType == "device.online":
+		// 确保节点存在 | ensure node exists
+		if m.registrySvc != nil {
+			_ = m.registrySvc.EnsureNodeOnline(nodeID, nodeID, "ean")
+		}
+		// 更新设备状态为在线 | update device status to online
+		if m.dataSvc != nil && m.dataSvc.DeviceSvc != nil && deviceID != "" {
+			if err := m.dataSvc.DeviceSvc.UpdateDeviceStatus(nodeID, deviceID, "online"); err != nil {
+				m.logger.Debug("handleEANEvent: update device online failed",
+					zap.String("device_id", deviceID), zap.Error(err))
+			}
+		}
+		if m.hub != nil {
+			m.hub.BroadcastType(ws.EventDeviceOnline, map[string]interface{}{
+				"node_id":     nodeID,
+				"device_id":   deviceID,
+				"device_name": envelope.Body.DeviceName,
+				"status":      "online",
+				"timestamp":   ts,
+			})
+		}
+
+	case eventType == "device.offline":
+		if m.dataSvc != nil && m.dataSvc.DeviceSvc != nil && deviceID != "" {
+			if err := m.dataSvc.DeviceSvc.UpdateDeviceStatus(nodeID, deviceID, "offline"); err != nil {
+				m.logger.Debug("handleEANEvent: update device offline failed",
+					zap.String("device_id", deviceID), zap.Error(err))
+			}
+		}
+		if m.hub != nil {
+			m.hub.BroadcastType(ws.EventDeviceOffline, map[string]interface{}{
+				"node_id":   nodeID,
+				"device_id": deviceID,
+				"status":    "offline",
+				"timestamp": ts,
+			})
+		}
+
+	case strings.HasSuffix(eventType, ".changed") || envelope.Body.PointID != "":
+		// 点位变化事件 | point change event
+		if m.dataSvc != nil && m.dataSvc.PointService != nil && deviceID != "" && envelope.Body.PointID != "" {
+			points := map[string]interface{}{
+				envelope.Body.PointID: envelope.Body.Value,
+			}
+			quality := ""
+			if envelope.Body.Metadata != nil {
+				if q, ok := envelope.Body.Metadata["quality"].(string); ok {
+					quality = q
+				}
+			}
+			m.dataSvc.PointService.SaveSnapshot(nodeID, deviceID, points, quality, ts/1000, false)
+
+			// 收到数据表示设备在线 | receiving data means device is online
+			if m.dataSvc.DeviceSvc != nil {
+				_ = m.dataSvc.DeviceSvc.UpdateDeviceStatus(nodeID, deviceID, "online")
+			}
+		}
+		if m.hub != nil {
+			m.hub.BroadcastType(ws.EventDataUpdate, map[string]interface{}{
+				"node_id":   nodeID,
+				"device_id": deviceID,
+				"points":    map[string]interface{}{envelope.Body.PointID: envelope.Body.Value},
+				"timestamp": ts / 1000,
+			})
+		}
+
+	default:
+		m.logger.Debug("handleEANEvent: unhandled event type",
+			zap.String("event_type", eventType),
+			zap.String("topic", msg.Topic()))
+	}
+}
+
 // connectedCount 返回已连接的客户端数量
 func (m *Manager) connectedCount() int {
 	m.mu.Lock()
@@ -612,16 +846,36 @@ func NewNodeMQTTHandler(
 }
 
 func (h *NodeMQTTHandler) HandleRegister(_ pahomqtt.Client, msg pahomqtt.Message) {
+	// 原始 payload 日志，便于调试消息格式问题 | log raw payload for debugging
+	h.logger.Info("HandleRegister: received registration message",
+		zap.String("topic", msg.Topic()),
+		zap.Int("payload_size", len(msg.Payload())))
+
 	var envelope struct {
 		Header map[string]interface{} `json:"header"`
 		Body   model.EdgeXNodeInfo    `json:"body"`
 	}
 	if err := json.Unmarshal(msg.Payload(), &envelope); err != nil {
-		h.logger.Error("HandleRegister: unmarshal failed", zap.Error(err))
+		h.logger.Error("HandleRegister: unmarshal failed",
+			zap.Error(err),
+			zap.String("topic", msg.Topic()),
+			zap.String("raw_payload", string(msg.Payload())))
 		return
 	}
 
 	node := &envelope.Body
+
+	// 修正 endpoint.host：EdgeX 硬编码 127.0.0.1，替换为 MQTT broker 实际地址
+	// Fix endpoint.host: EdgeX hardcodes 127.0.0.1, replace with actual broker host
+	if node.Endpoint != nil && (node.Endpoint.Host == "127.0.0.1" || node.Endpoint.Host == "localhost" || node.Endpoint.Host == "") {
+		if h.brokerHost != "" && h.brokerHost != "127.0.0.1" && h.brokerHost != "localhost" {
+			h.logger.Info("HandleRegister: fixing endpoint.host",
+				zap.String("original", node.Endpoint.Host),
+				zap.String("fixed", h.brokerHost))
+			node.Endpoint.Host = h.brokerHost
+		}
+	}
+
 	node.Status = "online"
 	if node.AccessToken == "" {
 		node.AccessToken = uuid.New().String()
@@ -636,7 +890,8 @@ func (h *NodeMQTTHandler) HandleRegister(_ pahomqtt.Client, msg pahomqtt.Message
 
 	h.logger.Info("Node registered",
 		zap.String("node_id", node.NodeID),
-		zap.String("node_name", node.NodeName))
+		zap.String("node_name", node.NodeName),
+		zap.String("protocol", node.Protocol))
 
 	h.publishRegisterResponse(node)
 
@@ -1250,6 +1505,8 @@ func NewControlMQTTHandler(
 }
 
 func (h *ControlMQTTHandler) HandleCommandResponse(_ pahomqtt.Client, msg pahomqtt.Message) {
+	h.logger.Warn("DEPRECATED: V1 command response (edgex/cmd/responses/#); use EAN Invoke Reply ($edgeos/reply/{planner_id})",
+		zap.String("topic", msg.Topic()))
 	h.logger.Info("HandleCommandResponse: received message", zap.String("topic", msg.Topic()), zap.String("payload", string(msg.Payload())))
 	var envelope struct {
 		Header struct {

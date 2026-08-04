@@ -1,75 +1,15 @@
-database:
-    path: ./data
-    type: bolt
-ean:
-    enabled: true
-    heartbeat:
-        check_interval_sec: 5
-        timeout_multiplier: 3
-    mqtt:
-        broker: tcp://127.0.0.1:18083
-        client_id: edgeos-ean
-        connect_timeout: 10
-        enabled: true
-        keep_alive: 30
-        mqtt_version: 4
-        password: ""
-        qos: 1
-        username: ""
-    nats:
-        client_name: edgeos-ean
-        connect_timeout: 10
-        enabled: true
-        max_reconnects: 5
-        password: ""
-        ping_interval: 0
-        reconnect_wait: 2
-        token: ""
-        url: nats://127.0.0.1:4222
-        username: ""
-    planner_id: edgeos-planner
-middlewares:
-    - auto_reconnect: true
-      broker: tcp://127.0.0.1:18083
-      ca_file: ""
-      clean_session: true
-      client_cert_file: ""
-      client_id: edgeOS_1
-      client_key_file: ""
-      connect_timeout: 10
-      enabled: true
-      id: 36cc8b96-f4be-414c-9b96-67c1b54c6dce
-      keep_alive: 30
-      mqtt_version: 4
-      name: MQTT
-      password: admin
-      qos: 1
-      reconnect_interval: 5
-      ssl: false
-      subscriptions:
-        - edgex/nodes/register
-        - edgex/nodes/heartbeat
-        - edgex/devices/report
-        - edgex/points/report
-        - edgex/data/#
-        - edgex/alerts/#
-        - edgex/responses/#
-      type: mqtt
-      username: admin
-monitoring:
-    enabled: true
-    prometheus: :9090
-node:
-    listen: :8000
-    node_id: node-001
-    node_type: primary
-    primary_node_id: node-primary
-security:
-    jwt_secret: edgeos-secret-key
-    tls_enabled: false
-users:
-    - enabled: true
-      password: admin
-      roles:
-        - admin
-      username: admin
+# EdgeOS 默认配置说明（bboltDB 存储）
+#
+# EdgeOS 运行时配置已全部迁移至 bboltDB（data/config.db），不再读取/依赖任何 YAML 配置文件。
+# 首次启动自动执行「默认安装初始化」：将默认配置写入 data/config.db；重启从数据库恢复，无需配置文件。
+#
+# 配置 CRUD 均通过 Web UI / API 写入 data/config.db（配置库为唯一数据源）。
+#
+# ---
+#
+# EdgeOS default config (bboltDB-backed)
+#
+# All runtime configuration is stored in bboltDB (data/config.db). No YAML config
+# file is read or required at runtime. On first start the default configuration is
+# written to data/config.db automatically (default install initialization); restarts
+# recover from the database without any config file.

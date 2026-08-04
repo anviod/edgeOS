@@ -5,8 +5,10 @@ import { Bell, LogOut, Search, Settings, User } from 'lucide-vue-next'
 import { useAlertStore } from '@/stores/alert'
 import { useWebSocket } from '@/composables/useWebSocket'
 import ThemeToggle from './ThemeToggle.vue'
+import HeaderMetrics from './HeaderMetrics.vue'
+import GlobalSearch from './GlobalSearch.vue'
 
-const props = defineProps<{
+defineProps<{
   sidebarCollapsed?: boolean
 }>()
 
@@ -15,6 +17,7 @@ const router = useRouter()
 const alertStore = useAlertStore()
 const { connected } = useWebSocket()
 const showUserMenu = ref(false)
+const searchRef = ref<InstanceType<typeof GlobalSearch> | null>(null)
 
 const systemStatus = ref('RUNNING')
 const onlineDevices = ref(128)
@@ -111,18 +114,20 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
       </template>
     </nav>
 
-    <div class="hidden items-center gap-4 text-xs font-mono text-slate-500 xl:flex">
-      <span>{{ systemStatus }}</span>
-      <span>Devices: {{ onlineDevices }}</span>
-      <span>Alarm: {{ alarmCount }}</span>
-      <span>Latency: {{ avgLatency }}ms</span>
-      <span>Loss: {{ packetLoss }}%</span>
-      <span>Quality: {{ qualityScore }}</span>
-    </div>
+    <HeaderMetrics
+      :system-status="systemStatus"
+      :online-devices="onlineDevices"
+      :alarm-count="alarmCount"
+      :avg-latency="avgLatency"
+      :packet-loss="packetLoss"
+      :quality-score="qualityScore"
+    />
 
     <div class="flex items-center gap-2">
+      <GlobalSearch ref="searchRef" />
       <button
-        class="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-50"
+        class="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-500 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+        @click="searchRef?.openSearch()"
       >
         <Search class="h-4 w-4" />
         <span class="hidden sm:inline">搜索业务、群控或设备...</span>

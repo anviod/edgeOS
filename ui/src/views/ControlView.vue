@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { ChevronDown, Send } from 'lucide-vue-next'
+import { ChevronDown, Send, Copy, Check } from 'lucide-vue-next'
 import { useEdgeStore } from '@/stores/edge'
 import { useRealtimeStore } from '@/stores/realtime'
 import { useEanStore } from '@/stores/ean'
 import { controlApi } from '@/api/index'
 import CommandLogPanel from '@/components/edge/CommandLogPanel.vue'
 import WritePointModal from '@/components/edge/WritePointModal.vue'
-import StatusBadge from '@/components/edge/StatusBadge.vue'
 import type { EdgeXPointInfo, CommandRecord, WritePointRequest } from '@/types/edgex'
 
 const edgeStore = useEdgeStore()
@@ -19,6 +18,9 @@ const selectedDeviceId = ref('')
 
 // Load nodes on mount
 onMounted(async () => {
+  // 刷新 EAN 健康状态（设备控制页依赖 isEanEnabled 判定 EAN 是否启用）
+  // | Refresh EAN health so the device-control page reflects the real EAN state.
+  await eanStore.fetchHealth()
   await edgeStore.fetchNodes()
   if (edgeStore.nodes.length > 0) {
     selectedNodeId.value = edgeStore.nodes[0].node_id
@@ -85,11 +87,27 @@ const allPoints = computed(() => {
 })
 const writablePoints = computed(() => allPoints.value.filter(p => p.read_write))
 
-// EAN 写能力查找：在 Agent 的 Capability 列表中找到写操作能力
+// EAN 写能力查找：在 Agent 的 Capability 列表中找到与**当前设备协议匹配**的写操作能力
+// 修复：避免能力与协议不匹配（如 BACnet 设备选到 modbus.write_point 导致调用超时）
+// 优先级：① 协议匹配（metadata.protocol == 设备 device_profile）且 permission=write；
+//         ② 任意 permission=write 兜底。
+const selectedDevice = computed(() =>
+  devices.value.find(d => d.device_id === selectedDeviceId.value)
+)
 const writeCapability = computed(() => {
   const caps = eanStore.capabilitiesByAgent[selectedNodeId.value]
   if (!caps || caps.length === 0) return null
-  // 查找 permission=write 且 ID 包含 write 的能力
+  const devProto = selectedDevice.value?.device_profile
+  if (devProto) {
+    // 优先选与设备协议一致的 write 能力（如 bacnet-ip → bacnet_ip.write_point）
+    const matched = caps.find(c =>
+      c.permission === 'write' &&
+      c.metadata?.protocol === devProto &&
+      c.id.includes('write')
+    )
+    if (matched) return matched
+  }
+  // 兜底：任意 write 能力
   return caps.find(c => c.permission === 'write' && c.id.includes('write')) ||
          caps.find(c => c.permission === 'write') ||
          null
@@ -97,6 +115,19 @@ const writeCapability = computed(() => {
 
 // EAN 是否可用
 const eanAvailable = computed(() => eanStore.isEanEnabled && writeCapability.value !== null)
+
+const copiedCapability = ref(false)
+
+async function copyCapabilityId() {
+  if (!writeCapability.value) return
+  try {
+    await navigator.clipboard.writeText(writeCapability.value.id)
+    copiedCapability.value = true
+    setTimeout(() => { copiedCapability.value = false }, 1600)
+  } catch {
+    copiedCapability.value = false
+  }
+}
 
 // Command log from realtime store (cast to CommandRecord shape)
 const commands = computed<CommandRecord[]>(() =>
@@ -152,7 +183,8 @@ async function handleWrite(pointId: string, value: unknown) {
       capability: writeCapability.value.id,
       arguments: {
         device_id: deviceId,
-        point_id: pointId,
+        // write_point 能力 schema 用 address（支持 point_id 自动解析），避免参数名不匹配
+        address: pointId,
         value,
       },
       timeout_sec: 30,
@@ -216,7 +248,8 @@ async function handleRetry(cmd: CommandRecord) {
       capability: writeCapability.value.id,
       arguments: {
         device_id: deviceId,
-        point_id: pointId,
+        // write_point 能力 schema 用 address（支持 point_id 自动解析），避免参数名不匹配
+        address: pointId,
         value,
       },
       timeout_sec: 30,
@@ -321,12 +354,24 @@ function formatValue(v: unknown) {
         <div v-if="selectedNodeId && eanStore.isEanEnabled && writeCapability" class="flex items-center gap-2 rounded-lg px-3 py-2" style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.15);">
           <span class="text-xs" style="color: #10B981;">写能力:</span>
           <code class="text-xs font-mono" style="color: var(--accent-primary);">{{ writeCapability.id }}</code>
+          <button
+            type="button"
+            @click="copyCapabilityId"
+            class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-colors hover:bg-white/5 ml-auto"
+            style="color: var(--text-secondary);"
+            :title="copiedCapability ? '已复制' : '复制写能力 ID'"
+          >
+            <component :is="copiedCapability ? Check : Copy" class="w-3 h-3" style="width:12px;height:12px;" />
+          </button>
         </div>
 
         <!-- EAN not enabled warning -->
         <div v-if="selectedNodeId && !eanStore.isEanEnabled" class="flex items-start gap-2 rounded-lg p-3" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);">
           <span class="text-xs leading-relaxed" style="color: #EF4444;">
-            EAN Bus 未启用，写操作不可用。请在配置中启用 EAN 功能后重试。
+            <template v-if="eanStore.healthLoading">正在检查 EAN 状态…</template>
+            <template v-else-if="eanStore.health === null">无法获取 EAN 健康状态（后端未响应）。</template>
+            <template v-else>EAN Bus 未启用，写操作不可用。请在配置中启用 EAN 功能后重试。</template>
+            <button class="ml-2 px-2 py-0.5 rounded text-xs border" style="border-color: rgba(239,68,68,0.3);" @click="eanStore.fetchHealth()">刷新</button>
           </span>
         </div>
 

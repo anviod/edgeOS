@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
+	"github.com/anviod/edgeOS/internal/config"
 	"github.com/anviod/edgeOS/internal/model"
 )
 
@@ -169,3 +170,55 @@ func TestMiddlewareService_ListEnabled(t *testing.T) {
 		assert.True(t, c.Enabled)
 	}
 }
+
+func TestMiddlewareService_InitFromConfig_CreatesMissing(t *testing.T) {
+	svc, cleanup := newTestMiddlewareSvc(t)
+	defer cleanup()
+
+	// 空 DB：InitFromConfig 应从配置创建中间件
+	// Empty DB: InitFromConfig should create middleware from config
+	cfg := []config.MiddlewareMiddlewareConfig{{
+		ID:            "mw-1",
+		Name:          "Local MQTT",
+		Type:          "mqtt",
+		Enabled:       true,
+		Broker:        "tcp://127.0.0.1:18083",
+		ClientID:      "edgeos-test",
+		Subscriptions: []string{"edgex/devices/report", "edgex/data/#"},
+	}}
+	require.NoError(t, svc.InitFromConfig(cfg))
+
+	got, err := svc.Get("mw-1")
+	require.NoError(t, err)
+	assert.Equal(t, "Local MQTT", got.Name)
+	assert.True(t, got.Enabled)
+	assert.Equal(t, "tcp://127.0.0.1:18083", got.Broker)
+	assert.Equal(t, 2, len(got.Subscriptions))
+
+	enabled, err := svc.ListEnabled()
+	require.NoError(t, err)
+	assert.Len(t, enabled, 1)
+}
+
+func TestMiddlewareService_InitFromConfig_SkipsExisting(t *testing.T) {
+	svc, cleanup := newTestMiddlewareSvc(t)
+	defer cleanup()
+
+	// 预置同名中间件，验证 InitFromConfig 不重复创建
+	require.NoError(t, svc.Create(&model.MiddlewareConfig{ID: "mw-1", Name: "Existing", Type: "mqtt", Enabled: true}))
+
+	cfg := []config.MiddlewareMiddlewareConfig{{
+		ID:      "mw-1",
+		Name:    "From Config",
+		Type:    "mqtt",
+		Enabled: true,
+		Broker:  "tcp://127.0.0.1:1883",
+	}}
+	require.NoError(t, svc.InitFromConfig(cfg))
+
+	got, err := svc.Get("mw-1")
+	require.NoError(t, err)
+	assert.Equal(t, "Existing", got.Name, "existing middleware should not be overwritten")
+	assert.NotEqual(t, "tcp://127.0.0.1:1883", got.Broker)
+}
+

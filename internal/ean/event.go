@@ -108,6 +108,21 @@ func NewEventCenter(cfg EventCenterConfig, logger *zap.Logger) *EventCenter {
 	return ec
 }
 
+// SetPointChangeHandler 设置点位变化事件处理器 | Set point change event handler
+func (ec *EventCenter) SetPointChangeHandler(handler PointChangeHandler) {
+	ec.onPointChange = handler
+}
+
+// SetDeviceOnlineHandler 设置设备上线事件处理器 | Set device online event handler
+func (ec *EventCenter) SetDeviceOnlineHandler(handler DeviceStatusHandler) {
+	ec.onDeviceOnline = handler
+}
+
+// SetDeviceOfflineHandler 设置设备下线事件处理器 | Set device offline event handler
+func (ec *EventCenter) SetDeviceOfflineHandler(handler DeviceStatusHandler) {
+	ec.onDeviceOffline = handler
+}
+
 // ==================== MessageHandler 实现 ====================
 
 // HandleEvent 处理所有事件消息（统一入口）

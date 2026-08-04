@@ -20,7 +20,7 @@ const middlewareStore = useMiddlewareStore()
 const realtimeStore = useRealtimeStore()
 
 onMounted(() => {
-  if (route.path !== '/login') {
+  if (route.path !== '/login' && route.path !== '/install') {
     const store = userStore()
     // 恢复登录状态
     store.restoreLoginInfo()

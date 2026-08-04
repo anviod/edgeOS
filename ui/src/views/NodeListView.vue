@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Server, RefreshCw, Trash2, ChevronRight, Cpu, CheckCircle, Eye } from 'lucide-vue-next'
+import { Server, RefreshCw, Trash2, Cpu, CheckCircle, Eye } from 'lucide-vue-next'
 import { useEdgeStore } from '@/stores/edge'
 import { useMiddlewareStore } from '@/stores/middleware'
 import StatusBadge from '@/components/edge/StatusBadge.vue'
+import DangerDialog from '@/components/edge/DangerDialog.vue'
 
 const router = useRouter()
 const edgeStore = useEdgeStore()
@@ -20,6 +21,10 @@ const selectedNode = ref<any>(null)
 
 // Tooltip states
 const hoveredButton = ref<string | null>(null)
+
+// Delete confirmation modal
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<string | null>(null)
 
 function showToast(msg: string) {
   toastMsg.value = msg
@@ -117,9 +122,16 @@ function formatTime(ts: number) {
 }
 
 async function handleDelete(nodeId: string) {
-  if (confirm(`确认删除节点 ${nodeId}？`)) {
-    await edgeStore.removeNode(nodeId)
-  }
+  deleteTarget.value = nodeId
+  showDeleteDialog.value = true
+}
+
+async function confirmDelete() {
+  if (!deleteTarget.value) return
+  const nodeId = deleteTarget.value
+  deleteTarget.value = null
+  showDeleteDialog.value = false
+  await edgeStore.removeNode(nodeId)
 }
 
 function openDetailModal(node: any) {
@@ -243,6 +255,16 @@ async function triggerDiscoveryAll() {
         </div>
       </div>
     </Transition>
+
+    <!-- Delete confirmation modal -->
+    <DangerDialog
+      v-model:open="showDeleteDialog"
+      title="删除节点"
+      :description="`确认删除节点 ${deleteTarget}？删除后该节点注册信息将被移除。`"
+      actionName="删除节点"
+      variant="danger"
+      @confirm="confirmDelete"
+    />
 
     <!-- Node Detail Modal -->
     <Transition enter-active-class="transition-all duration-300 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4" leave-active-class="transition-all duration-200 ease-in" leave-to-class="opacity-0 scale-95 translate-y-4">

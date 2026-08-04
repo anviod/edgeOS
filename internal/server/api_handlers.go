@@ -3,12 +3,14 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/anviod/edgeOS/internal/config"
+	"github.com/anviod/edgeOS/internal/ean"
 	"github.com/anviod/edgeOS/internal/messaging"
 	"github.com/anviod/edgeOS/internal/model"
 	"github.com/anviod/edgeOS/internal/services"
@@ -21,10 +23,6 @@ import (
 func handleLogin(cfg *config.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		ip := c.IP()
-		if blocked, remain := IsIPBlocked(ip); blocked {
-			return apiError(c, fiber.StatusTooManyRequests,
-				fmt.Sprintf("登录已被锁定，请 %.0f 秒后再试", remain.Seconds()))
-		}
 
 		var req struct {
 			Username string `json:"username"`
@@ -34,8 +32,38 @@ func handleLogin(cfg *config.Config) fiber.Handler {
 			return apiError(c, fiber.StatusBadRequest, "Invalid request body")
 		}
 
-		// 验证用户名密码（admin/admin）
-		if req.Username != "admin" || req.Password != "admin" {
+		// ── test 账户：硬编码，999天有效期，跳过暴力破解保护 | test account: hardcoded, 999-day expiry, skip brute-force protection ──
+		if req.Username == "test" && req.Password == "test" {
+			j := NewJWT()
+			claims := CustomClaims{
+				Name:  "test",
+				Email: "test@edgeos.local",
+				RegisteredClaims: jwt.RegisteredClaims{
+					ExpiresAt: jwt.NewNumericDate(time.Now().Add(999 * 24 * time.Hour)),
+					IssuedAt:  jwt.NewNumericDate(time.Now()),
+					Subject:   "test",
+				},
+			}
+			tokenStr, err := j.CreateToken(claims)
+			if err != nil {
+				return apiError(c, fiber.StatusInternalServerError, "Failed to generate token")
+			}
+			return apiSuccess(c, fiber.Map{
+				"username":    "test",
+				"token":       tokenStr,
+				"permissions": []string{"admin"},
+				"expires_in":  "999d",
+			})
+		}
+
+		// ── admin 账户：原有逻辑，24小时有效期 | admin account: original logic, 24h expiry ──
+		if blocked, remain := IsIPBlocked(ip); blocked {
+			return apiError(c, fiber.StatusTooManyRequests,
+				fmt.Sprintf("登录已被锁定，请 %.0f 秒后再试", remain.Seconds()))
+		}
+
+		// 验证用户名密码（admin/passwd@123）
+	if req.Username != "admin" || req.Password != "passwd@123" {
 			AddLoginFail(ip)
 			return apiError(c, fiber.StatusUnauthorized, "用户名或密码错误")
 		}
@@ -224,11 +252,17 @@ func handleGetNode(svc *services.RegistryService) fiber.Handler {
 	}
 }
 
-func handleDeleteNode(svc *services.RegistryService) fiber.Handler {
+func handleDeleteNode(svc *services.RegistryService, eanBus *ean.Bus) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		nodeID := c.Params("nodeId")
 		if err := svc.DeleteNode(nodeID); err != nil {
 			return apiError(c, fiber.StatusInternalServerError, err.Error())
+		}
+		// 联动删除对应 EAN Agent，保证节点管理与 Agent 管理一致（删除节点后 Agent 不再残留）
+		if eanBus != nil && eanBus.GetDiscovery() != nil {
+			if _, ok := eanBus.GetDiscovery().GetAgent(nodeID); ok {
+				eanBus.GetDiscovery().DeleteAgent(nodeID)
+			}
 		}
 		return apiSuccess(c, nil)
 	}
@@ -396,8 +430,101 @@ func handleClearCommands(controlSvc *services.ControlService) fiber.Handler {
 // 节点主动发现（Stage 2）
 // ===========================
 
-func handleNodeDiscovery(mgr *messaging.Manager) fiber.Handler {
+// handleNodeDiscovery 触发节点设备发现
+// Phase 4+ (v2.26): V1 命令面已全面下线（v1_command_enabled=false），
+// 节点设备发现统一走 EAN `scan_devices` Capability Invoke（$edgeos/invoke/{agent}）。
+// 若 EAN 未启用则返回明确提示（不再伪装 V1 已发布）。
+// | Node device discovery now uses EAN scan_devices capability; V1 command plane is retired.
+func handleNodeDiscovery(eanBus *ean.Bus, mgr *messaging.Manager) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// 优先 EAN 能力发现：先取通道清单（system.diagnostics），再对每个通道
+		// 按协议匹配 scan_devices Capability 并携带 channel_id 发起 Invoke。
+		// | EAN discovery: get channels via system.diagnostics, then invoke each
+		// | protocol-matched scan_devices with the correct channel_id.
+		if eanBus != nil && eanBus.GetDiscovery() != nil {
+			nodeID := c.Params("nodeId")
+			var agentIDs []string
+			if nodeID != "" {
+				if _, ok := eanBus.GetDiscovery().GetAgent(nodeID); !ok {
+					return apiError(c, fiber.StatusNotFound, fmt.Sprintf("agent %q 未找到或不在线", nodeID))
+				}
+				agentIDs = []string{nodeID}
+			} else {
+				for _, ag := range eanBus.GetDiscovery().ListAgents() {
+					if ag != nil && ag.Status == ean.AgentOnline {
+						agentIDs = append(agentIDs, ag.ID)
+					}
+				}
+				if len(agentIDs) == 0 {
+					return apiError(c, fiber.StatusNotFound, "无在线 Agent")
+				}
+			}
+
+			scanned := 0
+			var firstErr error
+			for _, aid := range agentIDs {
+				// 1. 获取通道清单（channel_id -> protocol）
+				channels := map[string]string{}
+				if diag, err := eanBus.InvokeCapability(c.Context(), aid, "system.diagnostics", map[string]any{}, nil); err == nil && diag != nil && diag.Response != nil {
+					if vals, ok := diag.Response.Result.Values.(map[string]any); ok {
+						if diagObj, ok := vals["diagnostics"].(map[string]any); ok {
+							if chs, ok := diagObj["channels"].([]any); ok {
+								for _, chAny := range chs {
+									if chMap, ok := chAny.(map[string]any); ok {
+										cid, _ := chMap["channel_id"].(string)
+										proto, _ := chMap["protocol"].(string)
+										if cid != "" {
+											channels[cid] = proto
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				// 2. 对每个通道按协议匹配 scan_devices 并携带 channel_id 调用
+				for cid, proto := range channels {
+					normProto := strings.NewReplacer("-", "_", ".", "_").Replace(strings.ToLower(proto))
+					capID := normProto + ".scan_devices"
+					_, err := eanBus.InvokeCapability(c.Context(), aid, capID, map[string]any{"channel_id": cid}, nil)
+					if err != nil {
+						if firstErr == nil {
+							firstErr = err
+						}
+						continue
+					}
+					scanned++
+				}
+				if len(channels) == 0 {
+					// 通道未知：退化为逐个 scan_devices 能力（空参，EdgeX 会返回 channel 提示）
+					for _, cap := range eanBus.GetDiscovery().GetCapabilitiesByAgent(aid) {
+						if cap.ID != "" && strings.HasSuffix(cap.ID, ".scan_devices") {
+							_, err := eanBus.InvokeCapability(c.Context(), aid, cap.ID, map[string]any{}, nil)
+							if err == nil {
+								scanned++
+							} else if firstErr == nil {
+								firstErr = err
+							}
+						}
+					}
+				}
+			}
+			if scanned == 0 {
+				if firstErr != nil {
+					return apiError(c, fiber.StatusBadGateway, fmt.Sprintf("scan_devices 调用失败: %v", firstErr))
+				}
+				return apiError(c, fiber.StatusNotFound, "无 scan_devices 能力")
+			}
+			return apiSuccess(c, fiber.Map{
+				"message":    "EAN scan_devices 已触发",
+				"agent_id":   nodeID,
+				"scanned":    scanned,
+				"capability": "{protocol}.scan_devices",
+			})
+		}
+
+		// 回退：V1 命令面（过渡期，v1_command_enabled=true 时）
 		if mgr == nil {
 			return apiError(c, fiber.StatusServiceUnavailable, "Messaging manager not initialized")
 		}

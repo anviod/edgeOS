@@ -1,678 +1,310 @@
 # 边缘大脑系统 (Edge Brain Open System) Version 1.0.0
 
-> 本项目是为配合 [Industrial Edge Gateway (edgex)](https://github.com/anviod/edgex) 项目而实现的边缘大脑系统，提供 N+2 冗余架构、蜂群模式与集群协调能力。
-
-
+> 本项目是为配合 [Industrial Edge Gateway (edgex)](https://github.com/anviod/edgex) 项目而实现的边缘大脑系统，提供 N+2 冗余架构、蜂群模式与集群协调能力。核心新增 **EAN 2.0 (Edge Agent Network)** 统一 Agent 协作层，实现跨边缘网关的能力发现、调用编排与事件流处理。
 
 <div align="center">
   <img src="./docs/img/edge_brain.svg" width="100%" />
 </div>
 
-## 1. 项目概述
+## 快速开始
 
-### 1.1 项目背景
-随着工业互联网和边缘计算的快速发展，单一边缘采集网关在工业现场存在单点故障风险。为配合 [Industrial Edge Gateway (edgex)](https://github.com/anviod/edgex) 项目实现的边缘采集能力，边缘大脑系统 (edgeOS) 提供了企业级高可用架构，实现多边缘网关的协调管理与故障容灾。
+### 环境要求
 
-现有边缘采集系统存在以下问题：
-- 单点故障风险高，缺乏有效的冗余机制
-- 设备发现和双向数据通信能力不足
-- 缺乏统一的调度和协调机制
-- 影子设备消息共享机制不完善
+- Go 1.21+
+- Node.js 18+
+- npm 9+
 
-### 1.2 项目目标
-设计并实现一个功能完善的边缘大脑系统，配合 edgex 实现：
-- **N+2 冗余架构**：协调 N 个边缘采集网关程序，实现双机热备机制（蜂群模式），包含一个主母皇节点与一个备用母皇节点
-- **群控调度**：执行各类调度采集任务、边缘群控算法及节能优化算法
-- **影子设备协同**：实现跨边缘网关的影子设备自动发现、双向数据通信及其他核心功能
+### 后端服务
 
-### 1.3 设计原则
-- **高可用性**：N+2冗余架构，确保系统持续运行
-- **可扩展性**：支持横向扩展，适应不同规模的部署
-- **实时性**：毫秒级响应，满足工业现场实时需求
+```bash
+cd server
+go mod tidy
+go run main.go
+```
+
+后端默认运行在 `http://localhost:8080`。
+
+### 前端开发
+
+```bash
+cd ui
+npm install
+npm run dev
+```
+
+前端开发服务器运行在 `http://localhost:5173`，API 请求通过 `/api` 前缀自动代理到 `http://localhost:8080`。
+
+构建生产版本：
+
+```bash
+npm run build
+```
+
+## EAN 2.0 核心功能
+
+**Edge Agent Network (EAN) 2.0** 在现有 EdgeX + EdgeOS 架构上增加统一 Agent 协作层：
+
+- **EdgeX**：Capability Runtime（能力注册、发现发布、Invoke 执行、Event 上报）
+- **EdgeOS**：Coordination Platform（全局发现索引、跨节点编排、Invoke 发起、Event 订阅与规则）
+
+协议层统一为 `Agent / Capability / Discovery / Invoke / Event`，传输同时支持 **MQTT** 与 **NATS**，Topic 使用统一的 `$edgeos/...` 字符串形式。
+
+### Discovery 发现中心
+
+全局 Agent 与 Capability 索引，订阅 EdgeX 北向 EAN Runtime 发布的发现消息：
+
+- **Agent 上线/下线**：自动维护在线 Agent 列表，支持 `discovery/agent` 与 `discovery/agent/offline`
+- **Capability 注册**：按 `agent_id` 聚合 Capability 列表，支持 driver / system / ai / workflow 类别
+- **主动查询**：启动后周期性 Query EdgeX 完整 Capability，确保索引完整
+- **V1 Bridge 隔离**：Phase 4（OS-P4）已下线 V1→EAN Bridge；V1 命令面已全面下线（`v1_command_enabled=false`）；`AttachRegistryMirror` 仅镜像北向原生 EAN Agent，transient/v1-bridge 测试 Agent 不污染 `/api/nodes`
+- **前端 UI**：`EanAgentsView` 展示 Agent 列表、状态、Capability 详情
+
+<div align="center">
+  <img src="./docs/img/edge_01.svg" width="100%" />
+</div>
+
+### Invoke 调用编排
+
+跨 Agent 能力调用编排器，实现分布式能力调用闭环：
+
+- **请求发布**：向 `$edgeos/invoke/{agent_id}` 发布 `invoke_capability` 信封
+- **响应关联**：通过 `$edgeos/reply/{source}` 接收回复，`correlation_id` + `invoke_id` 双键关联
+- **超时重试**：按 Capability `timeout_sec` 设置客户端超时，`invoke_id` 幂等
+- **状态追踪**：可选订阅 `$edgeos/invoke/{agent_id}/status` 获取执行进度
+- **前端 UI**：`EanInvokeView` 提供 Capability 选择、参数填写、执行结果展示
+
+**默认 Capability 清单**：
+
+| Capability ID | 类别 | 说明 |
+|---------------|------|------|
+| `{protocol}.read_points` | driver | 读取点位（modbus-tcp/rtu、opcua、bacnet、s7 等） |
+| `{protocol}.write_point` | driver | 写入点位 |
+| `{protocol}.scan_devices` | driver | 扫描设备 |
+| `system.diagnostics` | system | 系统诊断 |
+| `ai.protocol_reverse` | ai | 协议逆向（AI 分析） |
+| `ai.doc_parse` | ai | 文档解析（AI 分析） |
+
+<div align="center">
+  <img src="./docs/img/edge_02.svg" width="100%" />
+</div>
+
+### Event 事件流
+
+订阅并处理 EdgeX 上报的事件流，支持点位变化追踪：
+
+- **点位变化**：`event_type={point_id}.changed`，携带 `value` 与 `previous_value`
+- **设备在离线**：`device.online` / `device.offline` 事件
+- **规则路由**：按 agent / device / point / event_type 过滤并触发规则/告警
+- **广播订阅**：支持 `$edgeos/event/broadcast` 全局事件
+- **前端 UI**：`EanEventsView` 实时展示 Event 流，含 previous_value 差量对比
+
+<div align="center">
+  <img src="./docs/img/edge_03.svg" width="100%" />
+</div>
+
+### Heartbeat 心跳监控
+
+Agent 心跳接收与超时判定：
+
+- 接收 `$edgeos/heartbeat/{agent_id}` 消息，记录最后存活时间与序列号
+- 超时判定：超过 `N * heartbeat_interval_sec` 未收到心跳标记 offline
+- 与 `discovery/agent/offline` 语义一致，确保状态同步
+
+### Governance 平台治理
+
+- **Agent 生命周期**：online / offline / heartbeat 超时判定（建议 2-3 个心跳周期）
+- **权限控制**：按租户/项目限制可 Invoke 的 Capability，write / admin / AI 类能力默认受限
+- **审计记录**：内存环形缓存记录跨节点 Invoke 的 initiator、target、capability、结果
+
+### DualTransport 双传输
+
+MQTT 与 NATS 对称传输，同一业务逻辑复用编解码，仅替换 transport adapter：
+
+| 能力 | MQTT | NATS |
+|------|------|------|
+| Discovery | `$edgeos/discovery/*` | 相同 Subject（保留斜杠） |
+| Invoke + Reply | `$edgeos/invoke/{id}` | 相同 |
+| Event | `$edgeos/event/{id}` | 相同 |
+| Heartbeat | `$edgeos/heartbeat/{id}` | 相同 |
+
+- **启动韧性**：EAN 启用但 broker 不可用时 Warn + 后台重连 + 延迟订阅，不 fatal
+- **V1 兼容并行**：EAN `$edgeos/*` 与 V1 `edgex/*`（MQTT）/`edgex.*`（NATS）同时可用，新功能只走 EAN
+
+<div align="center">
+  <img src="./docs/img/edge_04.svg" width="100%" />
+</div>
+
+### AI Capability
+
+AI 协同组件通过 EAN 网络暴露为可调用的 Capability：
+
+- `ai.protocol_reverse`：协议逆向分析，输入 pcap/协议样本，输出候选配置
+- `ai.doc_parse`：协议文档解析，自动生成点位映射建议
+- **Human-in-the-loop**：AI 产出须人工 Confirm 后落库，禁止自动写配置
+- `ai.protocol_reverse` / `ai.doc_parse` Invoke 返回 `task_id` + `deliverables`，支持 `wait=true` 阻塞等待
+
+<div align="center">
+  <img src="./docs/img/edge_05.svg" width="100%" />
+</div>
+
+### 消息共享与集群协同
+
+<div align="center">
+  <img src="./docs/img/edge_06.svg" width="100%" />
+</div>
+
+## 系统架构
+
+### N+2 冗余架构
+
+系统采用 N+2 冗余架构，由 N 个边缘采集网关、1 个主母皇节点和 1 个备用母皇节点组成：
+
+| 组件 | 数量 | 职责 |
+|------|------|------|
+| 边缘采集网关 (Edge Collector) | N | 设备连接、数据采集、协议转换、EAN Capability Runtime |
+| 主母皇节点 (Primary Queen) | 1 | 全局调度、决策制定、状态同步、EAN Coordination Platform |
+| 备用母皇节点 (Secondary Queen) | 1 | 实时同步主节点状态，故障时自动切换 |
+
+<div align="center">
+  <img src="./docs/img/edge_brain_n2.svg" width="100%" />
+</div>
+
+### 设计原则
+
+- **高可用性**：N+2 冗余，确保系统持续运行
+- **可扩展性**：支持横向扩展，适应不同规模部署
+- **实时性**：毫秒级响应，满足工业现场需求
 - **一致性**：分布式环境下数据一致性保证
 - **自愈性**：故障自动检测和恢复
 
+## 前端功能预览
 
-## 1.4 当前进展
+前端已完成从"采集接入层"向"业务运营层 + 群控编排层"的扩展，新增 **EAN 管理** 一级导航：
 
-当前前端已完成从“采集接入层”向“业务运营层 + 群控编排层”的 P3 扩展，新增了业务中心和群控管理两组一级导航，并在现有工业风 UI 基础上完成高仿真静态页面建设。
+**导航结构**：
+- 采集运行（系统总览、消息总线、节点管理、设备控制、告警管理、系统设置）
+- EAN 管理（总览、Agent 管理、Invoke 执行、Event 流、调试帮助）
+- 业务扩展（储能管理、电源BMS、充电管理、能耗监测、账务台账）
+- 群控编排（节点调度、场景联动、函数执行、脚本编排）
 
-### 导航结构
-
-- 采集运行
-  - 系统总览
-  - 消息总线
-  - 节点管理
-  - 设备控制
-  - 告警管理
-  - 系统设置
-- 业务扩展
-  - 业务中心
-    - 储能管理
-    - 电源BMS
-    - 充电管理
-    - 能耗监测
-    - 账务台账
-- 群控编排
-  - 群控管理
-    - 节点调度
-    - 场景联动
-    - 函数执行
-    - 脚本编排
-
-### P3 页面实现状态
-
-业务中心模块：
-
-- 储能管理：站级调峰、SOC/SOH、充放电功率、站点策略面板
-- 电源BMS：电池簇矩阵诊断、温差压差、均衡状态、寿命风险
-- 充电管理：枪位占用、排队车道、订单会话、负载分配
-- 能耗监测：分回路能流、峰谷趋势、异常波动、损耗热点
-- 账务台账：账单、开票、结算、对账与报表导出
-
-群控管理模块：
-
-- 节点调度：节点容量、资源余量、任务队列、失败重派
-- 场景联动：ECA 规则链、触发条件、动作编排、联动日志
-- 函数执行：函数目录、输入输出样例、耗时与失败追踪
-- 脚本编排：工作流 DAG、审批门禁、编排执行与审计
-
-> 储能管理
+> 储能管理 - 站级调峰、SOC/SOH、充放电功率、站点策略面板
 
 <div align="center">
   <img src="./docs/img/储能管理.png" width="100%" />
 </div>
 
-> 电源BMS
-> 电池簇矩阵诊断、温差压差、均衡状态、寿命风险
+> 电源BMS - 电池簇矩阵诊断、温差压差、均衡状态、寿命风险
+
 <div align="center">
   <img src="./docs/img/电源BMS.png" width="100%" />
 </div>
 
+> 能耗监测 - 分回路能流、峰谷趋势、异常波动、损耗热点
 
-> 能耗监测
-> 分回路能流、峰谷趋势、异常波动、损耗热点
 <div align="center">
   <img src="./docs/img/能耗监测.png" width="100%" />
 </div>
 
-> 账务台账
-> 账单、开票、结算、对账与报表导出
+> 账务台账 - 账单、开票、结算、对账与报表导出
+
 <div align="center">
   <img src="./docs/img/账务台账.png" width="100%" />
 </div>
 
-> 场景联动
-> ECA 规则链、触发条件、动作编排、联动日志
+> 场景联动 - ECA 规则链、触发条件、动作编排、联动日志
+
 <div align="center">
   <img src="./docs/img/场景联动.png" width="100%" />
 </div>
 
 ### 相关文档
 
+- EAN 2.0 改造指南：[docs/edgeos/EAN2.0-EdgeX-EdgeOS改造指南.md](./docs/edgeos/EAN2.0-EdgeX-EdgeOS改造指南.md)
+- EAN 2.0 升级报告：[docs/edgeos/EdgeOS-EAN2.0改造升级报告.md](./docs/edgeos/EdgeOS-EAN2.0改造升级报告.md)
 - P3 规划文档：[docs/EdgeOS-2026-P3-TODO.md](./docs/EdgeOS-2026-P3-TODO.md)
 - UI 样式规范：[docs/样式规范.md](./docs/%E6%A0%B7%E5%BC%8F%E8%A7%84%E8%8C%83.md)
 
-## 2. 系统架构设计
+## 前端最佳实践
 
-### 2.1 整体架构
+### 组件开发
 
+- 工业组件置于 `ui/src/components/edge/`，布局组件置于 `ui/src/components/layout/`，EAN 组件置于 `ui/src/components/eane/`
+- 状态指示统一使用 `StatusIndicator`，危险操作使用 `DangerDialog` 二次确认
+- 实时数值使用 `MetricCard`，数据表格使用 `DataTable`
 
-### 2.2 N+2 冗余架构
+### 样式规范
 
-#### 2.2.1 架构组成
+- 遵循工业级 UI 标准：直角设计、无阴影、高对比度配色
+- 触控目标最小 44px，适配工业手套操作
+- 参考 [样式规范.md](./docs/样式规范.md)
 
-| 组件 | 数量 | 描述 | 职责 |
-|------|------|------|------|
-| 边缘采集网关 (Edge Collector) | N | 分布式部署的采集程序 | 负责设备连接、数据采集、协议转换 |
-| 主母皇节点 (Primary Queen) | 1 | 本地主控大脑主节点 | 负责全局调度、决策制定、状态同步 |
-| 备用母皇节点 (Secondary Queen) | 1 | 主母皇热备节点 | 实时同步主母皇状态，故障时自动切换 |
+### 路由与认证
 
-#### 2.2.2 冗余模式
+- 新增页面在 `ui/src/router/` 注册，受保护路由设置 `requiresAuth: true`
+- API 请求通过 `ui/src/api/` 封装模块调用，自动处理 JWT Token 和错误响应
 
-<div align="center">
-  <img src="./docs/img/edge_brain_n2.svg" width="100%" />
-</div>
+## 配套措施
 
-### 2.3 核心组件设计
-
-#### 2.3.1 主母皇节点 (Primary Queen)
-
-```go
-// 主母皇节点核心结构
-type PrimaryQueen struct {
-    NodeID           string                    // 节点唯一标识
-    NodeType         NodeType                  // 节点类型：Primary
-    Status           NodeStatus                // 运行状态
-    HeartbeatInterval time.Duration            // 心跳间隔
-    LastHeartbeat    time.Time                 // 最后心跳时间
-
-    // 核心管理器
-    *SwarmController                        // 群控调度器
-    *ShadowDeviceRegistry                    // 影子设备注册表
-    *TaskScheduler                          // 任务调度器
-    *DecisionEngine                         // 决策引擎
-    *EnergyOptimizer                        // 节能优化器
-
-    // 通信层
-    *ClusterComm                            // 集群通信
-    *StateSynchronizer                      // 状态同步器
-
-    // 存储层
-    *bbolt.DB                               // 本地数据库
-
-    mu              sync.RWMutex
-    ctx             context.Context
-    cancel          context.CancelFunc
-}
-```
-
-#### 2.3.2 备用母皇节点 (Secondary Queen)
-
-```go
-// 备用母皇节点核心结构
-type SecondaryQueen struct {
-    NodeID           string                    // 节点唯一标识
-    NodeType         NodeType                  // 节点类型：Secondary
-    Status           NodeStatus                // 运行状态
-    HeartbeatInterval time.Duration            // 心跳间隔
-    LastHeartbeat    time.Time                 // 最后心跳时间
-
-    // 实时同步组件
-    *StateReplicator                        // 状态复制器
-    *SyncWatcher                            // 同步监视器
-
-    // 热备组件
-    *HotStandbyManager                      // 热备管理器
-    *FailoverController                     // 故障转移控制器
-
-    // 存储层
-    *bbolt.DB                               // 本地数据库（实时同步）
-
-    mu              sync.RWMutex
-    ctx             context.Context
-    cancel          context.CancelFunc
-}
-```
-
-#### 2.3.3 边缘采集网关 (Edgex)
-
-```go
-// 边缘采集网关核心结构
-type EdgeCollector struct {
-    CollectorID     string                    // 采集网关唯一标识
-    NodeType        NodeType                  // 节点类型：Collector
-    Status          NodeStatus                // 运行状态
-    QueenID         string                    // 所属母皇节点ID
-
-    // 采集组件
-    *DeviceManager                          // 设备管理器
-    *ProtocolAdapter                        // 协议适配器
-    *ShadowIngress                          // 影子数据入口
-    *PointsNormalizer                       // 点位归一化
-
-    // 通信组件
-    *QueenCommunicator                      // 母皇通信器
-    *PeerCommunicator                       // 对等节点通信器
-
-    // 本地存储
-    *bbolt.DB                               // 本地数据库
-
-    mu              sync.RWMutex
-    ctx             context.Context
-    cancel          context.CancelFunc
-}
-```
-
-## 3. 影子设备自动发现机制
-
-### 3.1 自动发现流程
-
-
-<div align="center">
-  <img src="./docs/img/edge_01.svg" width="100%" />
-</div>
-
-### 3.2 影子设备注册表
-
-```go
-// 影子设备注册表
-type ShadowDeviceRegistry struct {
-    devices     map[string]*ShadowDeviceEntry   // 设备ID -> 影子设备条目
-    byCollector map[string][]string             // 采集网关ID -> 设备ID列表
-    byChannel   map[string][]string             // 通道ID -> 设备ID列表
-
-    mu          sync.RWMutex
-}
-
-// 影子设备条目
-type ShadowDeviceEntry struct {
-    ShadowDeviceID    string                 // 影子设备ID
-    PhysicalDeviceID  string                 // 物理设备ID
-    CollectorID       string                 // 所属采集网关ID
-    ChannelID         string                 // 所属通道ID
-    ProtocolType      string                 // 协议类型
-    DeviceType        string                 // 设备类型
-    Metadata          map[string]interface{} // 设备元数据
-
-    // 采集配置
-    CollectConfig     *CollectConfig         // 采集配置
-    Status            DeviceStatus           // 设备状态
-    LastSeen          time.Time              // 最后上线时间
-    Version           uint64                 // 版本号
-}
-```
-
-## 4. 双向数据通信机制
-
-### 4.1 通信架构
-
-
-
-<div align="center">
-  <img src="./docs/img/edge_02.svg" width="100%" />
-</div>
-
-
-
-### 4.2 消息类型定义
-
-```go
-// 消息类型枚举
-type MessageType int
-
-const (
-    // 设备上行消息
-    MsgTypeTelemetry     MessageType = iota  // 遥测数据
-    MsgTypeEvent                               // 事件上报
-    MsgTypeAlert                               // 告警信息
-    MsgTypeHeartbeat                           // 心跳消息
-
-    // 控制下行消息
-    MsgTypeCommand                             // 控制指令
-    MsgTypeConfigUpdate                        // 配置更新
-    MsgTypeTaskAssign                          // 任务分配
-    MsgTypeFirmwareUpdate                      // 固件更新
-
-    // 同步消息
-    MsgTypeStateSync                           // 状态同步
-    MsgTypeRegister                            // 注册消息
-    MsgTypeDeregister                          // 注销消息
-    MsgTypeHandshake                           // 握手消息
-)
-
-// 消息结构
-type EdgeMessage struct {
-    MessageID     string                 // 消息唯一标识
-    MessageType   MessageType             // 消息类型
-    SourceID      string                  // 来源节点ID
-    TargetID      string                  // 目标节点ID（可选，用于单播）
-    Payload       []byte                  // 消息载荷
-    QoS           QoSLevel                // 服务质量等级
-    Timestamp     time.Time               // 时间戳
-    Sequence      uint64                  // 序列号
-    Headers       map[string]string       // 消息头
-}
-
-// QoS 等级
-type QoSLevel int
-
-const (
-    QoS0 QoSLevel = iota  // 最多一次
-    QoS1                   // 至少一次
-    QoS2                   // 恰好一次
-)
-```
-
-## 5. 群控算法与节能优化
-
-### 5.1 群控算法调度
-
-```go
-// 群控算法调度器
-type SwarmController struct {
-    // 调度策略
-    strategy      ScheduleStrategy      // 调度策略
-    collectors    map[string]*EdgeCollectorInfo  // 采集网关信息
-    tasks         map[string]*CollectTask       // 采集任务
-
-    // 负载均衡
-    loadBalancer  *LoadBalancer        // 负载均衡器
-    taskQueue     *PriorityQueue        // 优先级队列
-
-    // 状态管理
-    nodeStatus    map[string]NodeStatus // 节点状态
-    taskStatus    map[string]TaskStatus // 任务状态
-
-    mu            sync.RWMutex
-}
-
-// 调度策略
-type ScheduleStrategy int
-
-const (
-    StrategyRoundRobin    ScheduleStrategy = iota  // 轮询
-    StrategyLeastLoaded                             // 最小负载
-    StrategyWeighted                                // 加权
-    StrategyAffinity                                // 亲和性
-    StrategyDynamic                                 // 动态调度
-)
-
-// 采集任务
-type CollectTask struct {
-    TaskID       string
-    DeviceID     string
-    CollectorID  string
-    Priority     int
-    Interval     time.Duration
-    Timeout      time.Duration
-    Status       TaskStatus
-    LastRun      time.Time
-    NextRun      time.Time
-}
-```
-
-### 5.2 节能优化算法
-
-```go
-// 节能优化器
-type EnergyOptimizer struct {
-    // 能耗模型
-    energyModel    *EnergyModel
-
-    // 优化策略
-    strategies      []OptimizationStrategy
-
-    // 调度器
-    scheduler       *ScheduleOptimizer
-
-    // 统计
-    stats           *EnergyStats
-
-    mu              sync.RWMutex
-}
-
-// 能耗模型
-type EnergyModel struct {
-    // 设备基础能耗 (W)
-    BasePowerConsumption float64
-
-    // 采集频率与能耗关系
-    FrequencyPowerMap map[int]float64  // Hz -> W
-
-    // 通信能耗模型
-    CommunicationEnergy float64         // 每字节能耗
-
-    // 空闲功耗占比
-    IdlePowerRatio float64
-}
-
-// 优化策略
-type OptimizationStrategy interface {
-    Optimize(ctx *OptimizationContext) (*OptimizationResult, error)
-    GetStrategyName() string
-}
-
-// 动态降频策略
-type DynamicFrequencyStrategy struct {
-    // 降频阈值
-    LowLoadThreshold  float64
-    HighLoadThreshold float64
-
-    // 频率档位
-    FrequencyLevels   []int  // Hz
-}
-
-// 自适应采集策略
-type AdaptiveCollectStrategy struct {
-    // 采集间隔范围
-    MinInterval time.Duration
-    MaxInterval time.Duration
-
-    // 调整因子
-    AdjustmentFactor float64
-}
-```
-
-### 5.3 节能优化算法流程
-
-
-<div align="center">
-  <img src="./docs/img/edge_03.svg" width="100%" />
-</div>
-
-
-
-## 6. 蜂群模式设计
-
-### 6.1 蜂群模式架构
-
-
-<div align="center">
-  <img src="./docs/img/edge_04.svg" width="100%" />
-</div>
-
-
-
-### 6.2 心跳检测机制
-
-```go
-// 心跳检测器
-type HeartbeatDetector struct {
-    // 检测配置
-    interval      time.Duration              // 检测间隔
-    timeout       time.Duration              // 超时时间
-    maxRetries    int                        // 最大重试次数
-
-    // 节点状态
-    nodes         map[string]*NodeHeartbeat  // 节点心跳信息
-    failedNodes   map[string]int             // 失败计数
-
-    // 回调
-    onNodeLost    func(nodeID string)         // 节点丢失回调
-    onNodeRecover func(nodeID string)         // 节点恢复回调
-
-    mu            sync.RWMutex
-    ctx           context.Context
-    cancel        context.CancelFunc
-}
-
-// 节点心跳信息
-type NodeHeartbeat struct {
-    NodeID        string
-    NodeType      NodeType
-    LastHeartbeat time.Time
-    Status        NodeStatus
-    Load          float64                    // 负载指标
-    Score         float64                    // 健康评分
-}
-```
-
-### 6.3 故障转移流程
-
-<div align="center">
-  <img src="./docs/img/edge_05.svg" width="100%" />
-</div>
-
-
-
-## 7. 集群影子设备消息共享
-
-### 7.1 消息共享机制
-
-```go
-// 影子设备消息共享器
-type ShadowDeviceMessenger struct {
-    // 消息通道
-    uploadCh   chan *ShadowUploadMessage   // 上行消息通道
-    downloadCh  chan *ShadowDownloadMessage // 下行消息通道
-    syncCh      chan *ShadowSyncMessage      // 同步消息通道
-
-    // 消息处理
-    processor   *MessageProcessor            // 消息处理器
-    router      *MessageRouter               // 消息路由器
-
-    // 状态管理
-    registry    *ShadowDeviceRegistry        // 设备注册表
-    sequencer   *MessageSequencer            // 消息序列器
-
-    mu          sync.RWMutex
-    ctx         context.Context
-    cancel      context.CancelFunc
-}
-
-// 上行消息（设备 -> 影子）
-type ShadowUploadMessage struct {
-    MessageID     string
-    CollectorID   string
-    ShadowDeviceID string
-    Points        []*ShadowPoint
-    Timestamp     time.Time
-    QoS           QoSLevel
-}
-
-// 下行消息（影子 -> 设备）
-type ShadowDownloadMessage struct {
-    MessageID     string
-    TargetCollectorID string
-    ShadowDeviceID string
-    WriteRequest  *WriteRequest
-    Timestamp     time.Time
-    QoS           QoSLevel
-}
-
-// 同步消息
-type ShadowSyncMessage struct {
-    MessageID     string
-    SourceNodeID  string
-    TargetNodeID  string
-    SyncType     SyncType
-    Data         []byte
-    Timestamp    time.Time
-}
-```
-
-### 7.2 消息共享流程
-
-<div align="center">
-  <img src="./docs/img/edge_06.svg" width="100%" />
-</div>
-
-## 8. 配套措施总结
-
-### 8.1 集群影子设备消息共享配套措施
+### EAN 2.0 传输与协议
 
 | 配套措施 | 描述 | 实现方式 |
 |----------|------|----------|
-| **消息总线** | 统一的异步消息传输通道 | libp2p + QUIC + Raft/Paxos |
-| **注册发现** | 节点自动注册与服务发现 | etcd  / bbolt |
-| **状态同步** | 集群状态一致性同步 |  Gossip |
-| **消息路由** | 智能消息路由与分发 | 主题订阅 / 标签路由 |
-| **QoS保证** | 消息服务质量等级控制 | 持久化 / ACK / 重试 |
-| **流量控制** | 消息流量限制与削峰 | 令牌桶 / 漏桶算法 |
+| 双传输对称 | MQTT + NATS 同 Topic 字符串 | `DualTransport` 统一编解码 |
+| 消息序列化 | 高效数据编解码 | JSON 信封 + Protobuf |
+| QoS 保证 | Discovery/Invoke/Event QoS1 | 持久化 / ACK / 重试 |
+| 启动韧性 | Broker 不可用时后台重连 | Warn + 延迟订阅 |
+| V1 兼容 | 过渡期并行运行 | `edgex/*` 保留，新功能走 `$edgeos/*` |
+| 设备对账 | V1 全量上报剪枝 | `ReconcileDevices` upsert + 删除残留 |
 
-### 8.2 N+2冗余架构配套措施
-
-| 配套措施 | 描述 | 实现方式 |
-|----------|------|----------|
-| **心跳检测** | 节点存活状态检测 | TCP心跳 / UDP广播 |
-| **故障检测** | 故障节点自动识别 | 超时检测 / 连续失败 |
-| **角色切换** | 主备节点自动切换 | 热备 / 状态同步 |
-| **数据同步** | 主备数据实时同步 | WAL / 增量同步 |
-| **脑裂预防** | 避免双主同时服务 | 分布式锁 / 租约 |
-| **故障恢复** | 故障节点重新加入 | 数据同步 / 配置恢复 |
-
-### 8.3 影子设备自动发现配套措施
+### N+2 冗余架构
 
 | 配套措施 | 描述 | 实现方式 |
 |----------|------|----------|
-| **设备探测** | 主动扫描发现新设备 | 轮询 / 事件驱动 |
-| **协议适配** | 多协议设备统一抽象 | Adapter模式 |
-| **影子分配** | 自动分配影子设备ID | UUID / 规则映射 |
-| **配置下发** | 采集配置自动生成 | 模板 / 默认值 |
-| **状态监控** | 设备状态实时监控 | 心跳 / 告警 |
-| **元数据管理** | 设备元数据存储查询 | bbolt / 内存缓存 |
+| 心跳检测 | 节点存活状态检测 | TCP 心跳 / UDP 广播 |
+| 故障检测 | 故障节点自动识别 | 超时检测 / 连续失败 |
+| 角色切换 | 主备节点自动切换 | 热备 / 状态同步 |
+| 数据同步 | 主备数据实时同步 | WAL / 增量同步 |
+| 脑裂预防 | 避免双主同时服务 | 分布式锁 / 租约 |
+| 故障恢复 | 故障节点重新加入 | 数据同步 / 配置恢复 |
 
-### 8.4 双向数据通信配套措施
+## 实现路径
 
-| 配套措施 | 描述 | 实现方式 |
-|----------|------|----------|
-| **消息序列化** | 高效数据编解码 | Protobuf / MessagePack |
-| **消息压缩** | 减少网络传输量 | Snappy / LZ4 |
-| **连接复用** | 减少连接建立开销 | HTTP/2 / gRPC Stream |
-| **断线重连** | 网络异常自动恢复 | 指数退避 / 心跳 |
-| **本地缓存** | 离线数据临时存储 | bbolt / 内存队列 |
-| **消息追踪** | 全链路消息可追溯 | TraceID / SpanID |
+### 阶段一：核心框架
 
-## 9. 实现路径
+建立 N+2 冗余架构核心框架：节点角色定义与状态机、主备心跳检测、基本故障转移、共享状态存储层 (bbolt)、节点注册与发现。
 
-### 9.1 阶段一：核心框架 
+### 阶段二：EAN 2.0 协调层（已完成）
 
-**目标**：建立N+2冗余架构核心框架
+实现 Edge Agent Network 2.0 完整协调层：
 
-**任务**：
-1. 节点角色定义与状态机实现
-2. 主备节点心跳检测机制
-3. 基本的故障转移流程
-4. 共享状态存储层 (bbolt)
-5. 节点注册与发现机制
+- **Discovery**：双传输订阅 `$edgeos/discovery/*`，建立 Agent/Capability 全局索引（实机：1 Agent / 63 Capability）
+- **Invoke + Reply**：`system.diagnostics` / `modbus_tcp.list_points` 调用 completed，correlation_id 关联
+- **Event + previous_value**：代码完成，实机 Event 流有点位变化数据
+- **Heartbeat + Governance**：Agent 超时标记 offline，权限限制 write/admin/AI，审计内存缓存
+- **V1 兼容 + 设备对账**：`ReconcileDevices` 修复 V1 上报残留（4=4），EAN Agent 同步节点注册表
+- **Phase 4（v8/v9）**：V1→EAN Bridge 下线；`edgex/cmd/responses/#` 移除；**V1 命令面全面下线**（`v1_command_enabled=false`，命令统一 EAN Invoke）；`AttachRegistryMirror` 过滤 transient Agent——`/api/nodes` 仅含真实节点
 
-**里程碑**：
-- [ ] 主母皇与备用母皇节点可正常启动和切换
-- [ ] 边缘采集网关可注册到母皇节点
-- [ ] 心跳检测和故障转移基本功能可用
+**里程碑**：EAN 2.0 Phase 1/2 代码完成并实机复验通过（MQTT + NATS）；Phase 4 全量落地（OS-P4 / EX-P4）+ V1 命令面全面下线；全量 `go test ./...` 通过；UI build 通过。
 
-### 9.2 阶段二：影子设备管理 
+### 阶段三：双向通信深化
 
-**目标**：实现影子设备自动发现与管理
+- 实现 `$edgeos/state/*` 全量/增量状态同步
+- Invoke status 进度订阅（OS-13）
+- 审计持久化存储
+- 双传输 Invoke 双边执行去重
 
-**任务**：
-1. 影子设备注册表设计与实现
-2. 设备自动发现机制
-3. 设备元数据管理
-4. 设备状态监控
-5. 设备配置自动生成
+### 阶段四：群控算法与节能优化
 
-**里程碑**：
-- [ ] 设备上线自动注册到影子注册表
-- [ ] 支持edgex采集通道设备发现
-- [ ] 设备状态变更实时同步到所有节点
+实现群控调度和节能优化：采集任务调度器、负载均衡算法、节能优化策略、动态频率调整、自适应采集间隔。
 
-### 9.3 阶段三：双向通信 
+**里程碑**：采集任务智能调度；系统能耗降低 20-30%；负载均衡效果显著。
 
-**目标**：实现高性能双向数据通信
+## 总结
 
-**任务**：
-1. 消息总线设计与实现
-2. 消息路由与分发机制
-3. QoS服务质量保证
-4. 消息序列化和压缩
-5. 消息追踪和审计
+本方案设计了一个功能完善的边缘大脑系统，采用 N+2 冗余架构模式，实现了一个主母皇节点和一个备用母皇节点的双机热备机制（蜂群模式）。系统能够协调 N 个边缘采集网关程序，实现影子设备自动发现、双向数据通信、群控算法调度以及节能优化等核心功能。
 
-**里程碑**：
-- [ ] 设备数据毫秒级上报到所有节点
-- [ ] 控制指令可靠下发并确认
-- [ ] 消息延迟 P99 < 10ms
+**EAN 2.0** 作为核心新增能力，在现有 EdgeX + EdgeOS 架构上增加了统一的 Agent 协作层，实现了跨边缘网关的能力发现、调用编排与事件流处理，支持 MQTT/NATS 双传输对称、V1 兼容并行、AI Capability 集成，为工业互联网和边缘计算场景提供了坚实的分布式协作基础。
 
-### 9.4 阶段四：群控算法 
+## License
 
-**目标**：实现群控调度和节能优化
-
-**任务**：
-1. 采集任务调度器实现
-2. 负载均衡算法
-3. 节能优化策略
-4. 动态频率调整
-5. 自适应采集间隔
-
-**里程碑**：
-- [ ] 采集任务智能调度
-- [ ] 系统能耗降低 20-30%
-- [ ] 负载均衡效果显著
-
-
-## 10. 总结
-
-本方案设计了一个功能完善的边缘大脑系统，采用N+2冗余架构模式，实现了一个主母皇节点和一个备用母皇节点的双机热备机制（蜂群模式）。系统能够协调N个边缘采集网关程序，实现影子设备自动发现、双向数据通信、群控算法调度以及节能优化等核心功能。
-
-通过本方案的实施，可以显著提升边缘采集系统的可靠性、可用性和性能，为工业互联网和边缘计算场景提供坚实的技术基础。
+MIT

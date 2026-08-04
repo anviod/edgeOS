@@ -16,4 +16,5 @@ temp/edgeos.db
 .codebuddy/*
 .vscode/*
 .cursor/*
-
+vendor/
+dist/

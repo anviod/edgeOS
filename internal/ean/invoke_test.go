@@ -97,7 +97,10 @@ func TestInvokeOrchestratorReply(t *testing.T) {
 		require.NotNil(t, call.Response)
 		assert.Equal(t, "success", call.Response.Status)
 		assert.True(t, call.Response.Result.Success)
-		assert.Equal(t, float64(25.5), call.Response.Result.Values["temperature"])
+		// Values 类型为 interface{}（对齐附录 F.3，可为数组或对象），需类型断言
+		valuesMap, ok := call.Response.Result.Values.(map[string]interface{})
+		require.True(t, ok, "Values should be a map")
+		assert.Equal(t, float64(25.5), valuesMap["temperature"])
 	case <-time.After(time.Second):
 		t.Fatal("invoke did not complete within timeout")
 	}

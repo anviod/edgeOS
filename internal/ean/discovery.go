@@ -131,6 +131,11 @@ func (dc *DiscoveryCenter) HandleAgentOnline(topic string, payload []byte, trans
 
 // HandleAgentOffline 处理 Agent 下线消息
 // 用作 Subscribe(TopicDiscoveryAgentOffline, discovery.HandleAgentOffline) 的回调
+// 设计（v2.25 / EdgeOS 端）：北向关闭 EAN 能力层时 EdgeX 发送 reason=graceful_shutdown 下线——
+// 该 Agent 不再是 EAN 参与者，从 Agent 管理页与能力索引中**彻底移除**（与节点注册表删除一致，
+// 避免残留 offline 幽灵 Agent）。心跳超时/异常掉线仍标记 offline（保留历史）。
+// | On graceful_shutdown (northbound EAN disabled) the agent is removed entirely;
+// | on heartbeat-timeout / unexpected drop it is marked offline to preserve history.
 func (dc *DiscoveryCenter) HandleAgentOffline(topic string, payload []byte, transport string) {
 	desc, err := decodeAgentOffline(payload)
 	if err != nil {
@@ -140,6 +145,16 @@ func (dc *DiscoveryCenter) HandleAgentOffline(topic string, payload []byte, tran
 	}
 	if desc.AgentID == "" {
 		dc.logger.Warn("agent offline missing agent_id", zap.String("topic", topic))
+		return
+	}
+
+	// 北向关闭 EAN（graceful_shutdown）→ 彻底移除 Agent（Agent 页不再显示该节点）。
+	// | Northbound EAN disabled (graceful_shutdown) → remove agent entirely (not shown on Agent page).
+	if desc.Reason == "graceful_shutdown" {
+		dc.logger.Info("agent removed (northbound EAN disabled, graceful_shutdown)",
+			zap.String("agent_id", desc.AgentID),
+			zap.String("transport", transport))
+		dc.DeleteAgent(desc.AgentID)
 		return
 	}
 
@@ -479,12 +494,20 @@ func (dc *DiscoveryCenter) StaleAgents(maxIdle time.Duration) []*AgentDescriptor
 }
 
 // RemoveAgent 清理指定 Agent（由心跳超时模块调用）
+// 仅将 Agent 标记为 offline（保留描述符供 UI 展示），并记录 offline_since 时间戳，
+// 供过期清理逻辑在 Agent 离线超过保留期后彻底删除（DeleteAgent）。
 func (dc *DiscoveryCenter) RemoveAgent(agentID string) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 
 	if agent, ok := dc.agents[agentID]; ok {
 		agent.Status = AgentOffline
+		if agent.Metadata == nil {
+			agent.Metadata = FlexibleStringMap{}
+		}
+		if _, exists := agent.Metadata["offline_since"]; !exists {
+			agent.Metadata["offline_since"] = time.Now().Format(time.RFC3339Nano)
+		}
 		dc.logger.Info("agent removed by heartbeat timeout",
 			zap.String("agent_id", agentID))
 	}
@@ -495,6 +518,44 @@ func (dc *DiscoveryCenter) RemoveAgent(agentID string) {
 	}
 	delete(dc.agentCapIndex, agentID)
 	delete(dc.agentSources, agentID)
+
+	// 释放锁后触发下线回调（Registry 镜像依赖此清理 /api/nodes 节点；Phase 4 OS-P4）
+	// Invoke offline hook after releasing lock so downstream (registry mirror) can clean up /api/nodes.
+	hook := dc.onAgentOffline
+	if hook != nil {
+		go hook(agentID, "heartbeat_timeout")
+	}
+}
+
+// DeleteAgent 彻底移除指定 Agent（含能力/索引/来源标记），并从 /api/nodes 清除对应节点。
+// 与 RemoveAgent 仅标记 offline 不同，DeleteAgent 用于用户主动删除残留/离线 Agent，
+// 保证 Agent 管理与节点管理的一致性（删除节点/Agent 后两端都不再残留）。
+// | Permanently delete an agent (agent descriptor + capabilities + indexes), unlike
+// | RemoveAgent which only marks it offline. Used for explicit cleanup from Agent 管理.
+func (dc *DiscoveryCenter) DeleteAgent(agentID string) {
+	dc.mu.Lock()
+	_, existed := dc.agents[agentID]
+	delete(dc.agents, agentID)
+	for _, cid := range dc.agentCapIndex[agentID] {
+		delete(dc.capabilities, cid)
+		delete(dc.capSources, cid)
+	}
+	delete(dc.agentCapIndex, agentID)
+	delete(dc.agentSources, agentID)
+	dc.mu.Unlock()
+
+	if !existed {
+		dc.logger.Debug("agent delete: not found",
+			zap.String("agent_id", agentID))
+		return
+	}
+	dc.logger.Info("agent deleted (explicit)",
+		zap.String("agent_id", agentID))
+	// 同步清理 /api/nodes 对应节点（registry mirror 依赖 offline hook）
+	hook := dc.onAgentOffline
+	if hook != nil {
+		go hook(agentID, "agent_deleted")
+	}
 }
 
 // TouchLastSeen 由心跳监控器安全写入 last_seen（持有写锁，避免与索引并发竞态）

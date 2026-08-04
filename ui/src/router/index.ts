@@ -1,8 +1,32 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { installApi } from '@/api/install'
+
+// 安装状态缓存：首次检查后缓存于内存，页面刷新（含服务重启后）重新检查
+// Install status cache: checked once per page load, refreshed after a page reload
+let installStatusChecked = false
+let systemInstalled = true
+
+async function ensureInstallStatus(): Promise<boolean> {
+  if (installStatusChecked) return systemInstalled
+  try {
+    const st = await installApi.status()
+    systemInstalled = st.is_installed
+  } catch {
+    systemInstalled = true // 状态检查失败时保守放行到登录页
+  }
+  installStatusChecked = true
+  return systemInstalled
+}
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    {
+      path: '/install',
+      name: 'Install',
+      component: () => import('@/views/Install.vue'),
+      meta: { requiresAuth: false, title: '系统初始化安装' },
+    },
     {
       path: '/login',
       name: 'Login',
@@ -171,12 +195,25 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const token = localStorage.getItem('token')
   const requiresAuth = to.meta.requiresAuth !== false
 
+  // 安装引导页：已有配置则不得再次进入；未安装则放行
+  if (to.path === '/install') {
+    if (token) {
+      next('/dashboard')
+      return
+    }
+    const installed = await ensureInstallStatus()
+    next(installed ? '/login' : true)
+    return
+  }
+
   if (requiresAuth && !token) {
-    next('/login')
+    // 无令牌访问受保护页面：无数据库配置时必须进入安装引导，否则去登录页
+    const installed = await ensureInstallStatus()
+    next(installed ? '/login' : '/install')
   } else if (to.path === '/login' && token) {
     next('/dashboard')
   } else {

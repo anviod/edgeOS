@@ -40,7 +40,7 @@ export const eanFlowSteps: EanFlowStep[] = [
     id: 'enable',
     title: '启用 EAN',
     detail:
-      '在 config.yaml 设置 ean.enabled=true，配置 ean.mqtt 和/或 ean.nats，设置 planner_id（默认 edgeos-planner），重启 EdgeOS。',
+      '在系统配置中设置 ean.enabled=true（配置持久化于 data/config.db，无配置文件），配置 ean.mqtt 和/或 ean.nats，设置 planner_id（默认 edgeos-planner），重启 EdgeOS。',
     link: { label: '打开协调中心', path: '/ean' },
     check: 'GET /api/ean/health → status=ok, started=true',
   },
@@ -295,7 +295,7 @@ export const eanTroubleshoot: EanTroubleshootItem[] = [
   {
     symptom: 'NATS 收不到 $edgeos/... 消息',
     cause: '把斜杠改成了点分 subject（如 $edgeos.discovery.agent），或 ean.nats.enabled=false',
-    fix: 'EAN 2.0 NATS 必须保留斜杠；$edgeos/discovery/agent；config 启用 nats://127.0.0.1:4222',
+    fix: 'EAN 2.0 NATS 必须保留斜杠；$edgeos/discovery/agent；配置启用 nats://127.0.0.1:4222',
   },
   {
     symptom: 'health.transports 只有 mqtt 没有 nats',

@@ -99,14 +99,15 @@ func newTestManager(t *testing.T) (*Manager, *bbolt.DB, func()) {
 	hub := newTestHub()
 
 	mgr := &Manager{
-		middlewareSvc: middlewareSvc,
-		registrySvc:   registrySvc,
-		dataSvc:       dataSvc,
-		alertSvc:      nil,
-		controlSvc:    controlSvc,
-		hub:           hub,
-		logger:        newTestLogger(),
-		clients:       make(map[string]*mqttClientEntry),
+		middlewareSvc:     middlewareSvc,
+		registrySvc:       registrySvc,
+		dataSvc:           dataSvc,
+		alertSvc:          nil,
+		controlSvc:        controlSvc,
+		hub:               hub,
+		logger:            newTestLogger(),
+		clients:           make(map[string]*mqttClientEntry),
+		v1CommandEnabled: false, // Phase 4: V1 命令面全面下线，默认 false（对齐 NewManager）
 	}
 	mgr.initHandlers()
 	return mgr, db, cleanup
@@ -148,6 +149,7 @@ func addFakeClient(m *Manager, id string, captureCh chan<- pubRecord) {
 func TestManager_PublishNodeDiscovery_NoClient(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
 	defer cleanup()
+	mgr.SetV1CommandEnabled(true) // 显式开启 V1（Phase 4 默认 false）
 
 	err := mgr.PublishNodeDiscovery()
 	if err == nil {
@@ -158,6 +160,7 @@ func TestManager_PublishNodeDiscovery_NoClient(t *testing.T) {
 func TestManager_PublishNodeDiscovery_Success(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
 	defer cleanup()
+	mgr.SetV1CommandEnabled(true) // 显式开启 V1（Phase 4 默认 false）
 
 	publishCh := make(chan pubRecord, 4)
 	addFakeClient(mgr, "mqtt-1", publishCh)
@@ -197,6 +200,7 @@ func TestManager_PublishNodeDiscovery_Success(t *testing.T) {
 func TestManager_PublishNodeDiscovery_MultipleClients(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
 	defer cleanup()
+	mgr.SetV1CommandEnabled(true) // 显式开启 V1（Phase 4 默认 false）
 
 	ch1 := make(chan pubRecord, 1)
 	ch2 := make(chan pubRecord, 1)
@@ -244,6 +248,7 @@ done:
 func TestManager_PublishNodeDiscoveryTo_NotConnected(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
 	defer cleanup()
+	mgr.SetV1CommandEnabled(true) // 显式开启 V1（Phase 4 默认 false）
 
 	err := mgr.PublishNodeDiscoveryTo("non-existent")
 	if err == nil {
@@ -254,6 +259,7 @@ func TestManager_PublishNodeDiscoveryTo_NotConnected(t *testing.T) {
 func TestManager_PublishNodeDiscoveryTo_Success(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
 	defer cleanup()
+	mgr.SetV1CommandEnabled(true) // 显式开启 V1（Phase 4 默认 false）
 
 	publishCh := make(chan pubRecord, 4)
 	addFakeClient(mgr, "mqtt-target", publishCh)
@@ -282,6 +288,7 @@ func TestManager_PublishNodeDiscoveryTo_Success(t *testing.T) {
 func TestManager_PublishNodeDiscoveryTo_Disconnected(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
 	defer cleanup()
+	mgr.SetV1CommandEnabled(true) // 显式开启 V1（Phase 4 默认 false）
 
 	cfg := &model.MiddlewareConfig{ID: "mqtt-offline", QoS: 1}
 	client := &fakeClient{connected: false} // 默认 false
@@ -304,6 +311,7 @@ func TestManager_PublishNodeDiscoveryTo_Disconnected(t *testing.T) {
 func TestManager_PublishCommand_NoClient(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
 	defer cleanup()
+	mgr.SetV1CommandEnabled(true) // 显式开启 V1（Phase 4 默认 false）
 
 	err := mgr.PublishCommand("n1", "d1", "p1", float64(42), "req-1")
 	if err == nil {
@@ -314,6 +322,7 @@ func TestManager_PublishCommand_NoClient(t *testing.T) {
 func TestManager_PublishCommand_Success(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
 	defer cleanup()
+	mgr.SetV1CommandEnabled(true) // 显式开启 V1（Phase 4 默认 false）
 
 	publishCh := make(chan pubRecord, 4)
 	addFakeClient(mgr, "mqtt-1", publishCh)
@@ -354,6 +363,7 @@ func TestManager_PublishCommand_Success(t *testing.T) {
 func TestManager_PublishCommand_GeneratesRequestID(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
 	defer cleanup()
+	mgr.SetV1CommandEnabled(true) // 显式开启 V1（Phase 4 默认 false）
 
 	publishCh := make(chan pubRecord, 4)
 	addFakeClient(mgr, "mqtt-1", publishCh)
@@ -373,6 +383,97 @@ func TestManager_PublishCommand_GeneratesRequestID(t *testing.T) {
 		}
 	case <-time.After(time.Second):
 		t.Fatal("no publish received")
+	}
+}
+
+// TestManager_PublishCommand_Disabled 验证 V1 命令面关闭（Phase 4 下线）时不下发 V1 命令。
+func TestManager_PublishCommand_Disabled(t *testing.T) {
+	mgr, _, cleanup := newTestManager(t)
+	defer cleanup()
+	mgr.SetV1CommandEnabled(false)
+
+	publishCh := make(chan pubRecord, 4)
+	addFakeClient(mgr, "mqtt-1", publishCh)
+
+	err := mgr.PublishCommand("n1", "d1", "p1", float64(42), "req-1")
+	if err == nil {
+		t.Fatal("expected error when V1 command plane disabled")
+	}
+	select {
+	case rec := <-publishCh:
+		t.Fatalf("expected no V1 publish when disabled, got topic %s", rec.topic)
+	default:
+		// ok：无发布
+	}
+}
+
+// TestManager_PublishNodeDiscovery_Disabled 验证 V1 主动发现（edgex/cmd/nodes/register）关闭时不发布。
+func TestManager_PublishNodeDiscovery_Disabled(t *testing.T) {
+	mgr, _, cleanup := newTestManager(t)
+	defer cleanup()
+	mgr.SetV1CommandEnabled(false)
+
+	publishCh := make(chan pubRecord, 4)
+	addFakeClient(mgr, "mqtt-1", publishCh)
+
+	if err := mgr.PublishNodeDiscovery(); err != nil {
+		t.Fatalf("expected nil error when disabled (skip), got %v", err)
+	}
+	select {
+	case rec := <-publishCh:
+		t.Fatalf("expected no V1 discovery publish when disabled, got topic %s", rec.topic)
+	default:
+		// ok：无发布
+	}
+}
+
+// TestManager_SubscribeAllTopics_V1PlaneOff 验证 V1 命令面下线时，V1 节点面（edgex/nodes/*）订阅被移除，
+// V1 数据面（devices/points/data）与告警（events）保留。
+func TestManager_SubscribeAllTopics_V1PlaneOff(t *testing.T) {
+	mgr, _, cleanup := newTestManager(t)
+	defer cleanup()
+	mgr.SetV1CommandEnabled(false)
+
+	client := &fakeClient{connected: true}
+	entry := &mqttClientEntry{
+		client:   client,
+		config:   &model.MiddlewareConfig{ID: "mqtt-1", QoS: 1, Subscriptions: []string{"edgex/data/+"}},
+		handlers: make(map[string]pahomqtt.MessageHandler),
+	}
+	mgr.subscribeAllTopics(entry)
+
+	// V1 节点面不应订阅
+	for _, subj := range []string{"edgex/nodes/register", "edgex/nodes/+/heartbeat", "edgex/nodes/+/status", "edgex/nodes/unregister"} {
+		if _, ok := entry.handlers[subj]; ok {
+			t.Errorf("V1 node topic %s should not be subscribed when V1 command plane is off", subj)
+		}
+	}
+	// V1 数据面 + 告警应订阅
+	for _, subj := range []string{"edgex/devices/report", "edgex/points/report", "edgex/data/+/+", "edgex/events/alert", "$edgeos/event/#"} {
+		if _, ok := entry.handlers[subj]; !ok {
+			t.Errorf("data/alert topic %s should still be subscribed", subj)
+		}
+	}
+}
+
+// TestManager_SubscribeAllTopics_V1PlaneOn 验证显式开启（v1_command_enabled=true）时 V1 节点面订阅保留。
+func TestManager_SubscribeAllTopics_V1PlaneOn(t *testing.T) {
+	mgr, _, cleanup := newTestManager(t)
+	defer cleanup()
+	mgr.SetV1CommandEnabled(true) // 显式开启 V1（Phase 4 默认 false）
+
+	client := &fakeClient{connected: true}
+	entry := &mqttClientEntry{
+		client:   client,
+		config:   &model.MiddlewareConfig{ID: "mqtt-1", QoS: 1, Subscriptions: []string{"edgex/data/+"}},
+		handlers: make(map[string]pahomqtt.MessageHandler),
+	}
+	mgr.subscribeAllTopics(entry)
+
+	for _, subj := range []string{"edgex/nodes/register", "edgex/nodes/+/heartbeat", "edgex/devices/report", "edgex/data/+/+", "edgex/events/alert", "$edgeos/event/#"} {
+		if _, ok := entry.handlers[subj]; !ok {
+			t.Errorf("topic %s should be subscribed during transition", subj)
+		}
 	}
 }
 

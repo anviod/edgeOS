@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Cpu, RefreshCw, ChevronRight, Search } from 'lucide-vue-next'
+import { Cpu, RefreshCw, ChevronRight, Search, ArrowLeft } from 'lucide-vue-next'
 import { useEdgeStore } from '@/stores/edge'
 import StatusBadge from '@/components/edge/StatusBadge.vue'
 
@@ -57,13 +57,23 @@ function formatTime(ts: number) {
   <div class="space-y-5">
     <!-- Breadcrumb + header -->
     <div>
-      <nav class="flex items-center gap-1.5 text-xs mb-2 nav-breadcrumb">
-        <button @click="router.push('/nodes')" class="hover:text-sky-400 transition-colors">节点管理</button>
-        <ChevronRight class="w-3 h-3" style="width:12px;height:12px;" />
-        <span style="color: var(--accent-primary);">{{ node?.node_name || nodeId }}</span>
-        <ChevronRight class="w-3 h-3" style="width:12px;height:12px;" />
-        <span style="color: var(--text-secondary);">子设备</span>
-      </nav>
+      <div class="flex items-center gap-2 mb-2">
+        <button
+          @click="router.push('/nodes')"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors hover:bg-white/5"
+          style="color: var(--text-secondary); border: 1px solid var(--border-color);"
+        >
+          <ArrowLeft class="w-4 h-4" style="width:16px;height:16px;" />
+          返回节点管理
+        </button>
+        <nav class="flex items-center gap-1.5 text-xs nav-breadcrumb">
+          <button @click="router.push('/nodes')" class="hover:text-sky-400 transition-colors">节点管理</button>
+          <ChevronRight class="w-3 h-3" style="width:12px;height:12px;" />
+          <span style="color: var(--accent-primary);">{{ node?.node_name || nodeId }}</span>
+          <ChevronRight class="w-3 h-3" style="width:12px;height:12px;" />
+          <span style="color: var(--text-secondary);">子设备</span>
+        </nav>
+      </div>
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-xl font-bold page-title">子设备列表</h1>

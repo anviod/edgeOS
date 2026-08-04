@@ -17,6 +17,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/anviod/edgeOS/internal/config"
+	"github.com/anviod/edgeOS/internal/ean"
 	"github.com/anviod/edgeOS/internal/messaging"
 	"github.com/anviod/edgeOS/internal/model"
 	"github.com/anviod/edgeOS/internal/services"
@@ -75,7 +76,7 @@ func TestHandleLogin_Success(t *testing.T) {
 	cfg := &config.Config{}
 	app.Post("/api/auth/login", handleLogin(cfg))
 
-	req := httptest.NewRequest("POST", "/api/auth/login", bytes.NewReader([]byte(`{"username":"admin","password":"admin"}`)))
+	req := httptest.NewRequest("POST", "/api/auth/login", bytes.NewReader([]byte(`{"username":"admin","password":"passwd@123"}`)))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req)
@@ -257,7 +258,7 @@ func TestHandleConnectMiddleware_Success(t *testing.T) {
 
 func TestHandleNodeDiscovery_NilManager(t *testing.T) {
 	app := newTestApp()
-	app.Post("/api/edgex/discover", handleNodeDiscovery(nil))
+	app.Post("/api/edgex/discover", handleNodeDiscovery(nil, nil))
 
 	req := httptest.NewRequest("POST", "/api/edgex/discover", nil)
 	setAuthHeader(req)
@@ -741,4 +742,108 @@ func TestHandleDisconnectMiddleware_Success(t *testing.T) {
 	// Verify status updated in DB
 	got, _ := svc.Get("mw-disc")
 	assert.Equal(t, "disconnected", got.Status)
+}
+// ─── handleDeleteNode 联动删除 Agent 测试 ────────────────
+
+func TestHandleDeleteNode_RemovesLinkedAgent(t *testing.T) {
+	app := newTestApp()
+	db, cleanup := openTestDB(t)
+	defer cleanup()
+
+	regSvc := services.NewRegistryService(db)
+	require.NoError(t, regSvc.EnsureNodeOnline("linked-node", "linked", "ean"))
+
+	// 用最小 Bus（仅 Discovery 字段）验证节点删除联动清除 Agent
+	dc := ean.NewDiscoveryCenter(ean.DiscoveryConfig{}, zap.NewNop())
+	bus := &ean.Bus{Discovery: dc}
+	agentPayload := []byte(`{
+		"header":{"message_id":"m1","timestamp":1,"source":"linked-node","message_type":"agent_descriptor","version":"2.0"},
+		"body":{"agent":{"id":"linked-node","kind":"device","version":"2.0.0","status":"online","transport":"mqtt","heartbeat_interval_sec":60}}
+	}`)
+	dc.HandleAgentOnline(ean.TopicDiscoveryAgent, agentPayload, "mqtt")
+	_, ok := dc.GetAgent("linked-node")
+	require.True(t, ok)
+
+	app.Delete("/api/nodes/:nodeId", handleDeleteNode(regSvc, bus))
+
+	req := httptest.NewRequest("DELETE", "/api/nodes/linked-node", nil)
+	setAuthHeader(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	// 节点已删除
+	_, err = regSvc.GetNode("linked-node")
+	assert.Error(t, err)
+	// 对应 Agent 也已删除（一致性）
+	_, ok = dc.GetAgent("linked-node")
+	assert.False(t, ok)
+}
+
+func TestHandleDeleteNode_WithoutEANBusStillWorks(t *testing.T) {
+	app := newTestApp()
+	db, cleanup := openTestDB(t)
+	defer cleanup()
+
+	regSvc := services.NewRegistryService(db)
+	require.NoError(t, regSvc.EnsureNodeOnline("plain-node", "plain", "ean"))
+
+	// nil eanBus 不应影响节点删除
+	app.Delete("/api/nodes/:nodeId", handleDeleteNode(regSvc, nil))
+
+	req := httptest.NewRequest("DELETE", "/api/nodes/plain-node", nil)
+	setAuthHeader(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	_, err = regSvc.GetNode("plain-node")
+	assert.Error(t, err)
+}
+
+func TestHandleEANDeleteAgent_Success(t *testing.T) {
+	app := newTestApp()
+	dc := ean.NewDiscoveryCenter(ean.DiscoveryConfig{}, zap.NewNop())
+	bus := &ean.Bus{Discovery: dc}
+	agentPayload := []byte(`{
+		"header":{"message_id":"m1","timestamp":1,"source":"stale","message_type":"agent_descriptor","version":"2.0"},
+		"body":{"agent":{"id":"stale","kind":"device","version":"2.0.0","status":"offline","transport":"mqtt","heartbeat_interval_sec":60}}
+	}`)
+	dc.HandleAgentOnline(ean.TopicDiscoveryAgent, agentPayload, "mqtt")
+	_, ok := dc.GetAgent("stale")
+	require.True(t, ok)
+
+	app.Delete("/api/ean/agents/:id", handleEANDeleteAgent(bus))
+
+	req := httptest.NewRequest("DELETE", "/api/ean/agents/stale", nil)
+	setAuthHeader(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	_, ok = dc.GetAgent("stale")
+	assert.False(t, ok)
+}
+
+func TestHandleEANDeleteAgent_NotFound(t *testing.T) {
+	app := newTestApp()
+	bus := &ean.Bus{Discovery: ean.NewDiscoveryCenter(ean.DiscoveryConfig{}, zap.NewNop())}
+	app.Delete("/api/ean/agents/:id", handleEANDeleteAgent(bus))
+
+	req := httptest.NewRequest("DELETE", "/api/ean/agents/nope", nil)
+	setAuthHeader(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+}
+
+func TestHandleEANDeleteAgent_DisabledBus(t *testing.T) {
+	app := newTestApp()
+	app.Delete("/api/ean/agents/:id", handleEANDeleteAgent(nil))
+
+	req := httptest.NewRequest("DELETE", "/api/ean/agents/nope", nil)
+	setAuthHeader(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
 }

@@ -37,13 +37,16 @@ func (t TransportList) MarshalJSON() ([]byte, error) {
 // ==================== 通用信封 ====================
 
 // MessageHeader EAN 消息头，所有消息共享
+// 对齐 V1-to-EAN-Migration-Assessment v2.15 附录 F.6 消息信封
 type MessageHeader struct {
 	MessageID     string `json:"message_id"`
 	Timestamp     int64  `json:"timestamp"`
 	Source        string `json:"source"`
+	Destination   string `json:"destination,omitempty"`   // 目标 Agent ID | target agent ID
 	MessageType   string `json:"message_type"`
 	Version       string `json:"version"`
 	CorrelationID string `json:"correlation_id,omitempty"`
+	RequestID     string `json:"request_id,omitempty"`     // 请求追踪 ID | request tracking ID
 }
 
 // Message 通用 EAN 消息信封
@@ -136,23 +139,38 @@ type CapabilityDescriptor struct {
 
 // ==================== Invoke ====================
 
+// InvokeRequest 调用请求（对齐附录 F.2）
 type InvokeRequest struct {
 	InvokeID   string                 `json:"invoke_id"`
 	Target     string                 `json:"target"`
 	Capability string                 `json:"capability"`
 	Arguments  map[string]interface{} `json:"arguments"`
+	Options    *InvokeRequestOptions  `json:"options,omitempty"` // 调用选项 | invoke options
 }
 
+// InvokeRequestOptions 调用选项（对齐附录 F.2 options 字段）
+type InvokeRequestOptions struct {
+	TimeoutSec int    `json:"timeout_sec,omitempty"` // 超时秒数，默认 5 | timeout in seconds
+	Priority   string `json:"priority,omitempty"`   // 优先级：normal/high/low
+	Retry      int    `json:"retry,omitempty"`      // 重试次数
+	Async      bool   `json:"async,omitempty"`      // 异步调用（默认 false 同步）
+}
+
+// InvokeResponse 调用响应（对齐附录 F.3）
 type InvokeResponse struct {
-	InvokeID string      `json:"invoke_id"`
-	Status   string      `json:"status"`
-	Result   InvokeResult `json:"result"`
+	InvokeID  string        `json:"invoke_id"`
+	Status    string        `json:"status"` // completed/failed/timeout/rejected/queued/running
+	Result    InvokeResult  `json:"result"`
+	LatencyMS int64         `json:"latency_ms,omitempty"` // 调用延迟（毫秒）| latency in ms
 }
 
+// InvokeResult 调用结果（对齐附录 F.3 result 字段）
 type InvokeResult struct {
-	Success bool                   `json:"success"`
-	Values  map[string]interface{} `json:"values,omitempty"`
-	Error   string                 `json:"error,omitempty"`
+	Success   bool        `json:"success"`
+	Values    interface{} `json:"values,omitempty"`    // 返回值（数组或对象，取决于能力）| return value
+	Timestamp int64       `json:"timestamp,omitempty"` // 结果时间戳（毫秒）| result timestamp
+	Error     string      `json:"error,omitempty"`     // 错误信息（失败时）
+	ErrorCode string      `json:"error_code,omitempty"` // 错误码：E009/E012/E400/E500
 }
 
 // ==================== Event ====================

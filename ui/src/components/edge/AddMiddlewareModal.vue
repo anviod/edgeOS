@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import { X, Plus, Trash2, ChevronDown, ChevronRight, Shield, Clock, Zap } from 'lucide-vue-next'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
+import { X, Plus, ChevronDown, ChevronRight, Shield, Clock, Zap, Eye, EyeOff } from 'lucide-vue-next'
 import type { MiddlewareConfig, MiddlewareForm } from '@/types/edgex'
 
 const props = defineProps<{
@@ -49,6 +49,16 @@ const form = ref<MiddlewareForm>(defaultForm())
 const newTopic = ref('')
 const submitting = ref(false)
 const showAdvanced = ref(false)
+const showPassword = ref(false)
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && props.visible) {
+    emit('close')
+  }
+}
+
+onMounted(() => document.addEventListener('keydown', onKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 const title = computed(() => props.editing ? '编辑连接' : '添加消息总线')
 
@@ -212,14 +222,28 @@ async function handleSubmit() {
                 </div>
                 <div class="flex-1 space-y-1.5">
                   <label class="text-xs font-medium" style="color: var(--text-secondary);">密码</label>
-                  <input
-                    v-model="form.password"
-                    type="password"
-                    class="w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors"
-                    style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);"
-                    @focus="($event.target as HTMLInputElement).style.borderColor='var(--accent-primary)'"
-                    @blur="($event.target as HTMLInputElement).style.borderColor='var(--border-color)'"
-                  />
+                  <div class="relative">
+                    <input
+                      v-model="form.password"
+                      :type="showPassword ? 'text' : 'password'"
+                      autocomplete="new-password"
+                      class="w-full rounded-lg px-3 py-2 pr-10 text-sm outline-none transition-colors"
+                      style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);"
+                      @focus="($event.target as HTMLInputElement).style.borderColor='var(--accent-primary)'"
+                      @blur="($event.target as HTMLInputElement).style.borderColor='var(--border-color)'"
+                    />
+                    <button
+                      type="button"
+                      @click="showPassword = !showPassword"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
+                      style="color: var(--text-muted);"
+                      :title="showPassword ? '隐藏密码' : '显示密码'"
+                      @mousedown.prevent
+                    >
+                      <EyeOff v-if="showPassword" class="w-4 h-4" style="width:16px;height:16px;" />
+                      <Eye v-else class="w-4 h-4" style="width:16px;height:16px;" />
+                    </button>
+                  </div>
                 </div>
               </div>
 

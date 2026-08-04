@@ -1,15 +1,25 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useLiveClock } from '@/composables/useLiveClock'
+import { rebaseTimestamps } from '@/lib/live-time'
 import type { P3AuditRecord } from '@/types/p3'
 
-defineProps<{
+const props = defineProps<{
   title?: string
   records: P3AuditRecord[]
 }>()
+
+const { time } = useLiveClock()
+
+const liveRecords = computed(() => rebaseTimestamps(props.records, 17))
 </script>
 
 <template>
   <section class="rounded-xl border p-4" style="background: var(--bg-secondary); border-color: var(--border-color);">
-    <h3 class="text-sm font-semibold" style="color: var(--text-primary);">{{ title || '操作审计' }}</h3>
+    <div class="flex items-center justify-between">
+      <h3 class="text-sm font-semibold" style="color: var(--text-primary);">{{ title || '操作审计' }}</h3>
+      <span class="font-mono-num text-[11px]" style="color: var(--text-muted);">{{ time }}</span>
+    </div>
     <div class="mt-4 overflow-x-auto">
       <table class="min-w-full text-xs">
         <thead>
@@ -23,7 +33,7 @@ defineProps<{
         </thead>
         <tbody>
           <tr
-            v-for="record in records"
+            v-for="record in liveRecords"
             :key="`${record.user}-${record.timestamp}-${record.action}`"
             class="border-t"
             :style="{ borderColor: 'var(--border-color)' }"

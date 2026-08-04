@@ -105,9 +105,10 @@ func TestCheckTimeouts(t *testing.T) {
 	assert.True(t, timeoutCalled, "timeout callback should have been called")
 	assert.Equal(t, "agent-001", timedOutAgentID)
 
-	// agent 应被移除
-	_, ok := hm.GetAgentHeartbeat("agent-001")
-	assert.False(t, ok)
+	// agent 应被标记 offline（保留在跟踪列表等待离线保留期清除）
+	state, ok := hm.GetAgentHeartbeat("agent-001")
+	assert.True(t, ok, "agent should remain tracked for offline retention")
+	assert.False(t, state.OfflineSince.IsZero(), "offline_since should be recorded")
 }
 
 func TestCheckTimeouts_NoTimeout(t *testing.T) {
@@ -242,4 +243,146 @@ func TestHeartbeatWithDiscovery(t *testing.T) {
 	require.NotNil(t, a.Metadata)
 	_, hasLastSeen := a.Metadata["last_seen"]
 	assert.True(t, hasLastSeen)
+}
+
+// ---------- TestOfflineRetentionPurge ----------
+
+func TestCheckTimeouts_PurgeOfflineAgentAfterRetention(t *testing.T) {
+	dc := NewDiscoveryCenter(DiscoveryConfig{}, zap.NewNop())
+
+	// Agent 先上线
+	agent := AgentDescriptor{
+		ID:                   "agent-001",
+		Kind:                 "edgex",
+		HeartbeatIntervalSec: 5,
+		Metadata:             make(map[string]string),
+	}
+	onlinePayload, _ := json.Marshal(agent)
+	dc.HandleAgentOnline(TopicDiscoveryAgent, onlinePayload, "mqtt")
+	_, ok := dc.GetAgent("agent-001")
+	require.True(t, ok)
+
+	hm := newTestHeartbeatMonitor(t, func(cfg *HeartbeatMonitorConfig) {
+		cfg.Discovery = dc
+		cfg.TimeoutMultiplier = 1
+		cfg.MaxOfflineRetention = time.Hour // 长保留期，测试中手动回拨
+		cfg.OnTimeout = func(string, time.Time, int) {}
+	})
+
+	// 心跳超时 → 标记离线（offline_since 写入 metadata）
+	hm.mu.Lock()
+	hm.agents["agent-001"] = &AgentHeartbeat{
+		AgentID:     "agent-001",
+		LastSeen:    time.Now().Add(-10 * time.Second),
+		Sequence:    1,
+		MissedCount: 0,
+		IntervalSec: 5,
+	}
+	hm.mu.Unlock()
+	hm.checkTimeouts(time.Now())
+
+	a, ok := dc.GetAgent("agent-001")
+	require.True(t, ok)
+	assert.Equal(t, AgentOffline, a.Status)
+	_, hasOfflineSince := a.Metadata["offline_since"]
+	assert.True(t, hasOfflineSince)
+
+	// 离线保留期未到 → 不清除
+	hm.checkTimeouts(time.Now().Add(30 * time.Minute))
+	_, ok = dc.GetAgent("agent-001")
+	assert.True(t, ok, "agent should remain during retention window")
+
+	// 离线保留期已过 → 彻底删除（模拟 EdgeX 关闭 EAN）
+	hm.checkTimeouts(time.Now().Add(2 * time.Hour))
+	_, ok = dc.GetAgent("agent-001")
+	assert.False(t, ok, "agent should be purged after retention expires")
+}
+
+func TestCheckTimeouts_ReconnectResetsOfflineRetention(t *testing.T) {
+	dc := NewDiscoveryCenter(DiscoveryConfig{}, zap.NewNop())
+
+	agent := AgentDescriptor{
+		ID:                   "agent-001",
+		Kind:                 "edgex",
+		HeartbeatIntervalSec: 5,
+		Metadata:             make(map[string]string),
+	}
+	onlinePayload, _ := json.Marshal(agent)
+	dc.HandleAgentOnline(TopicDiscoveryAgent, onlinePayload, "mqtt")
+
+	hm := newTestHeartbeatMonitor(t, func(cfg *HeartbeatMonitorConfig) {
+		cfg.Discovery = dc
+		cfg.TimeoutMultiplier = 1
+		cfg.MaxOfflineRetention = time.Hour
+		cfg.OnTimeout = func(string, time.Time, int) {}
+	})
+
+	// 心跳超时 → offline
+	hm.mu.Lock()
+	hm.agents["agent-001"] = &AgentHeartbeat{
+		AgentID:     "agent-001",
+		LastSeen:    time.Now().Add(-10 * time.Second),
+		Sequence:    1,
+		MissedCount: 0,
+		IntervalSec: 5,
+	}
+	hm.mu.Unlock()
+	hm.checkTimeouts(time.Now())
+
+	state, ok := hm.GetAgentHeartbeat("agent-001")
+	require.True(t, ok)
+	assert.False(t, state.OfflineSince.IsZero())
+
+	// Agent 重新上线发心跳 → 离线标记重置
+	hb := HeartbeatPayload{AgentID: "agent-001", Status: "alive", Sequence: 2}
+	hbPayload, _ := json.Marshal(hb)
+	hm.HandleHeartbeat("$edgeos/heartbeat/agent-001", hbPayload, "mqtt")
+
+	state, ok = hm.GetAgentHeartbeat("agent-001")
+	require.True(t, ok)
+	assert.True(t, state.OfflineSince.IsZero(), "offline_since should reset on reconnect")
+
+	// 即使保留期已过，重新上线后不应被清除
+	hm.checkTimeouts(time.Now().Add(2 * time.Hour))
+	_, ok = dc.GetAgent("agent-001")
+	assert.True(t, ok, "reconnected agent should not be purged")
+}
+
+func TestCheckTimeouts_NoPurgeWhenRetentionDisabled(t *testing.T) {
+	dc := NewDiscoveryCenter(DiscoveryConfig{}, zap.NewNop())
+
+	agent := AgentDescriptor{
+		ID:                   "agent-001",
+		Kind:                 "edgex",
+		HeartbeatIntervalSec: 5,
+		Metadata:             make(map[string]string),
+	}
+	onlinePayload, _ := json.Marshal(agent)
+	dc.HandleAgentOnline(TopicDiscoveryAgent, onlinePayload, "mqtt")
+
+	// MaxOfflineRetention <= 0 时，NewHeartbeatMonitor 会回退默认 10 分钟；
+	// 这里直接构造 maxOfflineRetention=0 模拟「不自动清除」配置。
+	hm := newTestHeartbeatMonitor(t, func(cfg *HeartbeatMonitorConfig) {
+		cfg.Discovery = dc
+		cfg.TimeoutMultiplier = 1
+		cfg.OnTimeout = func(string, time.Time, int) {}
+	})
+	hm.maxOfflineRetention = 0
+
+	hm.mu.Lock()
+	hm.agents["agent-001"] = &AgentHeartbeat{
+		AgentID:     "agent-001",
+		LastSeen:    time.Now().Add(-10 * time.Second),
+		Sequence:    1,
+		MissedCount: 0,
+		IntervalSec: 5,
+	}
+	hm.mu.Unlock()
+	hm.checkTimeouts(time.Now())
+
+	// 即使时间远超保留期也不清除（retention=0 表示禁用）
+	hm.checkTimeouts(time.Now().Add(100 * time.Hour))
+	_, ok := dc.GetAgent("agent-001")
+	assert.True(t, ok)
+	assert.Equal(t, AgentOffline, dc.ListAgents()[0].Status)
 }

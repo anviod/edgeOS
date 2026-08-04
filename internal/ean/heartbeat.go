@@ -24,6 +24,7 @@ type AgentHeartbeat struct {
 	Sequence     int       // 最后收到的序列号
 	MissedCount  int       // 连续未收到心跳的计数
 	IntervalSec  int       // 该 Agent 的心跳间隔（秒）
+	OfflineSince time.Time // 标记为离线的时间（用于离线保留期自动清除）
 }
 
 // ==================== HeartbeatMonitor ====================
@@ -39,6 +40,9 @@ type HeartbeatMonitor struct {
 	// 检查配置
 	checkInterval   time.Duration // 检查循环间隔
 	timeoutMultiplier int          // 超时 = timeoutMultiplier * heartbeat_interval
+	// MaxOfflineRetention 离线保留期：Agent 心跳超时标记 offline 后，
+	// 若超过该时长仍未重新上线（如 EdgeX 关闭 EAN），则彻底删除（DeleteAgent）。
+	maxOfflineRetention time.Duration
 
 	// 回调
 	onTimeout OnTimeoutCallback
@@ -61,6 +65,10 @@ type HeartbeatMonitorConfig struct {
 	// TimeoutMultiplier 超时倍数，默认 3（即 3 个心跳周期未收到则超时）
 	// EAN 规范建议 2~3 个心跳周期
 	TimeoutMultiplier int
+	// MaxOfflineRetention 离线保留期，默认 10 分钟。
+	// Agent 心跳超时标记 offline 后，超过该时长仍未重新上线则彻底删除（DeleteAgent）。
+	// 0 或负值表示不自动清除（保留 offline 展示，由用户手动删除）。
+	MaxOfflineRetention time.Duration
 	// OnTimeout 超时回调（必须设置，用于通知上层清理 Agent）
 	OnTimeout OnTimeoutCallback
 	// Discovery 可选的发现中心引用，超时时自动标记 Agent 离线
@@ -75,18 +83,20 @@ func NewHeartbeatMonitor(cfg HeartbeatMonitorConfig, logger *zap.Logger) *Heartb
 	if cfg.TimeoutMultiplier <= 0 {
 		cfg.TimeoutMultiplier = 3 // 默认 3 个心跳周期
 	}
-
+	// MaxOfflineRetention <= 0 表示禁用自动清除（保留 offline 展示，由用户手动删除）。
+	// 默认 10 分钟离线保留期由上层配置（DefaultEANConfig.MaxOfflineRetentionSec=600）注入。
 	ctx, cancel := context.WithCancel(context.Background())
 
 	hm := &HeartbeatMonitor{
-		agents:           make(map[string]*AgentHeartbeat),
-		checkInterval:    cfg.CheckInterval,
-		timeoutMultiplier: cfg.TimeoutMultiplier,
-		onTimeout:        cfg.OnTimeout,
-		discovery:        cfg.Discovery,
-		ctx:              ctx,
-		cancel:           cancel,
-		logger:           logger.Named("heartbeat"),
+		agents:              make(map[string]*AgentHeartbeat),
+		checkInterval:       cfg.CheckInterval,
+		timeoutMultiplier:   cfg.TimeoutMultiplier,
+		maxOfflineRetention: cfg.MaxOfflineRetention,
+		onTimeout:           cfg.OnTimeout,
+		discovery:           cfg.Discovery,
+		ctx:                 ctx,
+		cancel:              cancel,
+		logger:              logger.Named("heartbeat"),
 	}
 
 	hm.logger.Info("heartbeat monitor created",
@@ -156,6 +166,12 @@ func (hm *HeartbeatMonitor) HandleHeartbeat(topic string, payload []byte, transp
 		state.LastSeen = now
 		state.Sequence = hb.Sequence
 		state.MissedCount = 0
+		// Agent 重新上线：清除离线标记，退出保留期观察
+		if !state.OfflineSince.IsZero() {
+			state.OfflineSince = time.Time{}
+			hm.logger.Info("agent reconnected, offline retention reset",
+				zap.String("agent_id", hb.AgentID))
+		}
 	}
 
 	if hm.discovery != nil {
@@ -197,12 +213,32 @@ func (hm *HeartbeatMonitor) checkLoop() {
 }
 
 // checkTimeouts 单次超时检查
-// 遍历所有被跟踪的 Agent，对超过 N * interval 未收到心跳的 Agent 触发超时回调
+// 两阶段处理：
+//  1. 心跳超时（超过 timeoutMultiplier * interval）→ 标记 offline，记录 offline_since，保留跟踪
+//  2. 离线保留期超时（offline 超过 maxOfflineRetention 仍未重新上线）→ 彻底删除（DeleteAgent）
+//     避免 EdgeX 关闭 EAN / 长期断连后 Agent 在 Agent 管理页残留为「离线」。
 func (hm *HeartbeatMonitor) checkTimeouts(now time.Time) {
 	hm.mu.Lock()
 	defer hm.mu.Unlock()
 
 	for agentID, state := range hm.agents {
+		// 阶段 2: 已离线且超过保留期 → 彻底删除
+		// maxOfflineRetention <= 0 表示禁用自动清除（保留 offline 展示，由用户手动删除）
+		if !state.OfflineSince.IsZero() && hm.maxOfflineRetention > 0 {
+			if now.Sub(state.OfflineSince) >= hm.maxOfflineRetention {
+				hm.logger.Info("agent offline retention expired, deleting permanently",
+					zap.String("agent_id", agentID),
+					zap.Duration("offline_duration", now.Sub(state.OfflineSince)))
+				if hm.discovery != nil {
+					hm.discovery.DeleteAgent(agentID)
+				}
+				delete(hm.agents, agentID)
+				continue
+			}
+			continue // 已离线但未到保留期，无需再检查心跳超时
+		}
+
+		// 阶段 1: 心跳超时 → 标记离线
 		timeout := time.Duration(state.IntervalSec * hm.timeoutMultiplier) * time.Second
 		elapsed := now.Sub(state.LastSeen)
 
@@ -233,8 +269,8 @@ func (hm *HeartbeatMonitor) checkTimeouts(now time.Time) {
 			hm.onTimeout(id, lastSeen, missed)
 		}
 
-		// 从跟踪列表中移除（已超时，等待重新上线）
-		delete(hm.agents, agentID)
+		// 记录离线时间，进入保留期观察（重新上线时重置）
+		state.OfflineSince = now
 	}
 }
 

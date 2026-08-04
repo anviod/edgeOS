@@ -87,14 +87,14 @@ function formatTime(ts: number) {
         class="rounded-lg border transition-all duration-200 hover:scale-[1.01]"
         style="background: var(--bg-secondary); border-color: var(--border-color);"
       >
-        <div class="flex items-start justify-between mb-4 p-5">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center" :style="{ background: card.bg }">
-            <component :is="card.icon" class="w-5 h-5" :style="{ color: card.color, width:'20px', height:'20px' }" />
+        <div class="p-5">
+          <div class="flex items-start justify-between">
+            <div class="text-3xl font-bold tabular-nums" :style="{ color: card.color }">{{ card.value }}</div>
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ background: card.bg }">
+              <component :is="card.icon" class="w-5 h-5" :style="{ color: card.color, width:'20px', height:'20px' }" />
+            </div>
           </div>
-        </div>
-        <div class="p-5 -mt-4">
-          <div class="text-3xl font-bold tabular-nums mb-1" :style="{ color: card.color }">{{ card.value }}</div>
-          <div class="text-sm" style="color: var(--text-secondary);">{{ card.label }}</div>
+          <div class="text-sm mt-1.5" style="color: var(--text-secondary);">{{ card.label }}</div>
           <div class="text-xs mt-1" :style="{ color: card.subColor }">{{ card.sub }}</div>
         </div>
       </div>

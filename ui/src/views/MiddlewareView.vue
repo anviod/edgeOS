@@ -4,6 +4,7 @@ import { Plus, RefreshCw, AlertCircle } from 'lucide-vue-next'
 import { useMiddlewareStore } from '@/stores/middleware'
 import MiddlewareCard from '@/components/edge/MiddlewareCard.vue'
 import AddMiddlewareModal from '@/components/edge/AddMiddlewareModal.vue'
+import DangerDialog from '@/components/edge/DangerDialog.vue'
 import type { MiddlewareConfig, MiddlewareForm } from '@/types/edgex'
 
 const mwStore = useMiddlewareStore()
@@ -12,6 +13,8 @@ const editingItem = ref<MiddlewareConfig | null>(null)
 const connectingIds = ref<Set<string>>(new Set())
 const errorMessage = ref('')
 const errorTimeout = ref<number | null>(null)
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<string | null>(null)
 
 function showError(msg: string) {
   errorMessage.value = msg
@@ -73,9 +76,16 @@ async function handleConnect(id: string) {
 }
 
 async function handleDelete(id: string) {
-  if (confirm('确认删除该消息总线？')) {
-    await mwStore.remove(id)
-  }
+  deleteTarget.value = id
+  showDeleteDialog.value = true
+}
+
+async function confirmDelete() {
+  if (!deleteTarget.value) return
+  const id = deleteTarget.value
+  deleteTarget.value = null
+  showDeleteDialog.value = false
+  await mwStore.remove(id)
 }
 </script>
 
@@ -167,6 +177,16 @@ async function handleDelete(id: string) {
       :editing="editingItem"
       @close="showModal = false"
       @submit="handleSubmit"
+    />
+
+    <!-- Delete confirmation modal -->
+    <DangerDialog
+      v-model:open="showDeleteDialog"
+      title="删除消息总线"
+      description="确认删除该消息总线连接？删除后将停止订阅相关主题，且无法恢复。"
+      actionName="删除"
+      variant="danger"
+      @confirm="confirmDelete"
     />
   </div>
 </template>

@@ -119,6 +119,66 @@ func TestDiscovery_ProtocolEnvelope(t *testing.T) {
 	require.Equal(t, AgentOffline, agent.Status)
 }
 
+func TestDiscovery_DeleteAgentRemovesCompletely(t *testing.T) {
+	var offlineHooks int32
+	dc := NewDiscoveryCenter(DiscoveryConfig{
+		OnAgentOffline: func(agentID, reason string) {
+			atomic.AddInt32(&offlineHooks, 1)
+			require.Equal(t, "stale-agent", agentID)
+			require.Equal(t, "agent_deleted", reason)
+		},
+	}, testLogger(t))
+
+	agentPayload := []byte(`{
+		"header":{"message_id":"m1","timestamp":1,"source":"stale-agent","message_type":"agent_descriptor","version":"2.0"},
+		"body":{"agent":{"id":"stale-agent","kind":"device","version":"2.0.0","status":"online","transport":"mqtt","heartbeat_interval_sec":60}}
+	}`)
+	dc.HandleAgentOnline(TopicDiscoveryAgent, agentPayload, "mqtt")
+	require.True(t, dc.HasNativeEANAgent("stale-agent"))
+
+	capPayload := []byte(`{
+		"header":{"message_id":"m2","timestamp":1,"source":"stale-agent","message_type":"capability_descriptor","version":"2.0"},
+		"body":{"capabilities":[{"id":"stale.cap","agent_id":"stale-agent","description":"d","category":"device","timeout_sec":5,"permission":"read"}]}
+	}`)
+	dc.HandleCapability(TopicDiscoveryCapability, capPayload, "mqtt")
+	require.Len(t, dc.GetCapabilitiesByAgent("stale-agent"), 1)
+
+	// DeleteAgent 彻底移除：agent + 能力 + 索引 + 触发 offline hook
+	dc.DeleteAgent("stale-agent")
+
+	_, ok := dc.GetAgent("stale-agent")
+	require.False(t, ok)
+	require.Len(t, dc.GetCapabilitiesByAgent("stale-agent"), 0)
+	require.False(t, dc.HasNativeEANAgent("stale-agent"))
+	require.Eventually(t, func() bool {
+		return atomic.LoadInt32(&offlineHooks) == 1
+	}, time.Second, 10*time.Millisecond)
+
+	// 对不存在的 agent 删除不应 panic
+	dc.DeleteAgent("never-existed")
+}
+
+func TestDiscovery_RemoveAgentKeepsOfflineDescriptor(t *testing.T) {
+	dc := NewDiscoveryCenter(DiscoveryConfig{}, testLogger(t))
+
+	agentPayload := []byte(`{
+		"header":{"message_id":"m1","timestamp":1,"source":"n1","message_type":"agent_descriptor","version":"2.0"},
+		"body":{"agent":{"id":"n1","kind":"device","version":"2.0.0","status":"online","transport":"mqtt","heartbeat_interval_sec":1}}
+	}`)
+	dc.HandleAgentOnline(TopicDiscoveryAgent, agentPayload, "mqtt")
+
+	// RemoveAgent（心跳超时路径）仅标记 offline，不删除描述符
+	dc.RemoveAgent("n1")
+	agent, ok := dc.GetAgent("n1")
+	require.True(t, ok)
+	require.Equal(t, AgentOffline, agent.Status)
+
+	// 随后 DeleteAgent 彻底清除
+	dc.DeleteAgent("n1")
+	_, ok = dc.GetAgent("n1")
+	require.False(t, ok)
+}
+
 func TestEvent_PreviousValueFromEnvelope(t *testing.T) {
 	var got *PointChangeEvent
 	ec := NewEventCenter(EventCenterConfig{

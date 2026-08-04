@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ChevronRight, RefreshCw, Search, Edit3 } from 'lucide-vue-next'
+import { ChevronRight, RefreshCw, Search, Edit3, ArrowLeft } from 'lucide-vue-next'
 import { useRealtimeStore } from '@/stores/realtime'
 import { useEdgeStore } from '@/stores/edge'
 import WritePointModal from '@/components/edge/WritePointModal.vue'
-import StatusBadge from '@/components/edge/StatusBadge.vue'
 import type { EdgeXPointInfo } from '@/types/edgex'
 import { useEanStore } from '@/stores/ean'
 
@@ -98,17 +97,27 @@ function formatTime(ts: number | undefined) {
   <div class="space-y-5">
     <!-- Breadcrumb -->
     <div>
-      <nav class="flex items-center gap-1.5 text-xs mb-2 flex-wrap nav-breadcrumb">
-        <button @click="router.push('/nodes')" class="hover:text-sky-400 transition-colors">节点管理</button>
-        <ChevronRight class="w-3 h-3 flex-shrink-0" style="width:12px;height:12px;" />
-        <button @click="router.push(`/nodes/${nodeId}/devices`)" class="hover:text-sky-400 transition-colors breadcrumb-link">
-          {{ node?.node_name || nodeId }}
+      <div class="flex items-center gap-2 mb-2">
+        <button
+          @click="router.push(`/nodes/${nodeId}/devices`)"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors hover:bg-white/5"
+          style="color: var(--text-secondary); border: 1px solid var(--border-color);"
+        >
+          <ArrowLeft class="w-4 h-4" style="width:16px;height:16px;" />
+          返回设备列表
         </button>
-        <ChevronRight class="w-3 h-3 flex-shrink-0" style="width:12px;height:12px;" />
-        <span class="breadcrumb-link">{{ device?.device_name || deviceId }}</span>
-        <ChevronRight class="w-3 h-3 flex-shrink-0" style="width:12px;height:12px;" />
-        <span style="color: var(--text-muted);">物模型点位</span>
-      </nav>
+        <nav class="flex items-center gap-1.5 text-xs flex-wrap nav-breadcrumb">
+          <button @click="router.push('/nodes')" class="hover:text-sky-400 transition-colors">节点管理</button>
+          <ChevronRight class="w-3 h-3 flex-shrink-0" style="width:12px;height:12px;" />
+          <button @click="router.push(`/nodes/${nodeId}/devices`)" class="hover:text-sky-400 transition-colors breadcrumb-link">
+            {{ node?.node_name || nodeId }}
+          </button>
+          <ChevronRight class="w-3 h-3 flex-shrink-0" style="width:12px;height:12px;" />
+          <span class="breadcrumb-link">{{ device?.device_name || deviceId }}</span>
+          <ChevronRight class="w-3 h-3 flex-shrink-0" style="width:12px;height:12px;" />
+          <span style="color: var(--text-muted);">物模型点位</span>
+        </nav>
+      </div>
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-xl font-bold page-title">物模型点位</h1>

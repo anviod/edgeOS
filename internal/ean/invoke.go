@@ -71,13 +71,13 @@ func NewInvokeOrchestrator(cfg InvokeConfig, logger *zap.Logger) *InvokeOrchestr
 
 // Invoke 同步调用指定 Agent 的 Capability
 // target: 目标 Agent ID
-// capability: 要调用的能力 ID（如 "modbus-tcp.read_points"）
+// capability: 要调用的能力 ID（如 "modbus_tcp.read_point" 或统一能力 "read_points"）
 // arguments: 调用参数
 // timeout: 客户端超时（覆盖 Capability 默认超时），0 则使用 cap.TimeoutSec
 //
 // 流程:
 //  1. 生成 invoke_id（UUID）
-//  2. 构造 Message 信封（message_type=invoke_capability，correlation_id=invoke_id）
+//  2. 构造 Message 信封（message_type=invoke_capability，correlation_id=invoke_id，destination=target）
 //  3. 通过 publishFn 发布到 $edgeos/invoke/{target}
 //  4. 等待 HandleReply 通过 invoke_id 关联回复
 //  5. 超时返回错误
@@ -87,12 +87,16 @@ func (io *InvokeOrchestrator) Invoke(ctx context.Context, target, capability str
 	}
 	invokeID := uuid.New().String()
 
-	// 构造 InvokeRequest
+	// 构造 InvokeRequest（对齐附录 F.2，含 options.timeout_sec）
 	req := InvokeRequest{
 		InvokeID:   invokeID,
 		Target:     target,
 		Capability: capability,
 		Arguments:  arguments,
+		Options: &InvokeRequestOptions{
+			TimeoutSec: int(timeout.Seconds()),
+			Priority:   "normal",
+		},
 	}
 
 	reqBody, err := json.Marshal(req)
@@ -100,12 +104,13 @@ func (io *InvokeOrchestrator) Invoke(ctx context.Context, target, capability str
 		return &InvokeCall{Error: fmt.Errorf("marshal invoke request failed: %w", err)}
 	}
 
-	// 构造 EAN Message 信封
+	// 构造 EAN Message 信封（对齐附录 F.6：header 含 destination 字段）
 	msg := Message{
 		Header: MessageHeader{
 			MessageID:     uuid.New().String(),
 			Timestamp:     time.Now().UnixMilli(),
 			Source:        io.sourceID,
+			Destination:   target, // 目标 Agent ID | target agent ID
 			MessageType:   "invoke_capability",
 			Version:       "2.0",
 			CorrelationID: invokeID,

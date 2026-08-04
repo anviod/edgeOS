@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import {
   Zap, RefreshCw, Search, ArrowRight,
-  Radio, Activity,
+  Radio, Activity, ArrowLeft,
 } from 'lucide-vue-next'
 import { useEanStore } from '@/stores/ean'
 import type { EANPointChangeEvent } from '@/types/ean'
@@ -83,6 +83,16 @@ function hasChanged(evt: EANPointChangeEvent): boolean {
     <!-- 页头 / Page Header -->
     <div class="flex items-center justify-between">
       <div>
+        <div class="flex items-center gap-2 mb-1">
+          <router-link
+            to="/ean"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors hover:bg-white/5"
+            style="color: var(--text-secondary); border: 1px solid var(--border-color);"
+          >
+            <ArrowLeft class="w-4 h-4" style="width:16px;height:16px;" />
+            返回 EAN 协调中心
+          </router-link>
+        </div>
         <h1 class="text-xl font-bold" style="color: var(--text-primary);">事件流</h1>
         <p class="text-sm mt-1" style="color: var(--text-secondary);">点位变化事件 + previous_value + 设备上下线</p>
       </div>

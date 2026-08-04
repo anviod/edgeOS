@@ -26,7 +26,7 @@ import type {
 } from '@/types/ean'
 import { useRealtimeStore } from '@/stores/realtime'
 
-const API_BASE = 'http://localhost:8000/api'
+const API_BASE = '/api'
 
 // ==================== 基础请求 ====================
 
@@ -259,6 +259,9 @@ export const eanApi = {
   getAgentCapabilities(agentId: string) {
     return request<EANCapabilityListResponse>(`/ean/agents/${agentId}/capabilities`).then(res => res?.capabilities ?? [])
   },
+  deleteAgent(agentId: string) {
+    return request<{ deleted: string }>(`/ean/agents/${agentId}`, { method: 'DELETE' })
+  },
 
   // ---- Invoke 编排 ----
   invoke(req: EANInvokeRequest) {
@@ -283,5 +286,41 @@ export const eanApi = {
   // ---- 健康检查 ----
   health() {
     return request<EANHealth>('/ean/health')
+  },
+}
+
+// ==================== 系统管理 ====================
+
+export const systemApi = {
+  // 服务重启 | Service restart
+  restart() {
+    return post<{ message: string; delay: string }>('/system/restart')
+  },
+
+  // 导出配置（包含所有节点和映射关系）| Export config with all nodes and mappings
+  async exportConfig(): Promise<void> {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${API_BASE}/system/export-config`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+    if (!response.ok) {
+      throw new Error(`导出失败 | Export failed: ${response.status}`)
+    }
+    // 从 Content-Disposition 提取文件名 | Extract filename from Content-Disposition
+    const cd = response.headers.get('Content-Disposition') || ''
+    const match = cd.match(/filename=(.+)/)
+    const filename = match ? match[1] : `edgeos-config-${Date.now()}.json`
+    // 触发浏览器下载 | Trigger browser download
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   },
 }

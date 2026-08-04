@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { X, Send } from 'lucide-vue-next'
 import type { EdgeXPointInfo } from '@/types/edgex'
 
@@ -12,6 +12,15 @@ const emit = defineEmits<{
   (e: 'close'): void
   (e: 'submit', pointId: string, value: unknown): void
 }>()
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && props.visible) {
+    emit('close')
+  }
+}
+
+onMounted(() => document.addEventListener('keydown', onKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 const inputValue = ref<string | boolean>('')
 const submitting = ref(false)

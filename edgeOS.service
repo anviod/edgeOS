@@ -1,0 +1,16 @@
+[Unit]
+Description=EdgeOS - Industrial Edge Agent Network Platform
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/edgeOS
+ExecStart=/opt/edgeOS/edgeOS
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

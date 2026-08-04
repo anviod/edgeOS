@@ -66,7 +66,7 @@ func TestDiscovery_IndexNativeAndPurgeV1Bridge(t *testing.T) {
 		"header":{"message_id":"m1","timestamp":1,"source":"edgex-node-001","message_type":"capability_descriptor","version":"2.0"},
 		"body":{"capabilities":[
 			{"id":"system.diagnostics","agent_id":"edgex-node-001","category":"system","timeout_sec":10,"permission":"read"},
-			{"id":"bacnet_ip.write_register","agent_id":"edgex-node-001","category":"device","timeout_sec":15,"permission":"write"}
+			{"id":"bacnet_ip.write_point","agent_id":"edgex-node-001","category":"device","timeout_sec":15,"permission":"write"}
 		]}
 	}`)
 	dc.HandleCapability(TopicDiscoveryCapability, nativePayload, "mqtt")

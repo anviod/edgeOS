@@ -12,6 +12,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/anviod/edgeOS/internal/config"
+	"github.com/anviod/edgeOS/internal/services"
+	"github.com/anviod/edgeOS/internal/ws"
 )
 
 // ==================== Bus 配置 ====================
@@ -235,9 +237,10 @@ func NewBus(cfg BusConfig, logger *zap.Logger) (*Bus, error) {
 		checkInterval = 5 * time.Second
 	}
 	bus.Heartbeat = NewHeartbeatMonitor(HeartbeatMonitorConfig{
-		CheckInterval:    checkInterval,
-		TimeoutMultiplier: cfg.Heartbeat.TimeoutMultiplier,
-		Discovery:        bus.Discovery,
+		CheckInterval:       checkInterval,
+		TimeoutMultiplier:    cfg.Heartbeat.TimeoutMultiplier,
+		MaxOfflineRetention: time.Duration(cfg.Heartbeat.MaxOfflineRetentionSec) * time.Second,
+		Discovery:           bus.Discovery,
 	}, logger)
 
 	// ---- 绑定子系统间回调 ----
@@ -595,4 +598,30 @@ func (b *Bus) GetHeartbeat() *HeartbeatMonitor {
 // GetGovernance 返回治理模块（只读引用）
 func (b *Bus) GetGovernance() *Governance {
 	return b.Governance
+}
+
+// AttachV1NATSDataPlane 在 NATS 传输层上订阅 V1 数据面 Subject（edgex.*），
+// 将设备/点位/实时数据/告警/节点消息桥接到 V1 服务。
+// 对齐改造指南 OS-23：V1 设备清单须同时订 MQTT `edgex/devices/report`
+// 与 NATS `edgex.devices.report`（双传输对称）。
+// 仅当 NATS 传输层启用时生效；未启用时返回 nil 不报错。
+func (b *Bus) AttachV1NATSDataPlane(
+	registrySvc *services.RegistryService,
+	deviceSvc *services.DeviceService,
+	pointSvc *services.PointService,
+	alertSvc *services.AlertService,
+	hub *ws.Hub,
+) *V1NATSDataPlane {
+	natsTransport, ok := b.transport.Get("nats")
+	if !ok {
+		b.logger.Info("V1 NATS data plane skipped: NATS transport not enabled")
+		return nil
+	}
+	plane := NewV1NATSDataPlane(registrySvc, deviceSvc, pointSvc, alertSvc, hub, b.logger)
+	if err := plane.Subscribe(natsTransport); err != nil {
+		b.logger.Warn("V1 NATS data plane subscribe partial failure", zap.Error(err))
+	}
+	b.logger.Info("V1 NATS data plane attached",
+		zap.String("endpoint", natsTransport.Endpoint()))
+	return plane
 }

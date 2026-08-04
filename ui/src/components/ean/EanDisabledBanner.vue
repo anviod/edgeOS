@@ -27,9 +27,10 @@ const router = useRouter()
     <div class="flex-1 min-w-0">
       <p class="text-sm font-medium" style="color: #F59E0B;">EAN Bus 未启用</p>
       <p v-if="!compact" class="text-xs mt-0.5" style="color: var(--text-secondary);">
-        请在 config.yaml 设置 <code class="font-mono">ean.enabled=true</code>，配置
+        配置保存在 data/config.db（bbolt，无配置文件）。请在系统配置中设置
+        <code class="font-mono">ean.enabled=true</code>，配置
         <code class="font-mono">ean.mqtt</code> / <code class="font-mono">ean.nats</code> 后重启服务。
-        未启用时除 health 外的 <code class="font-mono">/api/ean/*</code> 返回 503。
+        未启用时除 <code class="font-mono">/api/ean/health</code> 外的 <code class="font-mono">/api/ean/*</code> 返回 503。
       </p>
       <p v-else class="text-xs mt-0.5 truncate" style="color: var(--text-secondary);">
         配置 ean.enabled 与传输层后重启；可查看联合调试帮助。
