@@ -258,9 +258,9 @@ func TestHandleConnectMiddleware_Success(t *testing.T) {
 
 func TestHandleNodeDiscovery_NilManager(t *testing.T) {
 	app := newTestApp()
-	app.Post("/api/edgex/discover", handleNodeDiscovery(nil, nil))
+	app.Post("/api/edgeCore/discover", handleNodeDiscovery(nil, nil))
 
-	req := httptest.NewRequest("POST", "/api/edgex/discover", nil)
+	req := httptest.NewRequest("POST", "/api/edgeCore/discover", nil)
 	setAuthHeader(req)
 
 	resp, err := app.Test(req)
@@ -270,9 +270,9 @@ func TestHandleNodeDiscovery_NilManager(t *testing.T) {
 
 func TestHandleNodeDiscoveryTo_NilManager(t *testing.T) {
 	app := newTestApp()
-	app.Post("/api/edgex/discover/:middlewareId", handleNodeDiscoveryTo(nil))
+	app.Post("/api/edgeCore/discover/:middlewareId", handleNodeDiscoveryTo(nil))
 
-	req := httptest.NewRequest("POST", "/api/edgex/discover/mw-1", nil)
+	req := httptest.NewRequest("POST", "/api/edgeCore/discover/mw-1", nil)
 	setAuthHeader(req)
 
 	resp, err := app.Test(req)
@@ -484,8 +484,8 @@ func TestHandleReconcileDevices_PrunesStale(t *testing.T) {
 
 	deviceSvc := services.NewDeviceService(db)
 	registrySvc := services.NewRegistryService(db)
-	require.NoError(t, deviceSvc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "stale"}))
-	require.NoError(t, deviceSvc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "keep"}))
+	require.NoError(t, deviceSvc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{DeviceID: "stale"}))
+	require.NoError(t, deviceSvc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{DeviceID: "keep"}))
 
 	dataSvc := &services.DataService{DeviceSvc: deviceSvc, PointService: services.NewPointService(db)}
 	app.Post("/api/nodes/:nodeId/devices/reconcile", handleReconcileDevices(dataSvc, registrySvc))

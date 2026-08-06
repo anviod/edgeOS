@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { EdgeXPointInfo, DataUpdatePayload, CommandResponsePayload } from '@/types/edgex'
+import type { edgeCorePointInfo, DataUpdatePayload, CommandResponsePayload } from '@/types/edgeCore'
 import { pointApi } from '@/api/index'
 
 // 差量更新记录：`${nodeId}/${deviceId}/${pointId}` -> timestamp
@@ -21,7 +21,7 @@ export interface CmdTrack {
 
 export const useRealtimeStore = defineStore('realtime', () => {
   // pointsByDevice: `${nodeId}/${deviceId}` -> points map (pointId -> PointInfo)
-  const pointsByDevice = ref<Record<string, Record<string, EdgeXPointInfo>>>({})
+  const pointsByDevice = ref<Record<string, Record<string, edgeCorePointInfo>>>({})
   const loadingDevices = ref<Set<string>>(new Set())
 
   // 差量高亮的 pointId 集合：`${nodeId}/${deviceId}/${pointId}`
@@ -40,7 +40,7 @@ export const useRealtimeStore = defineStore('realtime', () => {
     const { points, snapshot } = await pointApi.listByDevice(nodeId, deviceId).finally(() => {
       loadingDevices.value.delete(key)
     })
-    const map: Record<string, EdgeXPointInfo> = {}
+    const map: Record<string, edgeCorePointInfo> = {}
     points.forEach(p => {
       // 如果 API 返回了 snapshot，使用 snapshot 中的实时值
       if (snapshot && snapshot[p.point_id] !== undefined) {
@@ -58,7 +58,7 @@ export const useRealtimeStore = defineStore('realtime', () => {
 
     if (payload.is_full_snapshot) {
       // 全量替换
-      const map: Record<string, EdgeXPointInfo> = {}
+      const map: Record<string, edgeCorePointInfo> = {}
       Object.entries(payload.points).forEach(([pointId, value]) => {
         const existing = pointsByDevice.value[key]?.[pointId]
         map[pointId] = {
@@ -168,7 +168,7 @@ export const useRealtimeStore = defineStore('realtime', () => {
     return deltaKeys.value.has(`${nodeId}/${deviceId}/${pointId}`)
   }
 
-  function getPoints(nodeId: string, deviceId: string): EdgeXPointInfo[] {
+  function getPoints(nodeId: string, deviceId: string): edgeCorePointInfo[] {
     const key = deviceKey(nodeId, deviceId)
     return Object.values(pointsByDevice.value[key] ?? {})
   }

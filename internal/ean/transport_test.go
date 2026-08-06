@@ -86,8 +86,8 @@ func TestMqttTopicToNatsSubject(t *testing.T) {
 		},
 		{
 			name:     "multi-level with invoke",
-			input:    "$edgeos/invoke/edgex-node-001",
-			expected: "$edgeos/invoke/edgex-node-001",
+			input:    "$edgeos/invoke/edgeCore-node-001",
+			expected: "$edgeos/invoke/edgeCore-node-001",
 		},
 		{
 			name:     "multiple single-level wildcards",

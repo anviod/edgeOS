@@ -39,7 +39,7 @@ type BusConfig struct {
 //   - 绑定子系统间回调（wireCallbacks）
 //   - 统一订阅 $edgeos/# 主题
 //   - 对外暴露 InvokeCapability 编排 API
-//   - 主动 Discovery Query：启动后周期性查询 EdgeX 的完整 Capability，确保 Discovery 索引完整
+//   - 主动 Discovery Query：启动后周期性查询 edgeCore 的完整 Capability，确保 Discovery 索引完整
 type Bus struct {
 	cfg    BusConfig
 	logger *zap.Logger
@@ -333,9 +333,9 @@ func (b *Bus) Start() error {
 
 // discoveryQueryLoop 主动 Discovery Query 循环
 // 策略：延迟 2s 首发 → 30s 周期重查 → 收到首个原生 EAN Cap 后降频为 5min
-// 目的：弥补 EdgeX 启动时序竞态（EdgeOS 晚于 EdgeX 订阅时，一次性 publish 已错过）
+// 目的：弥补 edgeCore 启动时序竞态（EdgeOS 晚于 edgeCore 订阅时，一次性 publish 已错过）
 func (b *Bus) discoveryQueryLoop() {
-	// 初始延迟 2s，等待 EdgeX 端启动完成
+	// 初始延迟 2s，等待 edgeCore 端启动完成
 	initialDelay := 2 * time.Second
 	fastInterval := 30 * time.Second
 	slowInterval := 5 * time.Minute
@@ -567,7 +567,7 @@ func (b *Bus) Health() map[string]interface{} {
 		"pending_invokes":       b.Invoke.PendingCount(),
 		"audit_count":           b.Governance.AuditCount(),
 		"native_ean_caps":       nativeCaps,
-		// 对接 EdgeX 北向 EAN Runtime（mqttBus / natsBus），非 MCP Runtime
+		// 对接 edgeCore 北向 EAN Runtime（mqttBus / natsBus），非 MCP Runtime
 		"northbound_runtime": strings.Join(nbRuntimes, "+"),
 		"invoke_metrics":     b.metrics.snapshot(),
 	}
@@ -600,10 +600,10 @@ func (b *Bus) GetGovernance() *Governance {
 	return b.Governance
 }
 
-// AttachV1NATSDataPlane 在 NATS 传输层上订阅 V1 数据面 Subject（edgex.*），
+// AttachV1NATSDataPlane 在 NATS 传输层上订阅 V1 数据面 Subject（edgeCore.*），
 // 将设备/点位/实时数据/告警/节点消息桥接到 V1 服务。
-// 对齐改造指南 OS-23：V1 设备清单须同时订 MQTT `edgex/devices/report`
-// 与 NATS `edgex.devices.report`（双传输对称）。
+// 对齐改造指南 OS-23：V1 设备清单须同时订 MQTT `edgeCore/devices/report`
+// 与 NATS `edgeCore.devices.report`（双传输对称）。
 // 仅当 NATS 传输层启用时生效；未启用时返回 nil 不报错。
 func (b *Bus) AttachV1NATSDataPlane(
 	registrySvc *services.RegistryService,

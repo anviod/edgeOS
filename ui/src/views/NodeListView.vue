@@ -173,7 +173,7 @@ async function triggerDiscoveryAll() {
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-xl font-bold" style="color: var(--text-primary);">节点管理</h1>
-        <p class="text-sm mt-1" style="color: var(--text-secondary);">监控 EdgeX 边缘网关节点注册与心跳状态</p>
+        <p class="text-sm mt-1" style="color: var(--text-secondary);">监控 edgeCore 边缘网关节点注册与心跳状态</p>
       </div>
       <div class="flex items-center gap-2">
         <button
@@ -465,7 +465,7 @@ async function triggerDiscoveryAll() {
     >
       <Server class="w-10 h-10 mb-3" style="color: var(--text-muted);" />
       <p class="text-base font-medium mb-1" style="color: var(--text-primary);">尚无注册节点</p>
-      <p class="text-sm" style="color: var(--text-secondary);">等待 EdgeX 网关通过 MQTT 发起注册</p>
+      <p class="text-sm" style="color: var(--text-secondary);">等待 edgeCore 网关通过 MQTT 发起注册</p>
     </div>
 
     <!-- Table -->

@@ -36,8 +36,8 @@ var configBucketNames = []string{
 // runtimeBucketNames 运行时库 bucket 列表 | Runtime DB bucket list
 var runtimeBucketNames = []string{
 	"devices", "tasks", "state", "stats",
-	"edgex_nodes", "edgex_devices", "edgex_points",
-	"edgex_data", "edgex_alerts", "middlewares", "edgex_commands",
+	"edgeCore_nodes", "edgeCore_devices", "edgeCore_points",
+	"edgeCore_data", "edgeCore_alerts", "middlewares", "edgeCore_commands",
 }
 
 // configBucketMap 用于判断 bucket 是否属于配置库 | Map for config bucket classification

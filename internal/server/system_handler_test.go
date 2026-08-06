@@ -78,22 +78,22 @@ func TestHandleExportConfig_WithNodesAndMappings(t *testing.T) {
 		PointService: services.NewPointService(db),
 	}
 
-	require.NoError(t, registrySvc.UpsertNode(&model.EdgeXNodeInfo{
-		NodeID:   "edgex-node-001",
-		NodeName: "EdgeX Node 1",
+	require.NoError(t, registrySvc.UpsertNode(&model.EdgeCoreNodeInfo{
+		NodeID:   "edgeCore-node-001",
+		NodeName: "edgeCore Node 1",
 		Status:   "online",
 	}))
 
-	require.NoError(t, dataSvc.DeviceSvc.UpsertDevice("edgex-node-001", &model.EdgeXDeviceInfo{
+	require.NoError(t, dataSvc.DeviceSvc.UpsertDevice("edgeCore-node-001", &model.EdgeCoreDeviceInfo{
 		DeviceID:       "bacnet-2228316",
 		DeviceName:     "BACnet Device 2228316",
 		OperatingState: "enabled",
 	}))
 
-	require.NoError(t, dataSvc.PointService.UpsertPoint("edgex-node-001", "bacnet-2228316", &model.EdgeXPointInfo{
-		PointID:  "AnalogInput:0",
+	require.NoError(t, dataSvc.PointService.UpsertPoint("edgeCore-node-001", "bacnet-2228316", &model.EdgeCorePointInfo{
+		PointID:   "AnalogInput:0",
 		PointName: "Temperature",
-		DeviceID: "bacnet-2228316",
+		DeviceID:  "bacnet-2228316",
 		PointType: "analog_input",
 		DataType:  "float",
 	}))
@@ -119,7 +119,7 @@ func TestHandleExportConfig_WithNodesAndMappings(t *testing.T) {
 
 	// 验证运行时映射关系 | Verify runtime mappings
 	require.Len(t, export.Runtime.Nodes, 1)
-	assert.Equal(t, "edgex-node-001", export.Runtime.Nodes[0].NodeID)
+	assert.Equal(t, "edgeCore-node-001", export.Runtime.Nodes[0].NodeID)
 
 	require.Len(t, export.Runtime.Devices, 1)
 	assert.Equal(t, "bacnet-2228316", export.Runtime.Devices[0].DeviceID)
@@ -147,16 +147,16 @@ func TestHandleExportConfig_MultipleNodesDevices(t *testing.T) {
 	// 创建多个节点和设备映射 | Create multiple nodes and device mappings
 	for i := 0; i < 3; i++ {
 		nodeID := "node-" + string(rune('A'+i))
-		require.NoError(t, registrySvc.UpsertNode(&model.EdgeXNodeInfo{
+		require.NoError(t, registrySvc.UpsertNode(&model.EdgeCoreNodeInfo{
 			NodeID: nodeID,
 			Status: "online",
 		}))
 		for j := 0; j < 2; j++ {
 			devID := "dev-" + string(rune('A'+i)) + string(rune('0'+j))
-			require.NoError(t, dataSvc.DeviceSvc.UpsertDevice(nodeID, &model.EdgeXDeviceInfo{
+			require.NoError(t, dataSvc.DeviceSvc.UpsertDevice(nodeID, &model.EdgeCoreDeviceInfo{
 				DeviceID: devID,
 			}))
-			require.NoError(t, dataSvc.PointService.UpsertPoint(nodeID, devID, &model.EdgeXPointInfo{
+			require.NoError(t, dataSvc.PointService.UpsertPoint(nodeID, devID, &model.EdgeCorePointInfo{
 				PointID:  "point-" + devID,
 				DeviceID: devID,
 			}))

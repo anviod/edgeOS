@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { Radio, Trash2, Edit3, PlugZap, RefreshCw } from 'lucide-vue-next'
 import StatusBadge from './StatusBadge.vue'
-import type { MiddlewareConfig } from '@/types/edgex'
+import type { MiddlewareConfig } from '@/types/edgeCore'
 
 const props = defineProps<{
   middleware: MiddlewareConfig

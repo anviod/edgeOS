@@ -1,6 +1,6 @@
 #!/bin/bash
-# EdgeOS 与 EdgeX 通信测试脚本
-# 用法: ./test_edgex_flows.sh [flow_name]
+# EdgeOS 与 edgeCore 通信测试脚本
+# 用法: ./test_edgeCore_flows.sh [flow_name]
 # flow_name: register|heartbeat|devices|points|data|command|all
 #
 # 前提条件:
@@ -10,9 +10,9 @@
 
 MQTT_HOST="${MQTT_HOST:-127.0.0.1}"
 MQTT_PORT="${MQTT_PORT:-1883}"
-NODE_ID="${NODE_ID:-edgex-node-001}"
+NODE_ID="${NODE_ID:-edgeCore-node-001}"
 DEVICE_ID="${DEVICE_ID:-Room_FC_2014_19}"
-TOPIC_PREFIX="edgex"
+TOPIC_PREFIX="edgeCore"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -35,11 +35,11 @@ log_error() {
 # 测试节点注册流程
 test_node_register() {
     log_info "========== 测试节点注册流程 =========="
-    log_info "订阅主题: edgex/nodes/register (接收注册请求)"
-    log_info "发布主题: edgex/nodes/register (模拟 EdgeX 节点注册)"
-    log_info "订阅主题: edgex/nodes/${NODE_ID}/response (接收注册响应)"
+    log_info "订阅主题: edgeCore/nodes/register (接收注册请求)"
+    log_info "发布主题: edgeCore/nodes/register (模拟 edgeCore 节点注册)"
+    log_info "订阅主题: edgeCore/nodes/${NODE_ID}/response (接收注册响应)"
 
-    # 模拟 EdgeX 节点发布注册消息
+    # 模拟 edgeCore 节点发布注册消息
     REGISTER_MSG='{
         "header": {
             "message_id": "test-msg-001",
@@ -57,7 +57,7 @@ test_node_register() {
     }'
 
     log_info "发布节点注册消息..."
-    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgex/nodes/register" -m "$REGISTER_MSG" -d
+    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgeCore/nodes/register" -m "$REGISTER_MSG" -d
     log_info "节点注册消息已发送"
     log_info "请检查 EdgeOS 日志确认节点是否注册成功"
 }
@@ -65,7 +65,7 @@ test_node_register() {
 # 测试心跳流程
 test_node_heartbeat() {
     log_info "========== 测试节点心跳流程 =========="
-    log_info "发布主题: edgex/nodes/${NODE_ID}/heartbeat"
+    log_info "发布主题: edgeCore/nodes/${NODE_ID}/heartbeat"
 
     HEARTBEAT_MSG='{
         "header": {
@@ -80,14 +80,14 @@ test_node_heartbeat() {
     }'
 
     log_info "发布心跳消息..."
-    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgex/nodes/${NODE_ID}/heartbeat" -m "$HEARTBEAT_MSG" -d
+    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgeCore/nodes/${NODE_ID}/heartbeat" -m "$HEARTBEAT_MSG" -d
     log_info "心跳消息已发送"
 }
 
 # 测试设备列表同步流程
 test_device_sync() {
     log_info "========== 测试设备列表同步流程 =========="
-    log_info "发布主题: edgex/devices/report"
+    log_info "发布主题: edgeCore/devices/report"
 
     DEVICE_MSG='{
         "header": {
@@ -120,14 +120,14 @@ test_device_sync() {
     }'
 
     log_info "发布设备列表同步消息..."
-    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgex/devices/report" -m "$DEVICE_MSG" -d
+    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgeCore/devices/report" -m "$DEVICE_MSG" -d
     log_info "设备列表同步消息已发送"
 }
 
 # 测试点位列表同步流程
 test_point_sync() {
     log_info "========== 测试点位列表同步流程 =========="
-    log_info "发布主题: edgex/points/report"
+    log_info "发布主题: edgeCore/points/report"
 
     POINT_MSG='{
         "header": {
@@ -183,14 +183,14 @@ test_point_sync() {
     }'
 
     log_info "发布点位列表同步消息..."
-    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgex/points/report" -m "$POINT_MSG" -d
+    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgeCore/points/report" -m "$POINT_MSG" -d
     log_info "点位列表同步消息已发送"
 }
 
 # 测试实时数据更新流程
 test_realtime_data() {
     log_info "========== 测试实时数据更新流程 =========="
-    log_info "发布主题: edgex/data/${NODE_ID}/${DEVICE_ID}"
+    log_info "发布主题: edgeCore/data/${NODE_ID}/${DEVICE_ID}"
 
     # 全量数据快照
     DATA_MSG_FULL='{
@@ -217,7 +217,7 @@ test_realtime_data() {
     }'
 
     log_info "发布全量数据快照..."
-    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgex/data/${NODE_ID}/${DEVICE_ID}" -m "$DATA_MSG_FULL" -d
+    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgeCore/data/${NODE_ID}/${DEVICE_ID}" -m "$DATA_MSG_FULL" -d
 
     # 差量数据更新
     sleep 2
@@ -242,17 +242,17 @@ test_realtime_data() {
     }'
 
     log_info "发布差量数据更新..."
-    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgex/data/${NODE_ID}/${DEVICE_ID}" -m "$DATA_MSG_DELTA" -d
+    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgeCore/data/${NODE_ID}/${DEVICE_ID}" -m "$DATA_MSG_DELTA" -d
     log_info "实时数据更新消息已发送"
 }
 
 # 测试命令下发流程
 test_command() {
     log_info "========== 测试命令下发流程 =========="
-    log_info "订阅主题: edgex/commands/response (接收命令响应)"
+    log_info "订阅主题: edgeCore/commands/response (接收命令响应)"
 
     # 先订阅命令响应
-    log_info "请在另一个终端执行: mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgex/commands/response\" -v"
+    log_info "请在另一个终端执行: mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgeCore/commands/response\" -v"
 
     COMMAND_MSG='{
         "header": {
@@ -271,15 +271,15 @@ test_command() {
     }'
 
     log_info "发布命令消息..."
-    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgex/cmd/${NODE_ID}/${DEVICE_ID}/write" -m "$COMMAND_MSG" -d
+    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgeCore/cmd/${NODE_ID}/${DEVICE_ID}/write" -m "$COMMAND_MSG" -d
     log_info "命令消息已发送"
-    log_info "请检查 EdgeX 是否收到命令并响应"
+    log_info "请检查 edgeCore 是否收到命令并响应"
 }
 
 # 测试节点注销流程
 test_node_unregister() {
     log_info "========== 测试节点注销流程 =========="
-    log_info "发布主题: edgex/nodes/unregister"
+    log_info "发布主题: edgeCore/nodes/unregister"
 
     UNREGISTER_MSG='{
         "header": {
@@ -294,7 +294,7 @@ test_node_unregister() {
     }'
 
     log_info "发布节点注销消息..."
-    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgex/nodes/unregister" -m "$UNREGISTER_MSG" -d
+    mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -t "edgeCore/nodes/unregister" -m "$UNREGISTER_MSG" -d
     log_info "节点注销消息已发送"
 }
 
@@ -325,24 +325,24 @@ test_all() {
 show_subscribe_help() {
     log_info "========== MQTT 订阅命令参考 =========="
     echo ""
-    echo "订阅所有 EdgeX 相关主题:"
-    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgex/#\" -v"
+    echo "订阅所有 edgeCore 相关主题:"
+    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgeCore/#\" -v"
     echo ""
     echo "分别订阅各个主题:"
-    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgex/nodes/register\" -v"
-    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgex/nodes/+/heartbeat\" -v"
-    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgex/devices/report\" -v"
-    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgex/points/report\" -v"
-    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgex/data/#\" -v"
-    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgex/cmd/+/+/write\" -v"
-    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgex/commands/response\" -v"
+    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgeCore/nodes/register\" -v"
+    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgeCore/nodes/+/heartbeat\" -v"
+    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgeCore/devices/report\" -v"
+    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgeCore/points/report\" -v"
+    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgeCore/data/#\" -v"
+    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgeCore/cmd/+/+/write\" -v"
+    echo "  mosquitto_sub -h $MQTT_HOST -p $MQTT_PORT -t \"edgeCore/commands/response\" -v"
     echo ""
 }
 
 # 主函数
 main() {
     echo ""
-    log_info "EdgeOS 与 EdgeX 通信测试脚本"
+    log_info "EdgeOS 与 edgeCore 通信测试脚本"
     log_info "MQTT Broker: $MQTT_HOST:$MQTT_PORT"
     log_info "测试节点: $NODE_ID"
     log_info "测试设备: $DEVICE_ID"

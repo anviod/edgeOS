@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
@@ -103,7 +104,9 @@ func TestHandleInstall_Success(t *testing.T) {
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
 	assert.Equal(t, "0", body.Code)
 	assert.Equal(t, "installed", body.Data.Status)
-	assert.True(t, restartCalled, "restart callback must be triggered after install")
+	// restart 通过 go restart() 异步触发，需要轮询等待 goroutine 执行 | restart runs in a goroutine, poll until triggered
+	require.Eventually(t, func() bool { return restartCalled }, 2*time.Second, 20*time.Millisecond,
+		"restart callback must be triggered after install")
 
 	// 安装后 config.db 应有业务数据（后续重启不再进入安装引导）
 	cs, err := storage.NewConfigStore(db)

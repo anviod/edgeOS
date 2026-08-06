@@ -10,7 +10,7 @@ import (
 	"github.com/anviod/edgeOS/internal/model"
 )
 
-const bucketNodes = "edgex_nodes"
+const bucketNodes = "edgeCore_nodes"
 
 // RegistryService 节点注册服务
 type RegistryService struct {
@@ -23,7 +23,7 @@ func NewRegistryService(db *bbolt.DB) *RegistryService {
 }
 
 // UpsertNode 幂等注册/更新节点
-func (s *RegistryService) UpsertNode(node *model.EdgeXNodeInfo) error {
+func (s *RegistryService) UpsertNode(node *model.EdgeCoreNodeInfo) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(bucketNodes))
 		if err != nil {
@@ -32,7 +32,7 @@ func (s *RegistryService) UpsertNode(node *model.EdgeXNodeInfo) error {
 		// 检查已有记录
 		existing := b.Get([]byte(node.NodeID))
 		if existing != nil {
-			var n model.EdgeXNodeInfo
+			var n model.EdgeCoreNodeInfo
 			if json.Unmarshal(existing, &n) == nil {
 				// 保留 access_token 和 expires_at
 				if node.AccessToken == "" {
@@ -61,7 +61,7 @@ func (s *RegistryService) UpdateNodeStatus(nodeID, status string) error {
 		if v == nil {
 			return fmt.Errorf("node not found: %s", nodeID)
 		}
-		var node model.EdgeXNodeInfo
+		var node model.EdgeCoreNodeInfo
 		if err := json.Unmarshal(v, &node); err != nil {
 			return err
 		}
@@ -76,8 +76,8 @@ func (s *RegistryService) UpdateNodeStatus(nodeID, status string) error {
 }
 
 // GetNode 获取节点
-func (s *RegistryService) GetNode(nodeID string) (*model.EdgeXNodeInfo, error) {
-	var node model.EdgeXNodeInfo
+func (s *RegistryService) GetNode(nodeID string) (*model.EdgeCoreNodeInfo, error) {
+	var node model.EdgeCoreNodeInfo
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucketNodes))
 		if b == nil {
@@ -93,15 +93,15 @@ func (s *RegistryService) GetNode(nodeID string) (*model.EdgeXNodeInfo, error) {
 }
 
 // ListNodes 列出所有节点
-func (s *RegistryService) ListNodes() ([]*model.EdgeXNodeInfo, error) {
-	var nodes []*model.EdgeXNodeInfo
+func (s *RegistryService) ListNodes() ([]*model.EdgeCoreNodeInfo, error) {
+	var nodes []*model.EdgeCoreNodeInfo
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucketNodes))
 		if b == nil {
 			return nil
 		}
 		return b.ForEach(func(k, v []byte) error {
-			var node model.EdgeXNodeInfo
+			var node model.EdgeCoreNodeInfo
 			if err := json.Unmarshal(v, &node); err != nil {
 				return nil
 			}
@@ -110,7 +110,7 @@ func (s *RegistryService) ListNodes() ([]*model.EdgeXNodeInfo, error) {
 		})
 	})
 	if nodes == nil {
-		nodes = []*model.EdgeXNodeInfo{}
+		nodes = []*model.EdgeCoreNodeInfo{}
 	}
 	return nodes, err
 }
@@ -136,7 +136,7 @@ func (s *RegistryService) CountNodes() (int, int) {
 		}
 		return b.ForEach(func(k, v []byte) error {
 			total++
-			var node model.EdgeXNodeInfo
+			var node model.EdgeCoreNodeInfo
 			if json.Unmarshal(v, &node) == nil && node.Status == "online" {
 				online++
 			}
@@ -171,7 +171,7 @@ func (s *RegistryService) EnsureNodeOnline(nodeID, nodeName, protocol string) er
 		return s.UpsertNode(existing)
 	}
 
-	return s.UpsertNode(&model.EdgeXNodeInfo{
+	return s.UpsertNode(&model.EdgeCoreNodeInfo{
 		NodeID:   nodeID,
 		NodeName: nodeName,
 		Protocol: protocol,

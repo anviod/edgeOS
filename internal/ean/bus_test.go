@@ -88,8 +88,8 @@ func TestBusDiscoveryFlow(t *testing.T) {
 
 	// Step 1: Agent 上线
 	agent := AgentDescriptor{
-		ID:                   "edgex-node-001",
-		Kind:                 "edgex",
+		ID:                   "edgeCore-node-001",
+		Kind:                 "edgeCore",
 		Version:              "2.3",
 		Status:               AgentOnline,
 		HeartbeatIntervalSec: 10,
@@ -99,16 +99,16 @@ func TestBusDiscoveryFlow(t *testing.T) {
 	suite.dc.HandleAgentOnline(TopicDiscoveryAgent, agentPayload, "mqtt")
 
 	// 验证 Agent 索引
-	a, ok := suite.dc.GetAgent("edgex-node-001")
+	a, ok := suite.dc.GetAgent("edgeCore-node-001")
 	require.True(t, ok)
 	assert.Equal(t, AgentOnline, a.Status)
-	assert.Equal(t, "edgex", a.Kind)
+	assert.Equal(t, "edgeCore", a.Kind)
 	assert.Equal(t, 1, suite.dc.OnlineAgentCount())
 
 	// Step 2: Capability 注册
 	cap1 := CapabilityDescriptor{
 		ID:          "modbus-tcp.read_points",
-		AgentID:     "edgex-node-001",
+		AgentID:     "edgeCore-node-001",
 		Description: "Read Modbus TCP register points",
 		Category:    CapabilityCategoryDriver,
 		TimeoutSec:  30,
@@ -119,7 +119,7 @@ func TestBusDiscoveryFlow(t *testing.T) {
 
 	cap2 := CapabilityDescriptor{
 		ID:          "modbus-tcp.write_point",
-		AgentID:     "edgex-node-001",
+		AgentID:     "edgeCore-node-001",
 		Description: "Write Modbus TCP register point",
 		Category:    CapabilityCategoryDriver,
 		TimeoutSec:  15,
@@ -129,7 +129,7 @@ func TestBusDiscoveryFlow(t *testing.T) {
 	suite.dc.HandleCapability(TopicDiscoveryCapability, cap2Payload, "mqtt")
 
 	// 验证 capability 索引
-	caps := suite.dc.GetCapabilitiesByAgent("edgex-node-001")
+	caps := suite.dc.GetCapabilitiesByAgent("edgeCore-node-001")
 	assert.Len(t, caps, 2)
 
 	c1, ok := suite.dc.GetCapability("modbus-tcp.read_points")
@@ -149,8 +149,8 @@ func TestBusInvokeFlow(t *testing.T) {
 
 	// 注册 agent
 	agent := AgentDescriptor{
-		ID:                   "edgex-node-001",
-		Kind:                 "edgex",
+		ID:                   "edgeCore-node-001",
+		Kind:                 "edgeCore",
 		HeartbeatIntervalSec: 10,
 	}
 	agentPayload, _ := json.Marshal(agent)
@@ -159,7 +159,7 @@ func TestBusInvokeFlow(t *testing.T) {
 	// 注册 capability
 	cap := CapabilityDescriptor{
 		ID:          "modbus.read_points",
-		AgentID:     "edgex-node-001",
+		AgentID:     "edgeCore-node-001",
 		Category:    CapabilityCategoryDriver,
 		TimeoutSec:  30,
 	}
@@ -184,7 +184,7 @@ func TestBusInvokeFlow(t *testing.T) {
 	// 发起 Invoke
 	resultCh := make(chan *InvokeCall, 1)
 	go func() {
-		call := io.Invoke(context.Background(), "edgex-node-001", "modbus.read_points",
+		call := io.Invoke(context.Background(), "edgeCore-node-001", "modbus.read_points",
 			map[string]interface{}{"device": "PLC-1", "point": "Temperature"},
 			5*time.Second)
 		resultCh <- call
@@ -198,7 +198,7 @@ func TestBusInvokeFlow(t *testing.T) {
 	}
 
 	// 验证 topic
-	assert.Equal(t, "$edgeos/invoke/edgex-node-001", capturedTopic)
+	assert.Equal(t, "$edgeos/invoke/edgeCore-node-001", capturedTopic)
 
 	// 解析 invoke_id
 	var msg Message
@@ -208,7 +208,7 @@ func TestBusInvokeFlow(t *testing.T) {
 	invokeID := req.InvokeID
 	assert.NotEmpty(t, invokeID)
 
-	// 模拟 EdgeX 回复
+	// 模拟 edgeCore 回复
 	resp := InvokeResponse{
 		InvokeID: invokeID,
 		Status:   "success",
@@ -224,7 +224,7 @@ func TestBusInvokeFlow(t *testing.T) {
 		Header: MessageHeader{
 			MessageID:      "reply-001",
 			Timestamp:      time.Now().UnixMilli(),
-			Source:         "edgex-node-001",
+			Source:         "edgeCore-node-001",
 			MessageType:     "invoke_reply",
 			Version:        "2.0",
 			CorrelationID:  invokeID,
@@ -260,7 +260,7 @@ func TestBusEventFlow(t *testing.T) {
 	// 模拟含 previous_value 的事件
 	event := map[string]interface{}{
 		"event_type":     "point.changed",
-		"agent_id":        "edgex-node-001",
+		"agent_id":        "edgeCore-node-001",
 		"device_id":       "PLC-1",
 		"point_id":        "Temperature",
 		"value":           float64(26.0),
@@ -269,11 +269,11 @@ func TestBusEventFlow(t *testing.T) {
 	}
 	payload, _ := json.Marshal(event)
 
-	ec.HandleEvent("$edgeos/event/edgex-node-001", payload, "mqtt")
+	ec.HandleEvent("$edgeos/event/edgeCore-node-001", payload, "mqtt")
 
 	// 验证解析
 	require.NotNil(t, received)
-	assert.Equal(t, "edgex-node-001", received.AgentID)
+	assert.Equal(t, "edgeCore-node-001", received.AgentID)
 	assert.Equal(t, "PLC-1", received.DeviceID)
 	assert.Equal(t, "Temperature", received.PointID)
 	assert.Equal(t, float64(26.0), received.Value)
@@ -302,32 +302,32 @@ func TestBusHeartbeatTimeout(t *testing.T) {
 
 	// Step 1: Agent 上线
 	agent := AgentDescriptor{
-		ID:                   "edgex-node-001",
-		Kind:                 "edgex",
+		ID:                   "edgeCore-node-001",
+		Kind:                 "edgeCore",
 		HeartbeatIntervalSec: 10,
 		Metadata:             make(map[string]string),
 	}
 	agentPayload, _ := json.Marshal(agent)
 	dc.HandleAgentOnline(TopicDiscoveryAgent, agentPayload, "mqtt")
-	assert.Equal(t, AgentOnline, dc.agents["edgex-node-001"].Status)
+	assert.Equal(t, AgentOnline, dc.agents["edgeCore-node-001"].Status)
 
 	// Step 2: 发送心跳
 	hb := HeartbeatPayload{
-		AgentID:   "edgex-node-001",
+		AgentID:   "edgeCore-node-001",
 		Status:    "alive",
 		Timestamp: time.Now().Unix(),
 		Sequence:  1,
 	}
 	hbPayload, _ := json.Marshal(hb)
-	hm.HandleHeartbeat("$edgeos/heartbeat/edgex-node-001", hbPayload, "mqtt")
+	hm.HandleHeartbeat("$edgeos/heartbeat/edgeCore-node-001", hbPayload, "mqtt")
 
-	state, ok := hm.GetAgentHeartbeat("edgex-node-001")
+	state, ok := hm.GetAgentHeartbeat("edgeCore-node-001")
 	require.True(t, ok)
 	assert.Equal(t, 10, state.IntervalSec) // 从 discovery 获取
 
 	// Step 3: 手动设置 lastSeen 为过去时间，让下次检查超时
 	hm.mu.Lock()
-	if s, exists := hm.agents["edgex-node-001"]; exists {
+	if s, exists := hm.agents["edgeCore-node-001"]; exists {
 		s.LastSeen = time.Now().Add(-30 * time.Second) // 30s > 10s * 1x
 		s.IntervalSec = 10
 	}
@@ -340,13 +340,13 @@ func TestBusHeartbeatTimeout(t *testing.T) {
 	// 等待超时回调
 	select {
 	case id := <-timeoutCh:
-		assert.Equal(t, "edgex-node-001", id)
+		assert.Equal(t, "edgeCore-node-001", id)
 	case <-time.After(2 * time.Second):
 		t.Fatal("heartbeat timeout not triggered")
 	}
 
 	// Step 5: 验证 Agent 被标记为 offline
-	a, ok := dc.GetAgent("edgex-node-001")
+	a, ok := dc.GetAgent("edgeCore-node-001")
 	require.True(t, ok)
 	assert.Equal(t, AgentOffline, a.Status)
 }
@@ -368,7 +368,7 @@ func TestBusConcurrentSafety(t *testing.T) {
 		go func(idx int) {
 			defer wg.Done()
 
-			agent := AgentDescriptor{ID: fmt.Sprintf("agent-%d", idx), Kind: "edgex"}
+			agent := AgentDescriptor{ID: fmt.Sprintf("agent-%d", idx), Kind: "edgeCore"}
 			payload, _ := json.Marshal(agent)
 			dc.HandleAgentOnline(TopicDiscoveryAgent, payload, "mqtt")
 

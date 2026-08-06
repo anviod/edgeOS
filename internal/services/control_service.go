@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const bucketCommands = "edgex_commands"
+const bucketCommands = "edgeCore_commands"
 
 // ControlService 设备控制服务（命令下发 + 响应追踪）
 type ControlService struct {

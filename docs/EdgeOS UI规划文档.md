@@ -8,10 +8,10 @@ description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
 
 > 本文档按照 EdgeOS 四个核心功能的顺序规划前端界面：
 > 1. **消息总线管理**（UI 添加 MQTT/NATS 连接）
-> 2. **EdgeX 节点注册**（注册状态监控）
-> 3. **EdgeX 子设备列表同步**（设备列表管理）
-> 4. **EdgeX 子设备点位同步**（点位查看与实时数据）
-> 5. **EdgeX 子设备双向控制**（命令下发与响应追踪）
+> 2. **edgeCore 节点注册**（注册状态监控）
+> 3. **edgeCore 子设备列表同步**（设备列表管理）
+> 4. **edgeCore 子设备点位同步**（点位查看与实时数据）
+> 5. **edgeCore 子设备双向控制**（命令下发与响应追踪）
 
 ---
 
@@ -20,7 +20,7 @@ description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
 1. [设计规范](#1-设计规范)
 2. [路由结构](#2-路由结构)
 3. [功能一：消息总线管理](#3-功能一消息总线管理)
-4. [功能二：EdgeX 节点注册](#4-功能二edgex-节点注册)
+4. [功能二：edgeCore 节点注册](#4-功能二edgeCore-节点注册)
 5. [功能三：子设备列表同步](#5-功能三子设备列表同步)
 6. [功能四：子设备点位同步](#6-功能四子设备点位同步)
 7. [功能五：子设备双向控制](#7-功能五子设备双向控制)
@@ -82,7 +82,7 @@ description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
 ├── /middlewares                → 消息总线列表
 │   ├── /middlewares/add        → 添加连接（表单页或弹窗）
 │   └── /middlewares/:id        → 连接详情与订阅主题状态
-├── /nodes                      → EdgeX 节点列表
+├── /nodes                      → edgeCore 节点列表
 │   └── /nodes/:nodeId          → 节点详情（设备列表入口）
 ├── /nodes/:nodeId/devices      → 子设备列表
 │   └── /nodes/:nodeId/devices/:deviceId → 设备详情（点位列表入口）
@@ -99,7 +99,7 @@ description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
 ```
 ◎ 总览
 ─ 消息总线     [+]  ← 核心入口，支持 MQTT/NATS 添加
-─ EdgeX 节点          ← 注册状态
+─ edgeCore 节点          ← 注册状态
 ─ 子设备管理          ← 设备列表同步
 ─ 点位监控            ← 点位同步 + 实时数据
 ─ 设备控制       [!]  ← 双向控制（告警角标）
@@ -267,35 +267,35 @@ description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
 │  生产 MQTT · 已连接 ●                   [断开] [编辑]       │
 ├─────────────────────────┬──────────────────────────────────┤
 │ 连接信息                │  已订阅主题列表                   │
-│ 地址: tcp://127.0.0.1   │  edgex/nodes/register      ● 活跃 │
-│ 端口: 1883              │  edgex/nodes/unregister    ● 活跃 │
-│ ClientID: edgeos-001    │  edgex/devices/report      ● 活跃 │
-│ QoS: 1                 │  edgex/points/report       ● 活跃 │
-│                         │  edgex/data/#              ● 活跃 │
-│ 统计                    │  edgex/nodes/+/heartbeat   ● 活跃 │
-│ 接收消息: 1,243         │  edgex/nodes/+/status      ● 活跃 │
-│ 发送消息: 87            │  edgex/events/alert        ● 活跃 │
-│ 重连次数: 0             │  edgex/responses/#         ● 活跃 │
+│ 地址: tcp://127.0.0.1   │  edgeCore/nodes/register      ● 活跃 │
+│ 端口: 1883              │  edgeCore/nodes/unregister    ● 活跃 │
+│ ClientID: edgeos-001    │  edgeCore/devices/report      ● 活跃 │
+│ QoS: 1                 │  edgeCore/points/report       ● 活跃 │
+│                         │  edgeCore/data/#              ● 活跃 │
+│ 统计                    │  edgeCore/nodes/+/heartbeat   ● 活跃 │
+│ 接收消息: 1,243         │  edgeCore/nodes/+/status      ● 活跃 │
+│ 发送消息: 87            │  edgeCore/events/alert        ● 活跃 │
+│ 重连次数: 0             │  edgeCore/responses/#         ● 活跃 │
 └─────────────────────────┴──────────────────────────────────┘
 ```
 
 ---
 
-## 4. 功能二：EdgeX 节点注册
+## 4. 功能二：edgeCore 节点注册
 
 ### 4.1 页面：节点列表（`/nodes`）
 
-**职责：** 展示所有通过消息中间件注册的 EdgeX 节点，包含在线状态、能力、上次心跳时间。
+**职责：** 展示所有通过消息中间件注册的 edgeCore 节点，包含在线状态、能力、上次心跳时间。
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│  EdgeX 节点  (共 3 个 · 在线 2 · 离线 1)      [刷新] [触发发现]  │
+│  edgeCore 节点  (共 3 个 · 在线 2 · 离线 1)      [刷新] [触发发现]  │
 ├──────────────────────────────────────────────────────────────────┤
 │  节点ID            名称            协议           状态  最后心跳  │
 │  ─────────────────────────────────────────────────────────────── │
-│  edgex-node-001   EdgeX Gateway   edgeOS(MQTT)  ● 在线  3s前    │
-│  edgex-node-002   EdgeX Gateway2  edgeOS(NATS)  ● 在线  8s前    │
-│  edgex-node-003   老版网关         edgeOS(MQTT)  ○ 离线  5m前    │
+│  edgeCore-node-001   edgeCore Gateway   edgeOS(MQTT)  ● 在线  3s前    │
+│  edgeCore-node-002   edgeCore Gateway2  edgeOS(NATS)  ● 在线  8s前    │
+│  edgeCore-node-003   老版网关         edgeOS(MQTT)  ○ 离线  5m前    │
 │                                                                  │
 │  点击行 → 查看节点详情 / 子设备列表                               │
 └──────────────────────────────────────────────────────────────────┘
@@ -305,8 +305,8 @@ description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
 
 ```
 ┌──────────────────────────────────────┐
-│ ● 新节点已注册: edgex-node-004       │
-│   EdgeX Gateway Node · edgeOS(MQTT)  │
+│ ● 新节点已注册: edgeCore-node-004       │
+│   edgeCore Gateway Node · edgeOS(MQTT)  │
 │                            [查看]    │
 └──────────────────────────────────────┘
 ```
@@ -315,10 +315,10 @@ description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│  ← 节点列表  /  edgex-node-001                             │
+│  ← 节点列表  /  edgeCore-node-001                             │
 ├────────────────┬───────────────────────────────────────────┤
 │  基本信息       │  资源监控                                  │
-│  ID: edgex-001 │  CPU: ████░░░░ 25%                        │
+│  ID: edgeCore-001 │  CPU: ████░░░░ 25%                        │
 │  名称: Gateway  │  内存: ██████░░ 512MB                    │
 │  协议: MQTT     │  磁盘: ███░░░░░ 45%                       │
 │  版本: 1.0.0   │  活跃设备: 10 / 活跃任务: 5               │
@@ -356,7 +356,7 @@ description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  ← edgex-node-001  /  子设备列表 (共 10 台)                      │
+│  ← edgeCore-node-001  /  子设备列表 (共 10 台)                      │
 │                                [触发设备发现] [请求同步] [刷新]   │
 ├───────┬──────────────┬───────────┬──────┬───────────┬──────────┤
 │ 设备ID │ 设备名称      │ 配置文件  │ 状态  │ 最后更新   │  操作  │
@@ -373,7 +373,7 @@ description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
 ┌───────────────────────────────────┐
 │  触发设备发现                 [×]  │
 │                                   │
-│  目标节点: edgex-node-001         │
+│  目标节点: edgeCore-node-001         │
 │  协议类型: [modbus-tcp      ▼]    │
 │  网络范围: [192.168.1.0/24  ]     │
 │  超时时间: [30] 秒                │
@@ -386,7 +386,7 @@ description: EdgeOS 前端信息架构、页面规划与模块化编排说明。
 
 ### 5.2 设备同步实时反馈
 
-收到 `edgex/devices/report` 消息时，设备列表自动刷新，新增设备闪烁高亮 2 秒：
+收到 `edgeCore/devices/report` 消息时，设备列表自动刷新，新增设备闪烁高亮 2 秒：
 
 ```vue
 <!-- src/views/DeviceListView.vue 关键逻辑 -->
@@ -448,7 +448,7 @@ realtime.on('device_synced', (device: Device) => {
  数据质量 Good/Uncertain/Bad 用行底色区分
 ```
 
-> **「触发全量同步」**按钮：向后端发送 POST，后端向 EdgeX 发布 `edgex/cmd/{node_id}/sync`，触发 EdgeX 重新全量上报物模型数据。
+> **「触发全量同步」**按钮：向后端发送 POST，后端向 edgeCore 发布 `edgeCore/cmd/{node_id}/sync`，触发 edgeCore 重新全量上报物模型数据。
 
 ### 6.3 点位实时卡片视图（切换）
 
@@ -617,7 +617,7 @@ const isChanged = (pointId: string) =>
 ├────────────────────────┬────────────────────────────────────────────┤
 │ 选择目标                │  控制操作                                   │
 │                        │                                            │
-│ 节点: [edgex-node-001▼]│  ── 写入点位 ───────────────────────────── │
+│ 节点: [edgeCore-node-001▼]│  ── 写入点位 ───────────────────────────── │
 │ 设备: [dev-001       ▼]│  点位名称: [Switch              ▼]         │
 │                        │  写入值:   [true                ]           │
 │ 设备状态: ● 在线        │                        [写入并等待响应]       │

@@ -115,7 +115,7 @@ func TestRestartWithoutConfigFile(t *testing.T) {
 			Username:          "user",
 			Password:          "pass",
 			QoS:               1,
-			Subscriptions:     []string{"edgex/nodes/register", "edgex/nodes/heartbeat"},
+			Subscriptions:     []string{"edgeCore/nodes/register", "edgeCore/nodes/heartbeat"},
 			ConnectTimeout:    10,
 			KeepAlive:         30,
 			AutoReconnect:     true,
@@ -186,7 +186,7 @@ func TestRestartWithoutConfigFile(t *testing.T) {
 	if mw.ID != "mw-1" || mw.Broker != "tcp://10.0.0.10:1883" || mw.Username != "user" || mw.Password != "pass" {
 		t.Errorf("middleware not recovered: %+v", mw)
 	}
-	if !reflect.DeepEqual(mw.Subscriptions, []string{"edgex/nodes/register", "edgex/nodes/heartbeat"}) {
+	if !reflect.DeepEqual(mw.Subscriptions, []string{"edgeCore/nodes/register", "edgeCore/nodes/heartbeat"}) {
 		t.Errorf("middleware subscriptions not recovered: %v", mw.Subscriptions)
 	}
 	if !reloaded.EAN.Enabled || reloaded.EAN.PlannerID != "planner-restart" {
@@ -210,7 +210,7 @@ func TestRestartWithoutConfigFile(t *testing.T) {
 }
 
 // TestConvertEANFromDB_HeartbeatDefaultFallback 验证老版本 config.db（无 max_offline_retention_sec）
-// 加载时回退默认离线保留期 600s，确保「EdgeX 关闭 EAN → Agent 自动清除」在旧库上升级后也生效。
+// 加载时回退默认离线保留期 600s，确保「edgeCore 关闭 EAN → Agent 自动清除」在旧库上升级后也生效。
 func TestConvertEANFromDB_HeartbeatDefaultFallback(t *testing.T) {
 	// 模拟老库数据：max_offline_retention_sec 缺省（0），timeout/check_interval 也缺省（0）
 	cfg := convertEANFromDB(storage.EANConfigData{

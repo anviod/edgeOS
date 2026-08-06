@@ -182,14 +182,14 @@ func NewManager(
 	logger *zap.Logger,
 ) *Manager {
 	m := &Manager{
-		middlewareSvc:     middlewareSvc,
-		registrySvc:       registrySvc,
-		dataSvc:           dataSvc,
-		alertSvc:          alertSvc,
-		controlSvc:        controlSvc,
-		hub:               hub,
-		logger:            logger,
-		clients:           make(map[string]*mqttClientEntry),
+		middlewareSvc:    middlewareSvc,
+		registrySvc:      registrySvc,
+		dataSvc:          dataSvc,
+		alertSvc:         alertSvc,
+		controlSvc:       controlSvc,
+		hub:              hub,
+		logger:           logger,
+		clients:          make(map[string]*mqttClientEntry),
 		v1CommandEnabled: false, // Phase 4: V1 命令面全面下线——默认 false
 	}
 	m.initHandlers()
@@ -360,8 +360,8 @@ func (m *Manager) Connect(id string) error {
 		zap.String("broker", broker),
 		zap.Strings("topics", cfg.Subscriptions))
 
-	// 主动发布节点发现请求，触发 EdgeX 重新注册
-	// Active discovery: trigger EdgeX to re-register after we subscribe
+	// 主动发布节点发现请求，触发 edgeCore 重新注册
+	// Active discovery: trigger edgeCore to re-register after we subscribe
 	go func() {
 		time.Sleep(2 * time.Second) // 等待订阅完成 | wait for subscriptions to settle
 		if err := m.PublishNodeDiscoveryTo(id); err != nil {
@@ -449,7 +449,7 @@ func (m *Manager) PublishCommand(nodeID, deviceID, pointID string, value interfa
 		requestID = uuid.New().String()
 	}
 
-	m.logger.Warn("DEPRECATED: V1 command publish (edgex/cmd/{node}/{device}/write); use EAN Invoke",
+	m.logger.Warn("DEPRECATED: V1 command publish (edgeCore/cmd/{node}/{device}/write); use EAN Invoke",
 		zap.String("node_id", nodeID), zap.String("device_id", deviceID))
 
 	payload, err := json.Marshal(map[string]interface{}{
@@ -470,7 +470,7 @@ func (m *Manager) PublishCommand(nodeID, deviceID, pointID string, value interfa
 		return fmt.Errorf("marshal command failed: %w", err)
 	}
 
-	topic := fmt.Sprintf("edgex/cmd/%s/%s/write", nodeID, deviceID)
+	topic := fmt.Sprintf("edgeCore/cmd/%s/%s/write", nodeID, deviceID)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -488,7 +488,7 @@ func (m *Manager) PublishCommand(nodeID, deviceID, pointID string, value interfa
 }
 
 // PublishNodeDiscovery 主动向第一个已连接的中间件发布节点发现请求
-// 触发 EdgeX 节点重新注册：edgex/cmd/nodes/register
+// 触发 edgeCore 节点重新注册：edgeCore/cmd/nodes/register
 // Phase 4 (OS-P4): V1 命令面开关控制；EAN Discovery Query（$edgeos/discovery/query）已替代主动发现。
 func (m *Manager) PublishNodeDiscovery() error {
 	if !m.v1CommandEnabled {
@@ -507,7 +507,7 @@ func (m *Manager) PublishNodeDiscovery() error {
 	if err != nil {
 		return fmt.Errorf("marshal discovery request failed: %w", err)
 	}
-	return m.publishToFirstClient("edgex/cmd/nodes/register", payload)
+	return m.publishToFirstClient("edgeCore/cmd/nodes/register", payload)
 }
 
 // PublishNodeDiscoveryTo 向指定 middlewareID 发布节点发现请求
@@ -536,7 +536,7 @@ func (m *Manager) PublishNodeDiscoveryTo(middlewareID string) error {
 	if err != nil {
 		return fmt.Errorf("marshal discovery request failed: %w", err)
 	}
-	return entry.publishFn("edgex/cmd/nodes/register", payload)
+	return entry.publishFn("edgeCore/cmd/nodes/register", payload)
 }
 
 // subscribeAllTopics 订阅中间件配置的所有主题
@@ -548,72 +548,72 @@ func (m *Manager) subscribeAllTopics(entry *mqttClientEntry) {
 		topic   string
 		handler pahomqtt.MessageHandler
 	}{}
-	// Phase 4 (OS-P4): V1 命令面全面下线（v1_command_enabled=false）时，V1 节点面（edgex/nodes/*）
+	// Phase 4 (OS-P4): V1 命令面全面下线（v1_command_enabled=false）时，V1 节点面（edgeCore/nodes/*）
 	// 一并移除——节点注册/心跳/状态由 EAN Discovery + Registry 镜像替代。
 	// V1 数据面（devices/points/data）与告警（events）始终保留。
-	// | Phase 4: when V1 command plane is off, V1 node plane (edgex/nodes/*) is also removed;
+	// | Phase 4: when V1 command plane is off, V1 node plane (edgeCore/nodes/*) is also removed;
 	// | node register/heartbeat/status superseded by EAN Discovery + registry mirror.
 	if m.v1CommandEnabled {
 		bindings = append(bindings,
 			struct {
 				topic   string
 				handler pahomqtt.MessageHandler
-			}{"edgex/nodes/register", m.nodeHandler.HandleRegister},
+			}{"edgeCore/nodes/register", m.nodeHandler.HandleRegister},
 			struct {
 				topic   string
 				handler pahomqtt.MessageHandler
-			}{"edgex/nodes/+/heartbeat", m.nodeHandler.HandleHeartbeat},
+			}{"edgeCore/nodes/+/heartbeat", m.nodeHandler.HandleHeartbeat},
 			struct {
 				topic   string
 				handler pahomqtt.MessageHandler
-			}{"edgex/nodes/+/status", m.nodeHandler.HandleHeartbeat},
+			}{"edgeCore/nodes/+/status", m.nodeHandler.HandleHeartbeat},
 			struct {
 				topic   string
 				handler pahomqtt.MessageHandler
-			}{"edgex/nodes/unregister", m.nodeHandler.HandleUnregister},
+			}{"edgeCore/nodes/unregister", m.nodeHandler.HandleUnregister},
 		)
 	}
 	bindings = append(bindings,
 		struct {
 			topic   string
 			handler pahomqtt.MessageHandler
-		}{"edgex/devices/report", m.deviceHandler.HandleDeviceReport},
+		}{"edgeCore/devices/report", m.deviceHandler.HandleDeviceReport},
 		struct {
 			topic   string
 			handler pahomqtt.MessageHandler
-		}{"edgex/devices/+/+/online", m.deviceHandler.HandleDeviceOnline},
+		}{"edgeCore/devices/+/+/online", m.deviceHandler.HandleDeviceOnline},
 		struct {
 			topic   string
 			handler pahomqtt.MessageHandler
-		}{"edgex/devices/+/+/offline", m.deviceHandler.HandleDeviceOffline},
+		}{"edgeCore/devices/+/+/offline", m.deviceHandler.HandleDeviceOffline},
 		struct {
 			topic   string
 			handler pahomqtt.MessageHandler
-		}{"edgex/points/report", m.pointHandler.HandlePointReport},
+		}{"edgeCore/points/report", m.pointHandler.HandlePointReport},
 		struct {
 			topic   string
 			handler pahomqtt.MessageHandler
-		}{"edgex/points/+/+", m.pointHandler.HandlePointSync},
+		}{"edgeCore/points/+/+", m.pointHandler.HandlePointSync},
 		struct {
 			topic   string
 			handler pahomqtt.MessageHandler
-		}{"edgex/data/+/+", m.pointHandler.HandleRealtimeData},
+		}{"edgeCore/data/+/+", m.pointHandler.HandleRealtimeData},
 		struct {
 			topic   string
 			handler pahomqtt.MessageHandler
-		}{"edgex/events/alert", m.handleAlert},
+		}{"edgeCore/events/alert", m.handleAlert},
 		struct {
 			topic   string
 			handler pahomqtt.MessageHandler
-		}{"edgex/events/error", m.handleAlert},
+		}{"edgeCore/events/error", m.handleAlert},
 		struct {
 			topic   string
 			handler pahomqtt.MessageHandler
-		}{"edgex/events/info", m.handleAlert},
-		// Phase 4 (OS-P4): V1 命令响应 Topic（edgex/cmd/responses/#）已移除——命令统一走 EAN Invoke。
+		}{"edgeCore/events/info", m.handleAlert},
+		// Phase 4 (OS-P4): V1 命令响应 Topic（edgeCore/cmd/responses/#）已移除——命令统一走 EAN Invoke。
 		// | V1 command response topic removed; commands use EAN Invoke exclusively.
-		// EAN 2.0 主题订阅：接收 EdgeX 北向 EAN 事件（设备上下线、点位变化）
-		// EAN 2.0 topic subscription: receive EdgeX northbound EAN events
+		// EAN 2.0 主题订阅：接收 edgeCore 北向 EAN 事件（设备上下线、点位变化）
+		// EAN 2.0 topic subscription: receive edgeCore northbound EAN events
 		struct {
 			topic   string
 			handler pahomqtt.MessageHandler
@@ -688,8 +688,8 @@ func (m *Manager) handleAlert(_ pahomqtt.Client, msg pahomqtt.Message) {
 }
 
 // handleEANEvent 处理 EAN 2.0 事件消息（$edgeos/event/#）
-// 将 EdgeX 北向 EAN 事件路由到 V1 设备/点位服务
-// Handle EAN 2.0 event messages: route EdgeX northbound EAN events to V1 device/point services
+// 将 edgeCore 北向 EAN 事件路由到 V1 设备/点位服务
+// Handle EAN 2.0 event messages: route edgeCore northbound EAN events to V1 device/point services
 func (m *Manager) handleEANEvent(_ pahomqtt.Client, msg pahomqtt.Message) {
 	// 解析 EAN 2.0 信封 | parse EAN 2.0 envelope
 	var envelope struct {
@@ -853,7 +853,7 @@ func (h *NodeMQTTHandler) HandleRegister(_ pahomqtt.Client, msg pahomqtt.Message
 
 	var envelope struct {
 		Header map[string]interface{} `json:"header"`
-		Body   model.EdgeXNodeInfo    `json:"body"`
+		Body   model.EdgeCoreNodeInfo `json:"body"`
 	}
 	if err := json.Unmarshal(msg.Payload(), &envelope); err != nil {
 		h.logger.Error("HandleRegister: unmarshal failed",
@@ -865,8 +865,8 @@ func (h *NodeMQTTHandler) HandleRegister(_ pahomqtt.Client, msg pahomqtt.Message
 
 	node := &envelope.Body
 
-	// 修正 endpoint.host：EdgeX 硬编码 127.0.0.1，替换为 MQTT broker 实际地址
-	// Fix endpoint.host: EdgeX hardcodes 127.0.0.1, replace with actual broker host
+	// 修正 endpoint.host：edgeCore 硬编码 127.0.0.1，替换为 MQTT broker 实际地址
+	// Fix endpoint.host: edgeCore hardcodes 127.0.0.1, replace with actual broker host
 	if node.Endpoint != nil && (node.Endpoint.Host == "127.0.0.1" || node.Endpoint.Host == "localhost" || node.Endpoint.Host == "") {
 		if h.brokerHost != "" && h.brokerHost != "127.0.0.1" && h.brokerHost != "localhost" {
 			h.logger.Info("HandleRegister: fixing endpoint.host",
@@ -905,7 +905,7 @@ func (h *NodeMQTTHandler) HandleRegister(_ pahomqtt.Client, msg pahomqtt.Message
 	}
 }
 
-func (h *NodeMQTTHandler) publishRegisterResponse(node *model.EdgeXNodeInfo) {
+func (h *NodeMQTTHandler) publishRegisterResponse(node *model.EdgeCoreNodeInfo) {
 	if h.publishFn == nil {
 		return
 	}
@@ -922,7 +922,7 @@ func (h *NodeMQTTHandler) publishRegisterResponse(node *model.EdgeXNodeInfo) {
 			"expires_at":   node.ExpiresAt,
 		},
 	})
-	topic := fmt.Sprintf("edgex/nodes/%s/response", node.NodeID)
+	topic := fmt.Sprintf("edgeCore/nodes/%s/response", node.NodeID)
 	if err := h.publishFn(topic, resp); err != nil {
 		h.logger.Error("HandleRegister: publish response failed",
 			zap.String("topic", topic), zap.Error(err))
@@ -1020,8 +1020,8 @@ func (h *DeviceMQTTHandler) HandleDeviceReport(_ pahomqtt.Client, msg pahomqtt.M
 	var envelope struct {
 		Header map[string]interface{} `json:"header"`
 		Body   struct {
-			NodeID  string                  `json:"node_id"`
-			Devices []model.EdgeXDeviceInfo `json:"devices"`
+			NodeID  string                     `json:"node_id"`
+			Devices []model.EdgeCoreDeviceInfo `json:"devices"`
 		} `json:"body"`
 	}
 	if err := json.Unmarshal(msg.Payload(), &envelope); err != nil {
@@ -1097,7 +1097,7 @@ func (h *DeviceMQTTHandler) syncPointsFromProperties(nodeID, deviceID string, pr
 					continue
 				}
 
-				pt := h.convertToEdgeXPoint(deviceID, pMap)
+				pt := h.convertToedgeCorePoint(deviceID, pMap)
 				if pt.PointID != "" {
 					if err := h.pointSvc.UpsertPoint(nodeID, deviceID, pt); err != nil {
 						h.logger.Warn("HandleDeviceReport: upsert point failed",
@@ -1116,9 +1116,9 @@ func (h *DeviceMQTTHandler) syncPointsFromProperties(nodeID, deviceID string, pr
 	}
 }
 
-// convertToEdgeXPoint 将 map 转换为 EdgeXPointInfo
-func (h *DeviceMQTTHandler) convertToEdgeXPoint(deviceID string, p map[string]interface{}) *model.EdgeXPointInfo {
-	pt := &model.EdgeXPointInfo{
+// convertToedgeCorePoint 将 map 转换为 EdgeCorePointInfo
+func (h *DeviceMQTTHandler) convertToedgeCorePoint(deviceID string, p map[string]interface{}) *model.EdgeCorePointInfo {
+	pt := &model.EdgeCorePointInfo{
 		DeviceID:   deviceID,
 		Properties: make(map[string]interface{}),
 	}
@@ -1344,7 +1344,7 @@ func (h *PointMQTTHandler) HandlePointReport(_ pahomqtt.Client, msg pahomqtt.Mes
 	}
 
 	for _, pt := range envelope.Body.Points {
-		point := model.EdgeXPointInfo{
+		point := model.EdgeCorePointInfo{
 			PointID:   pt.PointID,
 			PointName: pt.PointName,
 			DeviceID:  deviceID,
@@ -1374,14 +1374,14 @@ func (h *PointMQTTHandler) HandlePointReport(_ pahomqtt.Client, msg pahomqtt.Mes
 }
 
 // HandlePointSync 处理点位全量同步消息
-// Topic: edgex/points/{node_id}/{device_id} (对应订阅 edgex/points/+/+)
+// Topic: edgeCore/points/{node_id}/{device_id} (对应订阅 edgeCore/points/+/+)
 func (h *PointMQTTHandler) HandlePointSync(_ pahomqtt.Client, msg pahomqtt.Message) {
 	var envelope struct {
 		Header map[string]interface{} `json:"header"`
 		Body   struct {
-			NodeID   string                 `json:"node_id"`
-			DeviceID string                 `json:"device_id"`
-			Points   []model.EdgeXPointInfo `json:"points"`
+			NodeID   string                    `json:"node_id"`
+			DeviceID string                    `json:"device_id"`
+			Points   []model.EdgeCorePointInfo `json:"points"`
 		} `json:"body"`
 	}
 	if err := json.Unmarshal(msg.Payload(), &envelope); err != nil {
@@ -1505,7 +1505,7 @@ func NewControlMQTTHandler(
 }
 
 func (h *ControlMQTTHandler) HandleCommandResponse(_ pahomqtt.Client, msg pahomqtt.Message) {
-	h.logger.Warn("DEPRECATED: V1 command response (edgex/cmd/responses/#); use EAN Invoke Reply ($edgeos/reply/{planner_id})",
+	h.logger.Warn("DEPRECATED: V1 command response (edgeCore/cmd/responses/#); use EAN Invoke Reply ($edgeos/reply/{planner_id})",
 		zap.String("topic", msg.Topic()))
 	h.logger.Info("HandleCommandResponse: received message", zap.String("topic", msg.Topic()), zap.String("payload", string(msg.Payload())))
 	var envelope struct {

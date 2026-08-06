@@ -34,7 +34,7 @@ func TestRegistryService_UpsertAndGet(t *testing.T) {
 
 	svc := NewRegistryService(db)
 
-	node := &model.EdgeXNodeInfo{
+	node := &model.EdgeCoreNodeInfo{
 		NodeID:      "node-1",
 		NodeName:    "Test Node",
 		Status:      "online",
@@ -56,11 +56,11 @@ func TestRegistryService_UpsertPreservesToken(t *testing.T) {
 	svc := NewRegistryService(db)
 
 	// 首次插入，带 token
-	n1 := &model.EdgeXNodeInfo{NodeID: "node-1", AccessToken: "original-token"}
+	n1 := &model.EdgeCoreNodeInfo{NodeID: "node-1", AccessToken: "original-token"}
 	require.NoError(t, svc.UpsertNode(n1))
 
 	// 第二次 upsert 不带 token，应保留原 token
-	n2 := &model.EdgeXNodeInfo{NodeID: "node-1", NodeName: "Updated", AccessToken: ""}
+	n2 := &model.EdgeCoreNodeInfo{NodeID: "node-1", NodeName: "Updated", AccessToken: ""}
 	require.NoError(t, svc.UpsertNode(n2))
 
 	got, err := svc.GetNode("node-1")
@@ -75,7 +75,7 @@ func TestRegistryService_UpdateNodeStatus(t *testing.T) {
 
 	svc := NewRegistryService(db)
 
-	require.NoError(t, svc.UpsertNode(&model.EdgeXNodeInfo{NodeID: "node-1", Status: "online"}))
+	require.NoError(t, svc.UpsertNode(&model.EdgeCoreNodeInfo{NodeID: "node-1", Status: "online"}))
 	require.NoError(t, svc.UpdateNodeStatus("node-1", "offline"))
 
 	got, err := svc.GetNode("node-1")
@@ -113,8 +113,8 @@ func TestRegistryService_ListNodes(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, nodes)
 
-	require.NoError(t, svc.UpsertNode(&model.EdgeXNodeInfo{NodeID: "n1"}))
-	require.NoError(t, svc.UpsertNode(&model.EdgeXNodeInfo{NodeID: "n2"}))
+	require.NoError(t, svc.UpsertNode(&model.EdgeCoreNodeInfo{NodeID: "n1"}))
+	require.NoError(t, svc.UpsertNode(&model.EdgeCoreNodeInfo{NodeID: "n2"}))
 
 	nodes, err = svc.ListNodes()
 	require.NoError(t, err)
@@ -126,7 +126,7 @@ func TestRegistryService_DeleteNode(t *testing.T) {
 	defer cleanup()
 
 	svc := NewRegistryService(db)
-	require.NoError(t, svc.UpsertNode(&model.EdgeXNodeInfo{NodeID: "node-del"}))
+	require.NoError(t, svc.UpsertNode(&model.EdgeCoreNodeInfo{NodeID: "node-del"}))
 
 	require.NoError(t, svc.DeleteNode("node-del"))
 
@@ -144,9 +144,9 @@ func TestRegistryService_CountNodes(t *testing.T) {
 	assert.Equal(t, 0, total)
 	assert.Equal(t, 0, online)
 
-	require.NoError(t, svc.UpsertNode(&model.EdgeXNodeInfo{NodeID: "n1", Status: "online"}))
-	require.NoError(t, svc.UpsertNode(&model.EdgeXNodeInfo{NodeID: "n2", Status: "offline"}))
-	require.NoError(t, svc.UpsertNode(&model.EdgeXNodeInfo{NodeID: "n3", Status: "online"}))
+	require.NoError(t, svc.UpsertNode(&model.EdgeCoreNodeInfo{NodeID: "n1", Status: "online"}))
+	require.NoError(t, svc.UpsertNode(&model.EdgeCoreNodeInfo{NodeID: "n2", Status: "offline"}))
+	require.NoError(t, svc.UpsertNode(&model.EdgeCoreNodeInfo{NodeID: "n3", Status: "online"}))
 
 	total, online = svc.CountNodes()
 	assert.Equal(t, 3, total)

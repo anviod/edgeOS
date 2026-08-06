@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { MiddlewareConfig, MiddlewareForm, MiddlewareStatusPayload } from '@/types/edgex'
+import type { MiddlewareConfig, MiddlewareForm, MiddlewareStatusPayload } from '@/types/edgeCore'
 import { middlewareApi } from '@/api/index'
 
 export const useMiddlewareStore = defineStore('middleware', () => {

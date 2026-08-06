@@ -28,8 +28,8 @@
 - ✅ 数据库桶初始化
 
 ### 5. 配置文件
-- ✅ MQTT/NATS 配置 (`config/edgex_mqtt_nats.yaml`)
-- ✅ 配置结构体 (`internal/config/edgex_mqtt_nats.go`)
+- ✅ MQTT/NATS 配置 (`config/edgeCore_mqtt_nats.yaml`)
+- ✅ 配置结构体 (`internal/config/edgeCore_mqtt_nats.go`)
 
 ### 6. 测试脚本
 - ✅ Bash 测试脚本 (`test_mqtt_nats.sh`)
@@ -101,27 +101,27 @@ chmod +x test_mqtt_nats.sh
 测试脚本包含以下场景:
 
 1. **节点注册测试**
-   - 发送节点注册消息到 `edgex/nodes/register`
+   - 发送节点注册消息到 `edgeCore/nodes/register`
    - 验证节点被正确注册到数据库
 
 2. **设备上报测试**
-   - 发送设备列表到 `edgex/devices/report`
+   - 发送设备列表到 `edgeCore/devices/report`
    - 验证设备被同步到数据库
 
 3. **点位上报测试**
-   - 发送点位列表到 `edgex/points/report`
+   - 发送点位列表到 `edgeCore/points/report`
    - 验证点位被同步到数据库
 
 4. **心跳测试**
-   - 发送多条心跳消息到 `edgex/nodes/{node_id}/heartbeat`
+   - 发送多条心跳消息到 `edgeCore/nodes/{node_id}/heartbeat`
    - 验证心跳时间戳被更新
 
 5. **数据采集测试**
-   - 发送实时数据到 `edgex/data/{node_id}/{device_id}`
+   - 发送实时数据到 `edgeCore/data/{node_id}/{device_id}`
    - 验证数据被存储到数据库
 
 6. **告警测试**
-   - 发送告警消息到 `edgex/events/alert`
+   - 发送告警消息到 `edgeCore/events/alert`
    - 验证告警被存储到数据库
 
 ## 验证结果
@@ -167,23 +167,23 @@ func main() {
 
 测试成功后,数据库中应该包含以下桶和记录:
 
-- `edgex_nodes`: 1 条节点记录
-- `edgex_devices`: 1 条设备记录
-- `edgex_points`: 1 条点位记录
-- `edgex_data`: 多条数据记录
-- `edgex_alerts`: 1 条告警记录
+- `edgeCore_nodes`: 1 条节点记录
+- `edgeCore_devices`: 1 条设备记录
+- `edgeCore_points`: 1 条点位记录
+- `edgeCore_data`: 多条数据记录
+- `edgeCore_alerts`: 1 条告警记录
 
 ## 当前可用设备
 
 根据系统配置,当前可以进行以下测试:
 
-1. **模拟 EdgeX 节点**
-   - 使用测试脚本模拟 EdgeX 节点发送消息
-   - 无需真实的 EdgeX 环境
+1. **模拟 edgeCore 节点**
+   - 使用测试脚本模拟 edgeCore 节点发送消息
+   - 无需真实的 edgeCore 环境
 
-2. **集成现有 EdgeX**
-   - 修改 EdgeX 配置,使其连接到本 MQTT Broker
-   - 配置 EdgeX 发送节点注册、设备上报等消息
+2. **集成现有 edgeCore**
+   - 修改 edgeCore 配置,使其连接到本 MQTT Broker
+   - 配置 edgeCore 发送节点注册、设备上报等消息
 
 3. **开发调试**
    - 查看 `edgeos_stdout.log` 和 `edgeos_stderr.log`
@@ -238,7 +238,7 @@ func main() {
 ### 消息流程
 
 ```
-EdgeX 节点 → MQTT Broker → EdgeOS MQTT Client → 消息路由器 → 处理器 → 服务层 → 数据库
+edgeCore 节点 → MQTT Broker → EdgeOS MQTT Client → 消息路由器 → 处理器 → 服务层 → 数据库
 ```
 
 ### 组件关系
@@ -258,5 +258,5 @@ main.go
 ## 相关文档
 
 - MQTT/NATS 实现指南: `docs/EdgeOS端MQTT-NATS实现指南.md`
-- EdgeX 上报协议规范: `TODO/EdgeX上报到EdgeOS通信协议规范(MQTT-NATS).md`
-- 配置文件: `config/edgex_mqtt_nats.yaml`
+- edgeCore 上报协议规范: `TODO/edgeCore上报到EdgeOS通信协议规范(MQTT-NATS).md`
+- 配置文件: `config/edgeCore_mqtt_nats.yaml`

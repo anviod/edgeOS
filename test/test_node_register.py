@@ -12,14 +12,14 @@ register_message = {
     "header": {
         "message_id": "msg-node-reg-001",
         "timestamp": int(time.time() * 1000),
-        "source": "edgex-node-001",
+        "source": "edgeCore-node-001",
         "destination": "edgeos-queen",
         "message_type": "node_register",
         "version": "1.0"
     },
     "body": {
-        "node_id": "edgex-node-001",
-        "node_name": "EdgeX Gateway Node",
+        "node_id": "edgeCore-node-001",
+        "node_name": "edgeCore Gateway Node",
         "model": "edge-gateway",
         "version": "1.0.0",
         "api_version": "v1",
@@ -37,7 +37,7 @@ register_message = {
         "metadata": {
             "os": "linux",
             "arch": "amd64",
-            "hostname": "edgex-node-001.local"
+            "hostname": "edgeCore-node-001.local"
         }
     }
 }
@@ -46,7 +46,7 @@ register_message = {
 def on_connect(client, userdata, flags, rc):
     print(f"Connected with result code {rc}")
     # 发布节点注册消息
-    client.publish("edgex/nodes/register", json.dumps(register_message), qos=1)
+    client.publish("edgeCore/nodes/register", json.dumps(register_message), qos=1)
     print("Node register message published")
     # 等待 2 秒后断开连接
     time.sleep(2)

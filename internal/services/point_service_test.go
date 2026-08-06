@@ -30,7 +30,7 @@ func TestPointService_SaveMetaWithNode_GetMeta(t *testing.T) {
 
 	svc := NewPointService(db)
 
-	p := &model.EdgeXPointInfo{
+	p := &model.EdgeCorePointInfo{
 		PointID:   "p-1",
 		PointName: "Temperature",
 		DeviceID:  "dev-1",
@@ -67,12 +67,12 @@ func TestPointService_ListByDevice(t *testing.T) {
 
 	// 写入 n1/d1 的 3 个点位 + n1/d2 的 1 个点位
 	for _, pid := range []string{"p1", "p2", "p3"} {
-		require.NoError(t, svc.SaveMetaWithNode("n1", &model.EdgeXPointInfo{
+		require.NoError(t, svc.SaveMetaWithNode("n1", &model.EdgeCorePointInfo{
 			PointID:  pid,
 			DeviceID: "d1",
 		}))
 	}
-	require.NoError(t, svc.SaveMetaWithNode("n1", &model.EdgeXPointInfo{
+	require.NoError(t, svc.SaveMetaWithNode("n1", &model.EdgeCorePointInfo{
 		PointID:  "px",
 		DeviceID: "d2",
 	}))

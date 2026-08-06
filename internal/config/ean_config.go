@@ -53,7 +53,7 @@ type EANHeartbeatConfig struct {
 	// CheckIntervalSec 检查循环间隔（秒），默认 5 | Check interval (seconds), default 5
 	CheckIntervalSec int `yaml:"check_interval_sec" json:"check_interval_sec"`
 	// MaxOfflineRetentionSec 离线保留期（秒），默认 600（10 分钟）。
-	// Agent 心跳超时标记 offline 后，超过该时长仍未重新上线（如 EdgeX 关闭 EAN）
+	// Agent 心跳超时标记 offline 后，超过该时长仍未重新上线（如 edgeCore 关闭 EAN）
 	// 则彻底删除（DeleteAgent），避免 Agent 管理页残留离线 Agent。0 表示不自动清除。
 	// | Offline retention (seconds); expired offline agents are purged automatically.
 	MaxOfflineRetentionSec int `yaml:"max_offline_retention_sec" json:"max_offline_retention_sec"`
@@ -66,7 +66,7 @@ func DefaultEANConfig() EANConfig {
 		PlannerID: "edgeos-planner",
 		MQTT: EANMQTTConfig{
 			Enabled:        true,
-			Broker:         "tcp://127.0.0.1:18083", // 与 EdgeX 北向联调默认端口一致
+			Broker:         "tcp://127.0.0.1:18083", // 与 edgeCore 北向联调默认端口一致
 			ClientID:       "edgeos-ean",
 			QoS:            1,
 			KeepAlive:      30,

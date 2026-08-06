@@ -2,7 +2,7 @@
 """
 EAN 2.0 端到端测试脚本 | EAN 2.0 End-to-End Test Script
 测试范围: 认证系统 → EAN Health → EAN Agents → EAN Invoke (4台BACnet设备)
-真机环境: EdgeOS @ 192.168.3.230:8000, EdgeX @ 192.168.3.104
+真机环境: EdgeOS @ 192.168.3.230:8000, edgeCore @ 192.168.3.104
 """
 import json
 import time
@@ -195,8 +195,8 @@ def test_agents():
         log(f"EAN Agents-{agent_id}", "pass" if status == "online" else "fail",
             f"status={status}, heartbeat={hb_interval}s")
 
-    # 3.2 获取 edgex-node-001 的 Capability 列表
-    target_agent = "edgex-node-001"
+    # 3.2 获取 edgeCore-node-001 的 Capability 列表
+    target_agent = "edgeCore-node-001"
     resp = api_get(f"/api/ean/agents/{target_agent}/capabilities", token=TOKEN)
     cap_data = resp.get("data", {})
     caps = cap_data.get("capabilities", [])
@@ -241,7 +241,7 @@ def test_invoke():
     print("4. EAN Invoke 测试 | EAN Invoke Test")
     print("="*60)
 
-    TARGET = "edgex-node-001"
+    TARGET = "edgeCore-node-001"
     BACNET_DEVICES = ["bacnet-2228316", "bacnet-2228317", "bacnet-2228318", "bacnet-2228319"]
     BACNET_DEVICE_LABELS = ["2228316", "2228317", "2228318", "2228319"]
     CHANNEL_ID = "BACnet"

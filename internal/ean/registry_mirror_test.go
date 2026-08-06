@@ -35,22 +35,22 @@ func TestAttachRegistryMirror_MirrorsAgentOnlineOffline(t *testing.T) {
 	bus.AttachRegistryMirror(registry)
 
 	bus.Discovery.HandleAgentOnline("$edgeos/discovery/agent", []byte(`{
-		"header":{"message_type":"agent_online","source":"edgex-node-001"},
-		"body":{"id":"edgex-node-001","kind":"device","status":"online","transport":["nats"],"heartbeat_interval_sec":60}
+		"header":{"message_type":"agent_online","source":"edgeCore-node-001"},
+		"body":{"id":"edgeCore-node-001","kind":"device","status":"online","transport":["nats"],"heartbeat_interval_sec":60}
 	}`), "nats")
 
 	assert.True(t, hbTouched, "previous onAgentOnline hook should still run")
-	node, err := registry.GetNode("edgex-node-001")
+	node, err := registry.GetNode("edgeCore-node-001")
 	require.NoError(t, err)
 	assert.Equal(t, "online", node.Status)
 	assert.Contains(t, node.Protocol, "ean")
 
-	offlinePayload := []byte(`{"header":{"message_type":"agent_offline","source":"edgex-node-001","version":"2.0","message_id":"m3","timestamp":2},"body":{"agent_id":"edgex-node-001","reason":"shutdown"}}`)
+	offlinePayload := []byte(`{"header":{"message_type":"agent_offline","source":"edgeCore-node-001","version":"2.0","message_id":"m3","timestamp":2},"body":{"agent_id":"edgeCore-node-001","reason":"shutdown"}}`)
 	bus.Discovery.HandleAgentOffline("$edgeos/discovery/agent/offline", offlinePayload, "nats")
 	assert.True(t, offlineCalled, "previous onAgentOffline hook should still run")
 
 	// Phase 4 (OS-P4): Agent 下线 → 节点从 V1 注册表删除（避免 transient 残留）
-	_, err = registry.GetNode("edgex-node-001")
+	_, err = registry.GetNode("edgeCore-node-001")
 	assert.Error(t, err, "node should be removed from registry when agent goes offline")
 }
 
@@ -74,7 +74,7 @@ func TestAttachRegistryMirror_SkipsTransientAgent(t *testing.T) {
 	// v1-bridge Agent（非原生 EAN）：不应镜像为 V1 节点
 	bus.Discovery.HandleAgentOnline("$edgeos/discovery/agent", []byte(`{
 		"header":{"message_type":"agent_online","source":"ean-it-432700"},
-		"body":{"id":"ean-it-432700","kind":"edgex-gateway","status":"online","transport":["mqtt"],"heartbeat_interval_sec":30}
+		"body":{"id":"ean-it-432700","kind":"edgeCore-gateway","status":"online","transport":["mqtt"],"heartbeat_interval_sec":30}
 	}`), "v1-bridge")
 
 	_, err = registry.GetNode("ean-it-432700")
@@ -82,11 +82,11 @@ func TestAttachRegistryMirror_SkipsTransientAgent(t *testing.T) {
 
 	// 北向原生 EAN Agent（nats/mqtt 传输 → native-ean source）应镜像
 	bus.Discovery.HandleAgentOnline("$edgeos/discovery/agent", []byte(`{
-		"header":{"message_type":"agent_online","source":"edgex-node-001"},
-		"body":{"id":"edgex-node-001","kind":"device","status":"online","transport":["nats"],"heartbeat_interval_sec":60}
+		"header":{"message_type":"agent_online","source":"edgeCore-node-001"},
+		"body":{"id":"edgeCore-node-001","kind":"device","status":"online","transport":["nats"],"heartbeat_interval_sec":60}
 	}`), "nats")
 
-	node, err := registry.GetNode("edgex-node-001")
+	node, err := registry.GetNode("edgeCore-node-001")
 	require.NoError(t, err)
 	assert.Equal(t, "online", node.Status)
 }

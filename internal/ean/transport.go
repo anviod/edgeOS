@@ -495,7 +495,7 @@ func (t *NATSTransport) JetStream() (nats.JetStreamContext, error) {
 //	$edgeos/discovery/agent          -> $edgeos/discovery/agent
 //	$edgeos/event/+/status           -> $edgeos/event/*/status
 //	$edgeos/event/#                  -> $edgeos/event/>
-//	$edgeos/invoke/edgex-node-001    -> $edgeos/invoke/edgex-node-001
+//	$edgeos/invoke/edgeCore-node-001    -> $edgeos/invoke/edgeCore-node-001
 func mqttTopicToNatsSubject(topic string) string {
 	r := strings.NewReplacer("+", "*", "#", ">")
 	return r.Replace(topic)

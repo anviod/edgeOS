@@ -20,8 +20,8 @@ func TestGetBucketStats_Classify(t *testing.T) {
 	store, cleanup := newTestStorage(t)
 	defer cleanup()
 
-	// 写入一条运行时数据到 edgex_nodes 与一条配置到 config.db Node
-	if err := store.SaveData("edgex_nodes", "n1", map[string]string{"id": "n1"}); err != nil {
+	// 写入一条运行时数据到 edgeCore_nodes 与一条配置到 config.db Node
+	if err := store.SaveData("edgeCore_nodes", "n1", map[string]string{"id": "n1"}); err != nil {
 		t.Fatalf("SaveData failed: %v", err)
 	}
 	cs, err := NewConfigStore(store.GetConfigDB())
@@ -52,8 +52,8 @@ func TestGetBucketStats_Classify(t *testing.T) {
 			}
 		} else if st.Database == "runtime" {
 			runtimeSeen = true
-			if st.Name == "edgex_nodes" && st.RecordCount != 1 {
-				t.Errorf("edgex_nodes record_count = %d, want 1", st.RecordCount)
+			if st.Name == "edgeCore_nodes" && st.RecordCount != 1 {
+				t.Errorf("edgeCore_nodes record_count = %d, want 1", st.RecordCount)
 			}
 		}
 	}
@@ -80,15 +80,15 @@ func TestClearBucket_ClearsRuntimeBucket(t *testing.T) {
 	store, cleanup := newTestStorage(t)
 	defer cleanup()
 
-	if err := store.SaveData("edgex_alerts", "a1", map[string]string{"msg": "x"}); err != nil {
+	if err := store.SaveData("edgeCore_alerts", "a1", map[string]string{"msg": "x"}); err != nil {
 		t.Fatalf("SaveData failed: %v", err)
 	}
-	if err := store.ClearBucket("edgex_alerts"); err != nil {
+	if err := store.ClearBucket("edgeCore_alerts"); err != nil {
 		t.Fatalf("ClearBucket failed: %v", err)
 	}
 
 	var result map[string]string
-	if err := store.GetData("edgex_alerts", "a1", &result); err == nil {
+	if err := store.GetData("edgeCore_alerts", "a1", &result); err == nil {
 		t.Fatal("expected key to be gone after clear")
 	}
 }
@@ -98,7 +98,7 @@ func TestClearAllRuntimeBuckets_KeepsConfig(t *testing.T) {
 	store, cleanup := newTestStorage(t)
 	defer cleanup()
 
-	if err := store.SaveData("edgex_nodes", "n1", map[string]string{"id": "n1"}); err != nil {
+	if err := store.SaveData("edgeCore_nodes", "n1", map[string]string{"id": "n1"}); err != nil {
 		t.Fatalf("SaveData failed: %v", err)
 	}
 	cs, err := NewConfigStore(store.GetConfigDB())
@@ -128,7 +128,7 @@ func TestClearAllRuntimeBuckets_KeepsConfig(t *testing.T) {
 
 	// 运行时数据已清空
 	var result map[string]string
-	if err := store.GetData("edgex_nodes", "n1", &result); err == nil {
+	if err := store.GetData("edgeCore_nodes", "n1", &result); err == nil {
 		t.Fatal("expected runtime data gone after clear-all-runtime")
 	}
 }

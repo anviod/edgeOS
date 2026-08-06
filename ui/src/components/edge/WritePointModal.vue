@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { X, Send } from 'lucide-vue-next'
-import type { EdgeXPointInfo } from '@/types/edgex'
+import type { edgeCorePointInfo } from '@/types/edgeCore'
 
 const props = defineProps<{
   visible: boolean
-  point: EdgeXPointInfo | null
+  point: edgeCorePointInfo | null
 }>()
 
 const emit = defineEmits<{

@@ -30,7 +30,7 @@ type AgentHeartbeat struct {
 // ==================== HeartbeatMonitor ====================
 
 // HeartbeatMonitor 心跳监控器
-// 接收 EdgeX Agent 心跳消息，定期检查超时并触发回调
+// 接收 edgeCore Agent 心跳消息，定期检查超时并触发回调
 // 超时判定: 超过 N * heartbeat_interval_sec 未收到心跳
 type HeartbeatMonitor struct {
 	// Agent 心跳状态
@@ -41,7 +41,7 @@ type HeartbeatMonitor struct {
 	checkInterval   time.Duration // 检查循环间隔
 	timeoutMultiplier int          // 超时 = timeoutMultiplier * heartbeat_interval
 	// MaxOfflineRetention 离线保留期：Agent 心跳超时标记 offline 后，
-	// 若超过该时长仍未重新上线（如 EdgeX 关闭 EAN），则彻底删除（DeleteAgent）。
+	// 若超过该时长仍未重新上线（如 edgeCore 关闭 EAN），则彻底删除（DeleteAgent）。
 	maxOfflineRetention time.Duration
 
 	// 回调
@@ -216,7 +216,7 @@ func (hm *HeartbeatMonitor) checkLoop() {
 // 两阶段处理：
 //  1. 心跳超时（超过 timeoutMultiplier * interval）→ 标记 offline，记录 offline_since，保留跟踪
 //  2. 离线保留期超时（offline 超过 maxOfflineRetention 仍未重新上线）→ 彻底删除（DeleteAgent）
-//     避免 EdgeX 关闭 EAN / 长期断连后 Agent 在 Agent 管理页残留为「离线」。
+//     避免 edgeCore 关闭 EAN / 长期断连后 Agent 在 Agent 管理页残留为「离线」。
 func (hm *HeartbeatMonitor) checkTimeouts(now time.Time) {
 	hm.mu.Lock()
 	defer hm.mu.Unlock()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EdgeOS 与 EdgeX 通信测试脚本
+EdgeOS 与 edgeCore 通信测试脚本
 用 Python 实现，跨平台支持
 
 前提条件:
@@ -9,9 +9,9 @@ EdgeOS 与 EdgeX 通信测试脚本
 3. EdgeOS 服务运行并连接到 MQTT Broker
 
 用法:
-    python test_edgex_flows.py [flow_name]
-    python test_edgex_flows.py all          # 运行所有测试
-    python test_edgex_flows.py subscribe    # 显示订阅命令
+    python test_edgeCore_flows.py [flow_name]
+    python test_edgeCore_flows.py all          # 运行所有测试
+    python test_edgeCore_flows.py subscribe    # 显示订阅命令
 """
 
 import json
@@ -29,7 +29,7 @@ except ImportError:
 # 配置
 MQTT_HOST = "127.0.0.1"
 MQTT_PORT = 1883
-NODE_ID = "edgex-node-001"
+NODE_ID = "edgeCore-node-001"
 DEVICE_ID = "Room_FC_2014_19"
 
 # 颜色输出
@@ -47,11 +47,11 @@ def log_warn(msg):
 def log_error(msg):
     print(f"{RED}[ERROR]{NC} {msg}")
 
-class EdgeXTester:
+class edgeCoreTester:
     def __init__(self, host=MQTT_HOST, port=MQTT_PORT):
         self.host = host
         self.port = port
-        self.client = mqtt.Client(client_id="edgex-test-client")
+        self.client = mqtt.Client(client_id="edgeCore-test-client")
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
         self.received_messages = []
@@ -126,9 +126,9 @@ class EdgeXTester:
             }
         }
 
-        self.publish("edgex/nodes/register", msg)
+        self.publish("edgeCore/nodes/register", msg)
         log_info("节点注册消息已发送")
-        log_info("订阅响应: edgex/nodes/{}/response".format(NODE_ID))
+        log_info("订阅响应: edgeCore/nodes/{}/response".format(NODE_ID))
 
     def test_node_heartbeat(self):
         log_info("========== 测试节点心跳流程 ==========")
@@ -145,7 +145,7 @@ class EdgeXTester:
             }
         }
 
-        self.publish(f"edgex/nodes/{NODE_ID}/heartbeat", msg)
+        self.publish(f"edgeCore/nodes/{NODE_ID}/heartbeat", msg)
         log_info("心跳消息已发送")
 
     def test_device_sync(self):
@@ -181,7 +181,7 @@ class EdgeXTester:
             }
         }
 
-        self.publish("edgex/devices/report", msg)
+        self.publish("edgeCore/devices/report", msg)
         log_info("设备列表同步消息已发送")
 
     def test_point_sync(self):
@@ -240,7 +240,7 @@ class EdgeXTester:
             }
         }
 
-        self.publish("edgex/points/report", msg)
+        self.publish("edgeCore/points/report", msg)
         log_info("点位列表同步消息已发送")
 
     def test_realtime_data(self):
@@ -270,7 +270,7 @@ class EdgeXTester:
             }
         }
 
-        self.publish(f"edgex/data/{NODE_ID}/{DEVICE_ID}", msg_full)
+        self.publish(f"edgeCore/data/{NODE_ID}/{DEVICE_ID}", msg_full)
         log_info("全量数据快照已发送")
 
         time.sleep(2)
@@ -296,12 +296,12 @@ class EdgeXTester:
             }
         }
 
-        self.publish(f"edgex/data/{NODE_ID}/{DEVICE_ID}", msg_delta)
+        self.publish(f"edgeCore/data/{NODE_ID}/{DEVICE_ID}", msg_delta)
         log_info("差量数据更新已发送")
 
     def test_command(self):
         log_info("========== 测试命令下发流程 ==========")
-        log_info("订阅命令响应: edgex/commands/response")
+        log_info("订阅命令响应: edgeCore/commands/response")
 
         msg = {
             "header": {
@@ -319,12 +319,12 @@ class EdgeXTester:
             }
         }
 
-        self.publish(f"edgex/cmd/{NODE_ID}/{DEVICE_ID}/write", msg)
+        self.publish(f"edgeCore/cmd/{NODE_ID}/{DEVICE_ID}/write", msg)
         log_info("命令消息已发送")
 
         # 等待并接收响应
         log_info("等待命令响应 (5秒)...")
-        self.subscribe_and_wait("edgex/commands/response", timeout=5)
+        self.subscribe_and_wait("edgeCore/commands/response", timeout=5)
 
     def test_node_unregister(self):
         log_info("========== 测试节点注销流程 ==========")
@@ -341,7 +341,7 @@ class EdgeXTester:
             }
         }
 
-        self.publish("edgex/nodes/unregister", msg)
+        self.publish("edgeCore/nodes/unregister", msg)
         log_info("节点注销消息已发送")
 
     def test_all(self):
@@ -377,17 +377,17 @@ def show_subscribe_help():
     log_info("========== MQTT 订阅命令参考 ==========")
     print("")
     print("使用 mosquitto_sub:")
-    print(f"  mosquitto_sub -h {MQTT_HOST} -p {MQTT_PORT} -t \"edgex/#\" -v")
+    print(f"  mosquitto_sub -h {MQTT_HOST} -p {MQTT_PORT} -t \"edgeCore/#\" -v")
     print("")
     print("使用 Python:")
-    print("  tester = EdgeXTester()")
+    print("  tester = edgeCoreTester()")
     print("  tester.connect()")
-    print("  tester.subscribe_and_wait('edgex/#', timeout=10)")
+    print("  tester.subscribe_and_wait('edgeCore/#', timeout=10)")
     print("")
     print("测试步骤:")
     print("  1. 启动 EdgeOS 服务")
     print("  2. 启动 MQTT Broker (如 mosquitto)")
-    print("  3. 运行测试: python test_edgex_flows.py all")
+    print("  3. 运行测试: python test_edgeCore_flows.py all")
     print("  4. 在另一个终端运行订阅命令查看消息流")
     print("")
 
@@ -395,7 +395,7 @@ def main():
     global MQTT_HOST, MQTT_PORT, NODE_ID, DEVICE_ID
 
     parser = argparse.ArgumentParser(
-        description="EdgeOS 与 EdgeX 通信测试脚本",
+        description="EdgeOS 与 edgeCore 通信测试脚本",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 可用测试流程:
@@ -410,9 +410,9 @@ def main():
   all        - 运行所有测试 (默认)
 
 示例:
-  python test_edgex_flows.py register    # 只测试节点注册
-  python test_edgex_flows.py subscribe  # 显示订阅命令
-  python test_edgex_flows.py all        # 运行所有测试
+  python test_edgeCore_flows.py register    # 只测试节点注册
+  python test_edgeCore_flows.py subscribe  # 显示订阅命令
+  python test_edgeCore_flows.py all        # 运行所有测试
         """
     )
 
@@ -436,13 +436,13 @@ def main():
     DEVICE_ID = args.device_id
 
     print("")
-    log_info("EdgeOS 与 EdgeX 通信测试脚本")
+    log_info("EdgeOS 与 edgeCore 通信测试脚本")
     log_info(f"MQTT Broker: {MQTT_HOST}:{MQTT_PORT}")
     log_info(f"测试节点: {NODE_ID}")
     log_info(f"测试设备: {DEVICE_ID}")
     print("")
 
-    tester = EdgeXTester(MQTT_HOST, MQTT_PORT)
+    tester = edgeCoreTester(MQTT_HOST, MQTT_PORT)
 
     if not tester.connect():
         sys.exit(1)

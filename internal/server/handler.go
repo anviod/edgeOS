@@ -122,15 +122,15 @@ func RegisterAllRoutes(
 	alerts.Get("/", handleListAlerts(alertSvc))
 	alerts.Post("/:id/acknowledge", handleAcknowledgeAlert(alertSvc))
 
-	// EdgeX 节点发现
-	edgex := protected.Group("/edgex")
-	edgex.Get("/nodes", GetEdgeXNodes(discoveryService))
-	edgex.Get("/nodes/:id", GetEdgeXNode(discoveryService))
-	edgex.Post("/nodes", AddEdgeXNode(discoveryService))
-	edgex.Post("/scan", ScanEdgeXNodes(discoveryService))
-	// Stage 2: EdgeOS 主动触发 EdgeX 节点重新注册
-	edgex.Post("/discover", handleNodeDiscovery(eanBus, messagingManager))
-	edgex.Post("/discover/:middlewareId", handleNodeDiscoveryTo(messagingManager))
+	// edgeCore 节点发现
+	edgeCore := protected.Group("/edgeCore")
+	edgeCore.Get("/nodes", GetEdgeCoreNodes(discoveryService))
+	edgeCore.Get("/nodes/:id", GetEdgeCoreNode(discoveryService))
+	edgeCore.Post("/nodes", AddEdgeCoreNode(discoveryService))
+	edgeCore.Post("/scan", ScanEdgeCoreNodes(discoveryService))
+	// Stage 2: EdgeOS 主动触发 edgeCore 节点重新注册
+	edgeCore.Post("/discover", handleNodeDiscovery(eanBus, messagingManager))
+	edgeCore.Post("/discover/:middlewareId", handleNodeDiscoveryTo(messagingManager))
 
 	// ===========================
 	// 系统管理（服务重启 / 配置导出 / 数据管理）
@@ -150,7 +150,7 @@ func RegisterAllRoutes(
 	}
 
 	// ===========================
-	// EAN 2.0 API 路由（与 V1 edgex/* 主题并存，互不影响）
+	// EAN 2.0 API 路由（与 V1 edgeCore/* 主题并存，互不影响）
 	// ===========================
 	RegisterEANRoutes(protected, eanBus)
 }

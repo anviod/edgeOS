@@ -172,8 +172,8 @@ func TestManager_PublishNodeDiscovery_Success(t *testing.T) {
 
 	select {
 	case rec := <-publishCh:
-		if rec.topic != "edgex/cmd/nodes/register" {
-			t.Fatalf("expected topic edgex/cmd/nodes/register, got %s", rec.topic)
+		if rec.topic != "edgeCore/cmd/nodes/register" {
+			t.Fatalf("expected topic edgeCore/cmd/nodes/register, got %s", rec.topic)
 		}
 		var env map[string]interface{}
 		if err := json.Unmarshal(rec.payload, &env); err != nil {
@@ -271,8 +271,8 @@ func TestManager_PublishNodeDiscoveryTo_Success(t *testing.T) {
 
 	select {
 	case rec := <-publishCh:
-		if rec.topic != "edgex/cmd/nodes/register" {
-			t.Fatalf("expected topic edgex/cmd/nodes/register, got %s", rec.topic)
+		if rec.topic != "edgeCore/cmd/nodes/register" {
+			t.Fatalf("expected topic edgeCore/cmd/nodes/register, got %s", rec.topic)
 		}
 		var env map[string]interface{}
 		json.Unmarshal(rec.payload, &env)
@@ -334,8 +334,8 @@ func TestManager_PublishCommand_Success(t *testing.T) {
 
 	select {
 	case rec := <-publishCh:
-		if rec.topic != "edgex/cmd/n1/d1/write" {
-			t.Fatalf("expected topic edgex/cmd/n1/d1/write, got %s", rec.topic)
+		if rec.topic != "edgeCore/cmd/n1/d1/write" {
+			t.Fatalf("expected topic edgeCore/cmd/n1/d1/write, got %s", rec.topic)
 		}
 		var env map[string]interface{}
 		if err := json.Unmarshal(rec.payload, &env); err != nil {
@@ -407,7 +407,7 @@ func TestManager_PublishCommand_Disabled(t *testing.T) {
 	}
 }
 
-// TestManager_PublishNodeDiscovery_Disabled 验证 V1 主动发现（edgex/cmd/nodes/register）关闭时不发布。
+// TestManager_PublishNodeDiscovery_Disabled 验证 V1 主动发现（edgeCore/cmd/nodes/register）关闭时不发布。
 func TestManager_PublishNodeDiscovery_Disabled(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
 	defer cleanup()
@@ -427,7 +427,7 @@ func TestManager_PublishNodeDiscovery_Disabled(t *testing.T) {
 	}
 }
 
-// TestManager_SubscribeAllTopics_V1PlaneOff 验证 V1 命令面下线时，V1 节点面（edgex/nodes/*）订阅被移除，
+// TestManager_SubscribeAllTopics_V1PlaneOff 验证 V1 命令面下线时，V1 节点面（edgeCore/nodes/*）订阅被移除，
 // V1 数据面（devices/points/data）与告警（events）保留。
 func TestManager_SubscribeAllTopics_V1PlaneOff(t *testing.T) {
 	mgr, _, cleanup := newTestManager(t)
@@ -437,19 +437,19 @@ func TestManager_SubscribeAllTopics_V1PlaneOff(t *testing.T) {
 	client := &fakeClient{connected: true}
 	entry := &mqttClientEntry{
 		client:   client,
-		config:   &model.MiddlewareConfig{ID: "mqtt-1", QoS: 1, Subscriptions: []string{"edgex/data/+"}},
+		config:   &model.MiddlewareConfig{ID: "mqtt-1", QoS: 1, Subscriptions: []string{"edgeCore/data/+"}},
 		handlers: make(map[string]pahomqtt.MessageHandler),
 	}
 	mgr.subscribeAllTopics(entry)
 
 	// V1 节点面不应订阅
-	for _, subj := range []string{"edgex/nodes/register", "edgex/nodes/+/heartbeat", "edgex/nodes/+/status", "edgex/nodes/unregister"} {
+	for _, subj := range []string{"edgeCore/nodes/register", "edgeCore/nodes/+/heartbeat", "edgeCore/nodes/+/status", "edgeCore/nodes/unregister"} {
 		if _, ok := entry.handlers[subj]; ok {
 			t.Errorf("V1 node topic %s should not be subscribed when V1 command plane is off", subj)
 		}
 	}
 	// V1 数据面 + 告警应订阅
-	for _, subj := range []string{"edgex/devices/report", "edgex/points/report", "edgex/data/+/+", "edgex/events/alert", "$edgeos/event/#"} {
+	for _, subj := range []string{"edgeCore/devices/report", "edgeCore/points/report", "edgeCore/data/+/+", "edgeCore/events/alert", "$edgeos/event/#"} {
 		if _, ok := entry.handlers[subj]; !ok {
 			t.Errorf("data/alert topic %s should still be subscribed", subj)
 		}
@@ -465,12 +465,12 @@ func TestManager_SubscribeAllTopics_V1PlaneOn(t *testing.T) {
 	client := &fakeClient{connected: true}
 	entry := &mqttClientEntry{
 		client:   client,
-		config:   &model.MiddlewareConfig{ID: "mqtt-1", QoS: 1, Subscriptions: []string{"edgex/data/+"}},
+		config:   &model.MiddlewareConfig{ID: "mqtt-1", QoS: 1, Subscriptions: []string{"edgeCore/data/+"}},
 		handlers: make(map[string]pahomqtt.MessageHandler),
 	}
 	mgr.subscribeAllTopics(entry)
 
-	for _, subj := range []string{"edgex/nodes/register", "edgex/nodes/+/heartbeat", "edgex/devices/report", "edgex/data/+/+", "edgex/events/alert", "$edgeos/event/#"} {
+	for _, subj := range []string{"edgeCore/nodes/register", "edgeCore/nodes/+/heartbeat", "edgeCore/devices/report", "edgeCore/data/+/+", "edgeCore/events/alert", "$edgeos/event/#"} {
 		if _, ok := entry.handlers[subj]; !ok {
 			t.Errorf("topic %s should be subscribed during transition", subj)
 		}
@@ -564,7 +564,7 @@ func TestPointMQTTHandler_HandlePointReport(t *testing.T) {
 	payload, _ := json.Marshal(pointData)
 
 	// 调用 Handler
-	msg := &fakeMessage{topic: "edgex/points/report", payload: payload}
+	msg := &fakeMessage{topic: "edgeCore/points/report", payload: payload}
 	mgr.pointHandler.HandlePointReport(nil, msg)
 
 	// 验证点位已保存
@@ -583,7 +583,7 @@ func TestPointMQTTHandler_HandlePointReport_InvalidJSON(t *testing.T) {
 	defer cleanup()
 
 	// 发送无效 JSON
-	msg := &fakeMessage{topic: "edgex/points/report", payload: []byte("invalid json")}
+	msg := &fakeMessage{topic: "edgeCore/points/report", payload: []byte("invalid json")}
 	mgr.pointHandler.HandlePointReport(nil, msg) // 不应 panic
 }
 
@@ -617,7 +617,7 @@ func TestPointMQTTHandler_HandlePointSync(t *testing.T) {
 	payload, _ := json.Marshal(syncData)
 
 	// 调用 Handler
-	msg := &fakeMessage{topic: "edgex/points/test-node/test-device", payload: payload}
+	msg := &fakeMessage{topic: "edgeCore/points/test-node/test-device", payload: payload}
 	mgr.pointHandler.HandlePointSync(nil, msg)
 
 	// 验证点位已保存
@@ -644,7 +644,7 @@ func TestPointMQTTHandler_HandlePointSync_MissingNodeOrDeviceID(t *testing.T) {
 		},
 	}
 	payload, _ := json.Marshal(syncData)
-	msg := &fakeMessage{topic: "edgex/points/test-node/test-device", payload: payload}
+	msg := &fakeMessage{topic: "edgeCore/points/test-node/test-device", payload: payload}
 	mgr.pointHandler.HandlePointSync(nil, msg) // 不应 panic，应提前返回
 
 	// 缺少 device_id
@@ -656,7 +656,7 @@ func TestPointMQTTHandler_HandlePointSync_MissingNodeOrDeviceID(t *testing.T) {
 		},
 	}
 	payload2, _ := json.Marshal(syncData2)
-	msg2 := &fakeMessage{topic: "edgex/points/test-node/test-device", payload: payload2}
+	msg2 := &fakeMessage{topic: "edgeCore/points/test-node/test-device", payload: payload2}
 	mgr.pointHandler.HandlePointSync(nil, msg2) // 不应 panic，应提前返回
 }
 
@@ -665,7 +665,7 @@ func TestPointMQTTHandler_HandlePointSync_InvalidJSON(t *testing.T) {
 	defer cleanup()
 
 	// 发送无效 JSON
-	msg := &fakeMessage{topic: "edgex/points/test-node/test-device", payload: []byte("invalid json")}
+	msg := &fakeMessage{topic: "edgeCore/points/test-node/test-device", payload: []byte("invalid json")}
 	mgr.pointHandler.HandlePointSync(nil, msg) // 不应 panic
 }
 
@@ -675,7 +675,7 @@ func TestPointMQTTHandler_HandlePointSync_UpdatesExistingPoint(t *testing.T) {
 	pointSvc := mgr.dataSvc.PointService
 
 	// 先插入一个点位
-	initialPoint := &model.EdgeXPointInfo{
+	initialPoint := &model.EdgeCorePointInfo{
 		PointID:   "Temperature",
 		PointName: "温度传感器",
 		DataType:  "Float32",
@@ -701,7 +701,7 @@ func TestPointMQTTHandler_HandlePointSync_UpdatesExistingPoint(t *testing.T) {
 		},
 	}
 	payload, _ := json.Marshal(syncData)
-	msg := &fakeMessage{topic: "edgex/points/test-node/test-device", payload: payload}
+	msg := &fakeMessage{topic: "edgeCore/points/test-node/test-device", payload: payload}
 	mgr.pointHandler.HandlePointSync(nil, msg)
 
 	// 验证点位已更新
@@ -724,7 +724,7 @@ func TestPointMQTTHandler_HandlePointSync_AddNewPoints(t *testing.T) {
 	pointSvc := mgr.dataSvc.PointService
 
 	// 先插入一个点位
-	initialPoint := &model.EdgeXPointInfo{
+	initialPoint := &model.EdgeCorePointInfo{
 		PointID:   "Temperature",
 		PointName: "温度",
 	}
@@ -743,7 +743,7 @@ func TestPointMQTTHandler_HandlePointSync_AddNewPoints(t *testing.T) {
 		},
 	}
 	payload, _ := json.Marshal(syncData)
-	msg := &fakeMessage{topic: "edgex/points/test-node/test-device", payload: payload}
+	msg := &fakeMessage{topic: "edgeCore/points/test-node/test-device", payload: payload}
 	mgr.pointHandler.HandlePointSync(nil, msg)
 
 	// 验证两个点位都存在
@@ -782,7 +782,7 @@ func TestPointMQTTHandler_HandlePointReport_WithHubBroadcast(t *testing.T) {
 		},
 	}
 	payload, _ := json.Marshal(pointData)
-	msg := &fakeMessage{topic: "edgex/points/report", payload: payload}
+	msg := &fakeMessage{topic: "edgeCore/points/report", payload: payload}
 	mgr.pointHandler.HandlePointReport(nil, msg)
 
 	// 验证点位已保存
@@ -812,7 +812,7 @@ func TestPointMQTTHandler_HandleRealtimeData(t *testing.T) {
 		},
 	}
 	payload, _ := json.Marshal(dataMsg)
-	msg := &fakeMessage{topic: "edgex/data/test-node/test-device", payload: payload}
+	msg := &fakeMessage{topic: "edgeCore/data/test-node/test-device", payload: payload}
 	mgr.pointHandler.HandleRealtimeData(nil, msg)
 
 	// 验证快照已保存

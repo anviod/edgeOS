@@ -37,12 +37,12 @@ var runtimeClearableBucketMap = map[string]bool{
 	"tasks":          true,
 	"state":          true,
 	"stats":          true,
-	"edgex_nodes":    true,
-	"edgex_devices":  true,
-	"edgex_points":   true,
-	"edgex_data":     true,
-	"edgex_alerts":   true,
-	"edgex_commands": true,
+	"edgeCore_nodes":    true,
+	"edgeCore_devices":  true,
+	"edgeCore_points":   true,
+	"edgeCore_data":     true,
+	"edgeCore_alerts":   true,
+	"edgeCore_commands": true,
 	"middlewares":    true,
 }
 

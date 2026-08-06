@@ -1,7 +1,7 @@
 /* ==========================================================================
    EdgeOS Docs — Black Gold Premium Theme
    EAN 2.0 Coordination Platform
-   Reference: edgex bright industrial luxury theme (dark adaptation)
+   Reference: edgeCore bright industrial luxury theme (dark adaptation)
    ========================================================================== */
 
 :root {
@@ -1231,7 +1231,7 @@ img {
   line-height: 1.7;
 }
 
-/* Copy button — from edgex */
+/* Copy button — from edgeCore */
 .copy-button {
   position: absolute;
   top: 12px;
@@ -1310,7 +1310,7 @@ img {
   color: #93c5fd;
 }
 
-/* Status badges — from edgex */
+/* Status badges — from edgeCore */
 .status-badge {
   display: inline-flex;
   align-items: center;

@@ -1,6 +1,6 @@
-# 边缘大脑系统 (Edge Brain Open System) Version 1.0.0
+# 边缘大脑系统 (Edge Brain Open System) 
 
-> 本项目是为配合 [Industrial Edge Gateway (edgex)](https://github.com/anviod/edgex) 项目而实现的边缘大脑系统，提供 N+2 冗余架构、蜂群模式与集群协调能力。核心新增 **EAN 2.0 (Edge Agent Network)** 统一 Agent 协作层，实现跨边缘网关的能力发现、调用编排与事件流处理。
+> 本项目是为配合 [Industrial Edge Gateway (edgeCore)](https://github.com/anviod/edgeCore) 项目而实现的边缘大脑系统，提供 N+2 冗余架构、蜂群模式与集群协调能力。核心新增 **EAN (Edge Agent Network)** 统一 Agent 协作层，实现跨边缘网关的能力发现、调用编排与事件流处理。
 
 <div align="center">
   <img src="./docs/img/edge_brain.svg" width="100%" />
@@ -42,20 +42,20 @@ npm run build
 
 ## EAN 2.0 核心功能
 
-**Edge Agent Network (EAN) 2.0** 在现有 EdgeX + EdgeOS 架构上增加统一 Agent 协作层：
+**Edge Agent Network (EAN) 2.0** 在现有 edgeCore + EdgeOS 架构上增加统一 Agent 协作层：
 
-- **EdgeX**：Capability Runtime（能力注册、发现发布、Invoke 执行、Event 上报）
+- **edgeCore**：Capability Runtime（能力注册、发现发布、Invoke 执行、Event 上报）
 - **EdgeOS**：Coordination Platform（全局发现索引、跨节点编排、Invoke 发起、Event 订阅与规则）
 
 协议层统一为 `Agent / Capability / Discovery / Invoke / Event`，传输同时支持 **MQTT** 与 **NATS**，Topic 使用统一的 `$edgeos/...` 字符串形式。
 
 ### Discovery 发现中心
 
-全局 Agent 与 Capability 索引，订阅 EdgeX 北向 EAN Runtime 发布的发现消息：
+全局 Agent 与 Capability 索引，订阅 edgeCore 北向 EAN Runtime 发布的发现消息：
 
 - **Agent 上线/下线**：自动维护在线 Agent 列表，支持 `discovery/agent` 与 `discovery/agent/offline`
 - **Capability 注册**：按 `agent_id` 聚合 Capability 列表，支持 driver / system / ai / workflow 类别
-- **主动查询**：启动后周期性 Query EdgeX 完整 Capability，确保索引完整
+- **主动查询**：启动后周期性 Query edgeCore 完整 Capability，确保索引完整
 - **V1 Bridge 隔离**：Phase 4（OS-P4）已下线 V1→EAN Bridge；V1 命令面已全面下线（`v1_command_enabled=false`）；`AttachRegistryMirror` 仅镜像北向原生 EAN Agent，transient/v1-bridge 测试 Agent 不污染 `/api/nodes`
 - **前端 UI**：`EanAgentsView` 展示 Agent 列表、状态、Capability 详情
 
@@ -90,7 +90,7 @@ npm run build
 
 ### Event 事件流
 
-订阅并处理 EdgeX 上报的事件流，支持点位变化追踪：
+订阅并处理 edgeCore 上报的事件流，支持点位变化追踪：
 
 - **点位变化**：`event_type={point_id}.changed`，携带 `value` 与 `previous_value`
 - **设备在离线**：`device.online` / `device.offline` 事件
@@ -128,7 +128,7 @@ MQTT 与 NATS 对称传输，同一业务逻辑复用编解码，仅替换 trans
 | Heartbeat | `$edgeos/heartbeat/{id}` | 相同 |
 
 - **启动韧性**：EAN 启用但 broker 不可用时 Warn + 后台重连 + 延迟订阅，不 fatal
-- **V1 兼容并行**：EAN `$edgeos/*` 与 V1 `edgex/*`（MQTT）/`edgex.*`（NATS）同时可用，新功能只走 EAN
+- **V1 兼容并行**：EAN `$edgeos/*` 与 V1 `edgeCore/*`（MQTT）/`edgeCore.*`（NATS）同时可用，新功能只走 EAN
 
 <div align="center">
   <img src="./docs/img/edge_04.svg" width="100%" />
@@ -219,7 +219,7 @@ AI 协同组件通过 EAN 网络暴露为可调用的 Capability：
 
 ### 相关文档
 
-- EAN 2.0 改造指南：[docs/edgeos/EAN2.0-EdgeX-EdgeOS改造指南.md](./docs/edgeos/EAN2.0-EdgeX-EdgeOS改造指南.md)
+- EAN 2.0 改造指南：[docs/edgeos/EAN2.0-edgeCore-EdgeOS改造指南.md](./docs/edgeos/EAN2.0-edgeCore-EdgeOS改造指南.md)
 - EAN 2.0 升级报告：[docs/edgeos/EdgeOS-EAN2.0改造升级报告.md](./docs/edgeos/EdgeOS-EAN2.0改造升级报告.md)
 - P3 规划文档：[docs/EdgeOS-2026-P3-TODO.md](./docs/EdgeOS-2026-P3-TODO.md)
 - UI 样式规范：[docs/样式规范.md](./docs/%E6%A0%B7%E5%BC%8F%E8%A7%84%E8%8C%83.md)
@@ -253,7 +253,7 @@ AI 协同组件通过 EAN 网络暴露为可调用的 Capability：
 | 消息序列化 | 高效数据编解码 | JSON 信封 + Protobuf |
 | QoS 保证 | Discovery/Invoke/Event QoS1 | 持久化 / ACK / 重试 |
 | 启动韧性 | Broker 不可用时后台重连 | Warn + 延迟订阅 |
-| V1 兼容 | 过渡期并行运行 | `edgex/*` 保留，新功能走 `$edgeos/*` |
+| V1 兼容 | 过渡期并行运行 | `edgeCore/*` 保留，新功能走 `$edgeos/*` |
 | 设备对账 | V1 全量上报剪枝 | `ReconcileDevices` upsert + 删除残留 |
 
 ### N+2 冗余架构
@@ -282,7 +282,7 @@ AI 协同组件通过 EAN 网络暴露为可调用的 Capability：
 - **Event + previous_value**：代码完成，实机 Event 流有点位变化数据
 - **Heartbeat + Governance**：Agent 超时标记 offline，权限限制 write/admin/AI，审计内存缓存
 - **V1 兼容 + 设备对账**：`ReconcileDevices` 修复 V1 上报残留（4=4），EAN Agent 同步节点注册表
-- **Phase 4（v8/v9）**：V1→EAN Bridge 下线；`edgex/cmd/responses/#` 移除；**V1 命令面全面下线**（`v1_command_enabled=false`，命令统一 EAN Invoke）；`AttachRegistryMirror` 过滤 transient Agent——`/api/nodes` 仅含真实节点
+- **Phase 4（v8/v9）**：V1→EAN Bridge 下线；`edgeCore/cmd/responses/#` 移除；**V1 命令面全面下线**（`v1_command_enabled=false`，命令统一 EAN Invoke）；`AttachRegistryMirror` 过滤 transient Agent——`/api/nodes` 仅含真实节点
 
 **里程碑**：EAN 2.0 Phase 1/2 代码完成并实机复验通过（MQTT + NATS）；Phase 4 全量落地（OS-P4 / EX-P4）+ V1 命令面全面下线；全量 `go test ./...` 通过；UI build 通过。
 
@@ -303,7 +303,7 @@ AI 协同组件通过 EAN 网络暴露为可调用的 Capability：
 
 本方案设计了一个功能完善的边缘大脑系统，采用 N+2 冗余架构模式，实现了一个主母皇节点和一个备用母皇节点的双机热备机制（蜂群模式）。系统能够协调 N 个边缘采集网关程序，实现影子设备自动发现、双向数据通信、群控算法调度以及节能优化等核心功能。
 
-**EAN 2.0** 作为核心新增能力，在现有 EdgeX + EdgeOS 架构上增加了统一的 Agent 协作层，实现了跨边缘网关的能力发现、调用编排与事件流处理，支持 MQTT/NATS 双传输对称、V1 兼容并行、AI Capability 集成，为工业互联网和边缘计算场景提供了坚实的分布式协作基础。
+**EAN 2.0** 作为核心新增能力，在现有 edgeCore + EdgeOS 架构上增加了统一的 Agent 协作层，实现了跨边缘网关的能力发现、调用编排与事件流处理，支持 MQTT/NATS 双传输对称、V1 兼容并行、AI Capability 集成，为工业互联网和边缘计算场景提供了坚实的分布式协作基础。
 
 ## License
 

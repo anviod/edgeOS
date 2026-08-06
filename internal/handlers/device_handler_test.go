@@ -27,7 +27,7 @@ func TestDeviceHandler_HandleDeviceReport_Success(t *testing.T) {
 			},
 		},
 	}
-	h.HandleDeviceReport(nil, buildMsg("edgex/devices/report", payload))
+	h.HandleDeviceReport(nil, buildMsg("edgeCore/devices/report", payload))
 
 	// 验证两个设备均已持久化
 	d1, err := svc.GetDevice("n1", "d1")
@@ -55,7 +55,7 @@ func TestDeviceHandler_HandleDeviceReport_NodeIDFromHeader(t *testing.T) {
 			},
 		},
 	}
-	h.HandleDeviceReport(nil, buildMsg("edgex/devices/report", payload))
+	h.HandleDeviceReport(nil, buildMsg("edgeCore/devices/report", payload))
 
 	d, err := svc.GetDevice("n-from-header", "d-hdr")
 	require.NoError(t, err)
@@ -77,7 +77,7 @@ func TestDeviceHandler_HandleDeviceReport_MissingNodeID(t *testing.T) {
 			},
 		},
 	}
-	h.HandleDeviceReport(nil, buildMsg("edgex/devices/report", payload))
+	h.HandleDeviceReport(nil, buildMsg("edgeCore/devices/report", payload))
 
 	// 没有 node_id，设备不应写入任何 prefix
 	count := svc.CountDevices()
@@ -91,7 +91,7 @@ func TestDeviceHandler_HandleDeviceReport_EmptyDevices(t *testing.T) {
 	h := NewDeviceHandler(svc, newTestHub(), newTestLogger())
 
 	// 先写入历史设备，空全量上报应对账清空
-	require.NoError(t, svc.UpsertDevice("n-empty", &model.EdgeXDeviceInfo{DeviceID: "stale"}))
+	require.NoError(t, svc.UpsertDevice("n-empty", &model.EdgeCoreDeviceInfo{DeviceID: "stale"}))
 
 	payload := map[string]interface{}{
 		"header": map[string]interface{}{},
@@ -100,7 +100,7 @@ func TestDeviceHandler_HandleDeviceReport_EmptyDevices(t *testing.T) {
 			"devices": []interface{}{},
 		},
 	}
-	h.HandleDeviceReport(nil, buildMsg("edgex/devices/report", payload))
+	h.HandleDeviceReport(nil, buildMsg("edgeCore/devices/report", payload))
 
 	count := svc.CountDevices()
 	assert.Equal(t, 0, count)
@@ -111,8 +111,8 @@ func TestDeviceHandler_HandleDeviceReport_ReconcilePrunes(t *testing.T) {
 	defer cleanup()
 
 	h := NewDeviceHandler(svc, newTestHub(), newTestLogger())
-	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "stale", DeviceName: "Stale"}))
-	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "keep", DeviceName: "Old"}))
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{DeviceID: "stale", DeviceName: "Stale"}))
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{DeviceID: "keep", DeviceName: "Old"}))
 
 	payload := map[string]interface{}{
 		"header": map[string]interface{}{"source": "n1"},
@@ -124,7 +124,7 @@ func TestDeviceHandler_HandleDeviceReport_ReconcilePrunes(t *testing.T) {
 			},
 		},
 	}
-	h.HandleDeviceReport(nil, buildMsg("edgex/devices/report", payload))
+	h.HandleDeviceReport(nil, buildMsg("edgeCore/devices/report", payload))
 
 	devs, err := svc.ListDevices("n1")
 	require.NoError(t, err)
@@ -139,7 +139,7 @@ func TestDeviceHandler_HandleDeviceReport_InvalidPayload(t *testing.T) {
 	h := NewDeviceHandler(svc, nil, newTestLogger())
 
 	// 非法 JSON，不应 panic
-	msg := &mockMessage{topic: "edgex/devices/report", payload: []byte(`{bad json`)}
+	msg := &mockMessage{topic: "edgeCore/devices/report", payload: []byte(`{bad json`)}
 	h.HandleDeviceReport(nil, msg)
 }
 
@@ -159,5 +159,5 @@ func TestDeviceHandler_HandleDeviceReport_BroadcastNilHub(t *testing.T) {
 			},
 		},
 	}
-	h.HandleDeviceReport(nil, buildMsg("edgex/devices/report", payload))
+	h.HandleDeviceReport(nil, buildMsg("edgeCore/devices/report", payload))
 }

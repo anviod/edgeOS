@@ -38,15 +38,15 @@ const mqttDefaults = [
   { label: 'Client ID', value: 'edgeOS_1' },
 ]
 
-const edgexTopics = [
-  'edgex/nodes/register',
-  'edgex/nodes/heartbeat',
-  'edgex/nodes/unregister',
-  'edgex/devices/report',
-  'edgex/points/report',
-  'edgex/data/#',
-  'edgex/alerts/#',
-  'edgex/responses/#',
+const edgeCoreTopics = [
+  'edgeCore/nodes/register',
+  'edgeCore/nodes/heartbeat',
+  'edgeCore/nodes/unregister',
+  'edgeCore/devices/report',
+  'edgeCore/points/report',
+  'edgeCore/data/#',
+  'edgeCore/alerts/#',
+  'edgeCore/responses/#',
 ]
 
 const roleBadge = computed(() => 'admin')
@@ -156,17 +156,17 @@ async function handleExport() {
         </div>
       </div>
 
-      <!-- EdgeX 订阅主题 -->
+      <!-- edgeCore 订阅主题 -->
       <div class="settings-card">
         <div class="card-header">
           <span class="section-icon" style="background: rgba(99,102,241,0.12); color: #818CF8;">
             <Server class="w-4 h-4" style="width:16px;height:16px;" />
           </span>
-          <span class="text-sm font-semibold" style="color: var(--text-primary);">EdgeX 订阅主题</span>
+          <span class="text-sm font-semibold" style="color: var(--text-primary);">edgeCore 订阅主题</span>
         </div>
         <div class="card-body flex flex-wrap content-start gap-1.5">
           <span
-            v-for="topic in edgexTopics"
+            v-for="topic in edgeCoreTopics"
             :key="topic"
             class="text-[10px] font-mono px-2 py-1 rounded-md whitespace-nowrap"
             style="background: rgba(14,165,233,0.08); color: var(--accent-primary); border: 1px solid rgba(14,165,233,0.15);"

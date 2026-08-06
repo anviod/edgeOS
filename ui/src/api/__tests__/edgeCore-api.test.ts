@@ -16,7 +16,7 @@ function mockFetchResponse(payload: unknown, options?: { ok?: boolean; status?: 
   })
 }
 
-describe('EdgeX API contract', () => {
+describe('edgeCore API contract', () => {
   beforeEach(() => {
     localStorage.clear()
   })
@@ -29,9 +29,11 @@ describe('EdgeX API contract', () => {
     const responsePayload = {
       code: '0',
       msg: 'Success',
-      data: [
-        { node_id: 'n-1', node_name: 'GW-1' },
-      ],
+      data: {
+        nodes: [
+          { node_id: 'n-1', node_name: 'GW-1' },
+        ],
+      },
     }
 
     const fetchSpy = mockFetchResponse(responsePayload)
@@ -45,7 +47,7 @@ describe('EdgeX API contract', () => {
         }),
       }),
     )
-    expect(result).toEqual(responsePayload.data)
+    expect(result).toEqual(responsePayload.data.nodes)
   })
 
   it('nodeApi.get should throw when business code is not success', async () => {
@@ -55,14 +57,14 @@ describe('EdgeX API contract', () => {
       data: '',
     })
 
-    // The current API implementation catches business errors and rethrows as "Invalid JSON response"
-    await expect(nodeApi.get('missing-node')).rejects.toThrow('Invalid JSON response from server')
+    // API 解析业务错误码并抛出 msg | API parses business error code and throws msg
+    await expect(nodeApi.get('missing-node')).rejects.toThrow('node not found')
   })
 
   it('nodeApi.remove should throw on non-2xx response', async () => {
     mockFetchResponse({ code: '1', msg: 'server error', data: '' }, { ok: false, status: 500 })
 
-    // The current API implementation catches business errors and rethrows as "Invalid JSON response"
-    await expect(nodeApi.remove('node-1')).rejects.toThrow('Invalid JSON response from server')
+    // API 解析业务错误码并抛出 msg | API parses business error code and throws msg
+    await expect(nodeApi.remove('node-1')).rejects.toThrow('server error')
   })
 })

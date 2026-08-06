@@ -12,12 +12,12 @@ import (
 	"github.com/anviod/edgeOS/internal/ws"
 )
 
-// V1NATSDataPlane 桥接 V1 NATS 数据面 Subject（edgex.*）到 V1 服务。
-// 对齐改造指南 §2.7 / §7.2 OS-23：V1 设备清单须同时订阅 MQTT `edgex/devices/report`
-// 与 NATS `edgex.devices.report`（双传输对称）。MQTT 侧由 messaging.Manager 订阅，
+// V1NATSDataPlane 桥接 V1 NATS 数据面 Subject（edgeCore.*）到 V1 服务。
+// 对齐改造指南 §2.7 / §7.2 OS-23：V1 设备清单须同时订阅 MQTT `edgeCore/devices/report`
+// 与 NATS `edgeCore.devices.report`（双传输对称）。MQTT 侧由 messaging.Manager 订阅，
 // 本桥接在 EAN NATS 传输层上订阅同语义的 NATS subject，并复用同一套 V1 服务。
 //
-// Subject 采用 V1 点分形式（edgex.devices.report 等），通配符 * / > 与 MQTT + / # 对应。
+// Subject 采用 V1 点分形式（edgeCore.devices.report 等），通配符 * / > 与 MQTT + / # 对应。
 type V1NATSDataPlane struct {
 	registrySvc *services.RegistryService
 	deviceSvc   *services.DeviceService
@@ -56,18 +56,18 @@ func (p *V1NATSDataPlane) v1SubjectBindings() []struct {
 		subject string
 		handler MessageHandler
 	}{
-		{"edgex.devices.report", p.handleDeviceReport},
-		{"edgex.devices.*.*.online", p.handleDeviceOnline},
-		{"edgex.devices.*.*.offline", p.handleDeviceOffline},
-		{"edgex.points.report", p.handlePointReport},
-		{"edgex.points.*.*", p.handlePointSync},
-		{"edgex.data.*.*", p.handleRealtimeData},
-		{"edgex.events.alert", p.handleAlert},
-		{"edgex.events.error", p.handleAlert},
-		{"edgex.events.info", p.handleAlert},
-		{"edgex.nodes.register", p.handleNodeRegister},
-		{"edgex.nodes.*.heartbeat", p.handleHeartbeat},
-		{"edgex.nodes.*.status", p.handleHeartbeat},
+		{"edgeCore.devices.report", p.handleDeviceReport},
+		{"edgeCore.devices.*.*.online", p.handleDeviceOnline},
+		{"edgeCore.devices.*.*.offline", p.handleDeviceOffline},
+		{"edgeCore.points.report", p.handlePointReport},
+		{"edgeCore.points.*.*", p.handlePointSync},
+		{"edgeCore.data.*.*", p.handleRealtimeData},
+		{"edgeCore.events.alert", p.handleAlert},
+		{"edgeCore.events.error", p.handleAlert},
+		{"edgeCore.events.info", p.handleAlert},
+		{"edgeCore.nodes.register", p.handleNodeRegister},
+		{"edgeCore.nodes.*.heartbeat", p.handleHeartbeat},
+		{"edgeCore.nodes.*.status", p.handleHeartbeat},
 	}
 }
 
@@ -111,14 +111,14 @@ func sourceFromHeader(header map[string]interface{}) string {
 
 // ==================== 节点处理 ====================
 
-// handleNodeRegister 处理 edgex.nodes.register（V1 NATS 节点注册）。
+// handleNodeRegister 处理 edgeCore.nodes.register（V1 NATS 节点注册）。
 func (p *V1NATSDataPlane) handleNodeRegister(topic string, payload []byte, transport string) {
 	header, body, err := parseV1Envelope(payload)
 	if err != nil {
 		p.logger.Error("handleNodeRegister: unmarshal failed", zap.String("subject", topic), zap.Error(err))
 		return
 	}
-	var node model.EdgeXNodeInfo
+	var node model.EdgeCoreNodeInfo
 	if err := json.Unmarshal(body, &node); err != nil {
 		p.logger.Error("handleNodeRegister: parse body failed", zap.String("subject", topic), zap.Error(err))
 		return
@@ -146,7 +146,7 @@ func (p *V1NATSDataPlane) handleNodeRegister(topic string, payload []byte, trans
 	}
 }
 
-// handleHeartbeat 处理 edgex.nodes.*.heartbeat / edgex.nodes.*.status。
+// handleHeartbeat 处理 edgeCore.nodes.*.heartbeat / edgeCore.nodes.*.status。
 func (p *V1NATSDataPlane) handleHeartbeat(topic string, payload []byte, transport string) {
 	header, body, err := parseV1Envelope(payload)
 	if err != nil {
@@ -165,7 +165,7 @@ func (p *V1NATSDataPlane) handleHeartbeat(topic string, payload []byte, transpor
 		nodeID = sourceFromHeader(header)
 	}
 	if nodeID == "" {
-		// 从 subject 尾部取 node token，如 edgex.nodes.node-001.heartbeat
+		// 从 subject 尾部取 node token，如 edgeCore.nodes.node-001.heartbeat
 		parts := strings.Split(topic, ".")
 		if len(parts) >= 3 && parts[1] == "nodes" {
 			nodeID = parts[2]
@@ -188,7 +188,7 @@ func (p *V1NATSDataPlane) handleHeartbeat(topic string, payload []byte, transpor
 
 // ==================== 设备处理 ====================
 
-// handleDeviceReport 处理 edgex.devices.report（V1 NATS 设备清单对账，OS-23 核心）。
+// handleDeviceReport 处理 edgeCore.devices.report（V1 NATS 设备清单对账，OS-23 核心）。
 func (p *V1NATSDataPlane) handleDeviceReport(topic string, payload []byte, transport string) {
 	header, body, err := parseV1Envelope(payload)
 	if err != nil {
@@ -196,8 +196,8 @@ func (p *V1NATSDataPlane) handleDeviceReport(topic string, payload []byte, trans
 		return
 	}
 	var envelope struct {
-		NodeID  string                  `json:"node_id"`
-		Devices []model.EdgeXDeviceInfo `json:"devices"`
+		NodeID  string                     `json:"node_id"`
+		Devices []model.EdgeCoreDeviceInfo `json:"devices"`
 	}
 	if err := json.Unmarshal(body, &envelope); err != nil {
 		p.logger.Error("handleDeviceReport: parse body failed", zap.String("subject", topic), zap.Error(err))
@@ -236,12 +236,12 @@ func (p *V1NATSDataPlane) handleDeviceReport(topic string, payload []byte, trans
 	}
 }
 
-// handleDeviceOnline 处理 edgex.devices.*.*.online。
+// handleDeviceOnline 处理 edgeCore.devices.*.*.online。
 func (p *V1NATSDataPlane) handleDeviceOnline(topic string, payload []byte, transport string) {
 	p.handleDeviceStatus(topic, payload, "online")
 }
 
-// handleDeviceOffline 处理 edgex.devices.*.*.offline。
+// handleDeviceOffline 处理 edgeCore.devices.*.*.offline。
 func (p *V1NATSDataPlane) handleDeviceOffline(topic string, payload []byte, transport string) {
 	p.handleDeviceStatus(topic, payload, "offline")
 }
@@ -290,7 +290,7 @@ func (p *V1NATSDataPlane) handleDeviceStatus(topic string, payload []byte, statu
 
 // ==================== 点位处理 ====================
 
-// handlePointReport 处理 edgex.points.report（点位元数据上报）。
+// handlePointReport 处理 edgeCore.points.report（点位元数据上报）。
 func (p *V1NATSDataPlane) handlePointReport(topic string, payload []byte, transport string) {
 	header, body, err := parseV1Envelope(payload)
 	if err != nil {
@@ -322,7 +322,7 @@ func (p *V1NATSDataPlane) handlePointReport(topic string, payload []byte, transp
 		return
 	}
 	for _, pt := range envelope.Points {
-		point := model.EdgeXPointInfo{
+		point := model.EdgeCorePointInfo{
 			PointID:   pt.PointID,
 			PointName: pt.PointName,
 			DeviceID:  envelope.DeviceID,
@@ -345,7 +345,7 @@ func (p *V1NATSDataPlane) handlePointReport(topic string, payload []byte, transp
 	}
 }
 
-// handlePointSync 处理 edgex.points.{node}.{device}（点位全量同步）。
+// handlePointSync 处理 edgeCore.points.{node}.{device}（点位全量同步）。
 func (p *V1NATSDataPlane) handlePointSync(topic string, payload []byte, transport string) {
 	header, body, err := parseV1Envelope(payload)
 	if err != nil {
@@ -353,9 +353,9 @@ func (p *V1NATSDataPlane) handlePointSync(topic string, payload []byte, transpor
 		return
 	}
 	var envelope struct {
-		NodeID   string                 `json:"node_id"`
-		DeviceID string                 `json:"device_id"`
-		Points   []model.EdgeXPointInfo `json:"points"`
+		NodeID   string                    `json:"node_id"`
+		DeviceID string                    `json:"device_id"`
+		Points   []model.EdgeCorePointInfo `json:"points"`
 	}
 	if err := json.Unmarshal(body, &envelope); err != nil {
 		p.logger.Error("handlePointSync: parse body failed", zap.String("subject", topic), zap.Error(err))
@@ -387,7 +387,7 @@ func (p *V1NATSDataPlane) handlePointSync(topic string, payload []byte, transpor
 	}
 }
 
-// handleRealtimeData 处理 edgex.data.{node}.{device}（实时数据）。
+// handleRealtimeData 处理 edgeCore.data.{node}.{device}（实时数据）。
 func (p *V1NATSDataPlane) handleRealtimeData(topic string, payload []byte, transport string) {
 	header, body, err := parseV1Envelope(payload)
 	if err != nil {
@@ -441,7 +441,7 @@ func (p *V1NATSDataPlane) handleRealtimeData(topic string, payload []byte, trans
 
 // ==================== 告警处理 ====================
 
-// handleAlert 处理 edgex.events.alert / error / info。
+// handleAlert 处理 edgeCore.events.alert / error / info。
 func (p *V1NATSDataPlane) handleAlert(topic string, payload []byte, transport string) {
 	_, body, err := parseV1Envelope(payload)
 	if err != nil {

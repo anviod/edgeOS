@@ -5,7 +5,7 @@ import { ChevronRight, RefreshCw, Search, Edit3, ArrowLeft } from 'lucide-vue-ne
 import { useRealtimeStore } from '@/stores/realtime'
 import { useEdgeStore } from '@/stores/edge'
 import WritePointModal from '@/components/edge/WritePointModal.vue'
-import type { EdgeXPointInfo } from '@/types/edgex'
+import type { edgeCorePointInfo } from '@/types/edgeCore'
 import { useEanStore } from '@/stores/ean'
 
 const route = useRoute()
@@ -22,7 +22,7 @@ const device = computed(() => deviceList.value.find(d => d.device_id === deviceI
 
 const search = ref('')
 const writeModalVisible = ref(false)
-const writingPoint = ref<EdgeXPointInfo | null>(null)
+const writingPoint = ref<edgeCorePointInfo | null>(null)
 
 const points = computed(() => rtStore.getPoints(nodeId.value, deviceId.value))
 const loading = computed(() => rtStore.isLoading(nodeId.value, deviceId.value))
@@ -57,7 +57,7 @@ const writeCapability = computed(() => {
 })
 const eanAvailable = computed(() => eanStore.isEanEnabled && writeCapability.value !== null)
 
-function openWrite(point: EdgeXPointInfo) {
+function openWrite(point: edgeCorePointInfo) {
   writingPoint.value = point
   writeModalVisible.value = true
 }

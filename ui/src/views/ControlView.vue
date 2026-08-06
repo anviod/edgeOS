@@ -7,7 +7,7 @@ import { useEanStore } from '@/stores/ean'
 import { controlApi } from '@/api/index'
 import CommandLogPanel from '@/components/edge/CommandLogPanel.vue'
 import WritePointModal from '@/components/edge/WritePointModal.vue'
-import type { EdgeXPointInfo, CommandRecord, WritePointRequest } from '@/types/edgex'
+import type { edgeCorePointInfo, CommandRecord, WritePointRequest } from '@/types/edgeCore'
 
 const edgeStore = useEdgeStore()
 const rtStore = useRealtimeStore()
@@ -146,10 +146,10 @@ const commands = computed<CommandRecord[]>(() =>
 
 // Write modal
 const writeModalVisible = ref(false)
-const writingPoint = ref<EdgeXPointInfo | null>(null)
+const writingPoint = ref<edgeCorePointInfo | null>(null)
 const writeError = ref('')
 
-function openWrite(point: EdgeXPointInfo) {
+function openWrite(point: edgeCorePointInfo) {
   writingPoint.value = point
   writeError.value = ''
   writeModalVisible.value = true

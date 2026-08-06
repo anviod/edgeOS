@@ -8,7 +8,7 @@ import { useAlertStore } from '@/stores/alert'
 import { useMiddlewareStore } from '@/stores/middleware'
 import { useRealtimeStore } from '@/stores/realtime'
 import { userStore } from '@/stores/user'
-import type { NodeStatusPayload, DataUpdatePayload, CommandResponsePayload, MiddlewareStatusPayload, AlertInfo, DeviceOnlinePayload, DeviceOfflinePayload } from '@/types/edgex'
+import type { NodeStatusPayload, DataUpdatePayload, CommandResponsePayload, MiddlewareStatusPayload, AlertInfo, DeviceOnlinePayload, DeviceOfflinePayload } from '@/types/edgeCore'
 
 const route = useRoute()
 const router = useRouter()

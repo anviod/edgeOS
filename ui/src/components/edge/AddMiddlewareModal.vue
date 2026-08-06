@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { X, Plus, ChevronDown, ChevronRight, Shield, Clock, Zap, Eye, EyeOff } from 'lucide-vue-next'
-import type { MiddlewareConfig, MiddlewareForm } from '@/types/edgex'
+import type { MiddlewareConfig, MiddlewareForm } from '@/types/edgeCore'
 
 const props = defineProps<{
   visible: boolean
@@ -22,13 +22,13 @@ const defaultForm = (): MiddlewareForm => ({
   password: 'admin',
   client_id: 'edgeOS_1',
   topics: [
-    'edgex/nodes/register',
-    'edgex/nodes/heartbeat',
-    'edgex/devices/report',
-    'edgex/points/report',
-    'edgex/data/#',
-    'edgex/alerts/#',
-    'edgex/responses/#',
+    'edgeCore/nodes/register',
+    'edgeCore/nodes/heartbeat',
+    'edgeCore/devices/report',
+    'edgeCore/points/report',
+    'edgeCore/data/#',
+    'edgeCore/alerts/#',
+    'edgeCore/responses/#',
   ],
   enabled: true,
   // 高级设置 - MQTT 3.1.1

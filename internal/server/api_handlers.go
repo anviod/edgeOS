@@ -295,9 +295,9 @@ func handleGetDevice(dataSvc *services.DataService) fiber.Handler {
 	}
 }
 
-// handleReconcileDevices 按全量设备快照对账（与 MQTT edgex/devices/report 语义一致）
+// handleReconcileDevices 按全量设备快照对账（与 MQTT edgeCore/devices/report 语义一致）
 // POST /api/nodes/:nodeId/devices/reconcile
-// Body: { "devices": [EdgeXDeviceInfo, ...] }
+// Body: { "devices": [EdgeCoreDeviceInfo, ...] }
 func handleReconcileDevices(dataSvc *services.DataService, registrySvc *services.RegistryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		nodeID := c.Params("nodeId")
@@ -305,7 +305,7 @@ func handleReconcileDevices(dataSvc *services.DataService, registrySvc *services
 			return apiError(c, fiber.StatusBadRequest, "nodeId is required")
 		}
 		var req struct {
-			Devices []model.EdgeXDeviceInfo `json:"devices"`
+			Devices []model.EdgeCoreDeviceInfo `json:"devices"`
 		}
 		if err := c.BodyParser(&req); err != nil {
 			return apiError(c, fiber.StatusBadRequest, "Invalid request body")
@@ -497,7 +497,7 @@ func handleNodeDiscovery(eanBus *ean.Bus, mgr *messaging.Manager) fiber.Handler 
 					scanned++
 				}
 				if len(channels) == 0 {
-					// 通道未知：退化为逐个 scan_devices 能力（空参，EdgeX 会返回 channel 提示）
+					// 通道未知：退化为逐个 scan_devices 能力（空参，edgeCore 会返回 channel 提示）
 					for _, cap := range eanBus.GetDiscovery().GetCapabilitiesByAgent(aid) {
 						if cap.ID != "" && strings.HasSuffix(cap.ID, ".scan_devices") {
 							_, err := eanBus.InvokeCapability(c.Context(), aid, cap.ID, map[string]any{}, nil)
@@ -533,7 +533,7 @@ func handleNodeDiscovery(eanBus *ean.Bus, mgr *messaging.Manager) fiber.Handler 
 		}
 		return apiSuccess(c, fiber.Map{
 			"message": "Node discovery request published",
-			"topic":   "edgex/cmd/nodes/register",
+			"topic":   "edgeCore/cmd/nodes/register",
 		})
 	}
 }
@@ -550,7 +550,7 @@ func handleNodeDiscoveryTo(mgr *messaging.Manager) fiber.Handler {
 		return apiSuccess(c, fiber.Map{
 			"message":    "Node discovery request published",
 			"middleware": middlewareID,
-			"topic":      "edgex/cmd/nodes/register",
+			"topic":      "edgeCore/cmd/nodes/register",
 		})
 	}
 }

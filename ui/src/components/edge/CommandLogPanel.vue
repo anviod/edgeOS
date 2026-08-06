@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RefreshCw, CheckCircle2, XCircle, Clock, RotateCcw, Inbox } from 'lucide-vue-next'
-import type { CommandRecord } from '@/types/edgex'
+import type { CommandRecord } from '@/types/edgeCore'
 
 const props = defineProps<{
   commands: CommandRecord[]

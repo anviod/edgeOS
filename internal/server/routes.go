@@ -10,33 +10,33 @@ import (
 	"github.com/anviod/edgeOS/internal/discovery"
 )
 
-// RegisterRoutes 保留向后兼容的路由注册（仅 EdgeX 发现）
+// RegisterRoutes 保留向后兼容的路由注册（仅 edgeCore 发现）
 func RegisterRoutes(app *fiber.App, node core.Node, discoveryService *discovery.DiscoveryService) {
 	api := app.Group("/api")
-	edgex := api.Group("/edgex")
-	edgex.Get("/nodes", getEdgeXNodes(discoveryService))
-	edgex.Get("/nodes/:id", getEdgeXNode(discoveryService))
-	edgex.Post("/nodes", addEdgeXNode(discoveryService))
-	edgex.Post("/scan", scanEdgeXNodes(discoveryService))
+	edgeCore := api.Group("/edgeCore")
+	edgeCore.Get("/nodes", getEdgeCoreNodes(discoveryService))
+	edgeCore.Get("/nodes/:id", getEdgeCoreNode(discoveryService))
+	edgeCore.Post("/nodes", addEdgeCoreNode(discoveryService))
+	edgeCore.Post("/scan", scanEdgeCoreNodes(discoveryService))
 	_ = node
 }
 
-// ── EdgeX Discovery helpers ───────────────────────────────────────────────────
+// ── edgeCore Discovery helpers ───────────────────────────────────────────────────
 
-func getEdgeXNodes(discoveryService *discovery.DiscoveryService) fiber.Handler {
+func getEdgeCoreNodes(discoveryService *discovery.DiscoveryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if discoveryService == nil {
 			return apiError(c, fiber.StatusServiceUnavailable, "Discovery service is unavailable")
 		}
 		nodes, err := discoveryService.ListNodes()
 		if err != nil {
-			return apiError(c, fiber.StatusInternalServerError, fmt.Sprintf("List EdgeX nodes failed: %v", err))
+			return apiError(c, fiber.StatusInternalServerError, fmt.Sprintf("List edgeCore nodes failed: %v", err))
 		}
 		return apiSuccess(c, fiber.Map{"nodes": nodes})
 	}
 }
 
-func getEdgeXNode(discoveryService *discovery.DiscoveryService) fiber.Handler {
+func getEdgeCoreNode(discoveryService *discovery.DiscoveryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if discoveryService == nil {
 			return apiError(c, fiber.StatusServiceUnavailable, "Discovery service is unavailable")
@@ -47,13 +47,13 @@ func getEdgeXNode(discoveryService *discovery.DiscoveryService) fiber.Handler {
 		}
 		node, err := discoveryService.GetNode(id)
 		if err != nil {
-			return apiError(c, fiber.StatusNotFound, "EdgeX node not found")
+			return apiError(c, fiber.StatusNotFound, "edgeCore node not found")
 		}
 		return apiSuccess(c, fiber.Map{"node": node})
 	}
 }
 
-func addEdgeXNode(discoveryService *discovery.DiscoveryService) fiber.Handler {
+func addEdgeCoreNode(discoveryService *discovery.DiscoveryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if discoveryService == nil {
 			return apiError(c, fiber.StatusServiceUnavailable, "Discovery service is unavailable")
@@ -73,13 +73,13 @@ func addEdgeXNode(discoveryService *discovery.DiscoveryService) fiber.Handler {
 		}
 		node, err := discoveryService.AddNode(req.IP, req.Port, req.Username, req.Password)
 		if err != nil {
-			return apiError(c, fiber.StatusInternalServerError, fmt.Sprintf("Add EdgeX node failed: %v", err))
+			return apiError(c, fiber.StatusInternalServerError, fmt.Sprintf("Add edgeCore node failed: %v", err))
 		}
 		return apiSuccess(c, fiber.Map{"node": node})
 	}
 }
 
-func scanEdgeXNodes(discoveryService *discovery.DiscoveryService) fiber.Handler {
+func scanEdgeCoreNodes(discoveryService *discovery.DiscoveryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if discoveryService == nil {
 			return apiError(c, fiber.StatusServiceUnavailable, "Discovery service is unavailable")
@@ -102,20 +102,20 @@ func scanEdgeXNodes(discoveryService *discovery.DiscoveryService) fiber.Handler 
 		if len(foundNodes) == 0 {
 			return apiSuccess(c, fiber.Map{
 				"status":  "scanning",
-				"message": "No EdgeX nodes found",
+				"message": "No edgeCore nodes found",
 				"nodes":   foundNodes,
 			})
 		}
 		return apiSuccess(c, fiber.Map{
 			"status":  "success",
-			"message": fmt.Sprintf("Found %d EdgeX node(s)", len(foundNodes)),
+			"message": fmt.Sprintf("Found %d edgeCore node(s)", len(foundNodes)),
 			"nodes":   foundNodes,
 		})
 	}
 }
 
 // Exported aliases
-func GetEdgeXNodes(d *discovery.DiscoveryService) fiber.Handler  { return getEdgeXNodes(d) }
-func GetEdgeXNode(d *discovery.DiscoveryService) fiber.Handler   { return getEdgeXNode(d) }
-func AddEdgeXNode(d *discovery.DiscoveryService) fiber.Handler   { return addEdgeXNode(d) }
-func ScanEdgeXNodes(d *discovery.DiscoveryService) fiber.Handler { return scanEdgeXNodes(d) }
+func GetEdgeCoreNodes(d *discovery.DiscoveryService) fiber.Handler  { return getEdgeCoreNodes(d) }
+func GetEdgeCoreNode(d *discovery.DiscoveryService) fiber.Handler   { return getEdgeCoreNode(d) }
+func AddEdgeCoreNode(d *discovery.DiscoveryService) fiber.Handler   { return addEdgeCoreNode(d) }
+func ScanEdgeCoreNodes(d *discovery.DiscoveryService) fiber.Handler { return scanEdgeCoreNodes(d) }

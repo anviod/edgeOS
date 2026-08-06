@@ -7,7 +7,7 @@ import (
 )
 
 // AttachRegistryMirror 将 EAN Discovery Agent 上线/下线镜像到 V1 节点注册表。
-// 背景：EAN 已替代 V1 节点注册后，EdgeX 可能不再稳定发送 edgex/nodes/register，
+// 背景：EAN 已替代 V1 节点注册后，edgeCore 可能不再稳定发送 edgeCore/nodes/register，
 // 导致 /api/nodes 与 Dashboard total_nodes=0，但 /api/ean/agents 仍有在线 Agent，
 // 且 V1 设备仍按 node_id 落库——形成「设备有、节点无」的展示不一致。
 func (b *Bus) AttachRegistryMirror(registry *services.RegistryService) {
@@ -60,7 +60,7 @@ func (b *Bus) AttachRegistryMirror(registry *services.RegistryService) {
 			return
 		}
 		// Phase 4 (OS-P4): Agent 下线 → 从 V1 节点注册表删除（而非仅标记 offline），
-		// 避免 transient/集成测试 Agent 残留为「offline 多余节点」。真实 EdgeX 节点
+		// 避免 transient/集成测试 Agent 残留为「offline 多余节点」。真实 edgeCore 节点
 		// 重新上线时由 onAgentOnline 重新镜像。
 		// | Agent offline → remove node from V1 registry (not just mark offline),
 		// | so transient/test agents don't linger as offline pollution.

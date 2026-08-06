@@ -1,14 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { EdgeXNodeInfo, EdgeXDeviceInfo, NodeStatusPayload, DashboardStats, DeviceOnlinePayload, DeviceOfflinePayload } from '@/types/edgex'
+import type { EdgeCoreNodeInfo, edgeCoreDeviceInfo, NodeStatusPayload, DashboardStats, DeviceOnlinePayload, DeviceOfflinePayload } from '@/types/edgeCore'
 import { nodeApi, deviceApi, dashboardApi } from '@/api/index'
 
 export const useEdgeStore = defineStore('edge', () => {
-  const nodes = ref<EdgeXNodeInfo[]>([])
+  const nodes = ref<EdgeCoreNodeInfo[]>([])
   const nodesLoading = ref(false)
 
   // devicesByNode: nodeId -> devices
-  const devicesByNode = ref<Record<string, EdgeXDeviceInfo[]>>({})
+  const devicesByNode = ref<Record<string, edgeCoreDeviceInfo[]>>({})
   const devicesLoading = ref(false)
 
   const stats = ref<DashboardStats>({

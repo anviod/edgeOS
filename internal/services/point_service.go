@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	bucketPoints    = "edgex_points"
-	bucketPointData = "edgex_data"
+	bucketPoints    = "edgeCore_points"
+	bucketPointData = "edgeCore_data"
 )
 
 // PointService 点位管理服务
@@ -54,7 +54,7 @@ func (s *PointService) SetCache(nodeID, deviceID string) {
 }
 
 // SaveMeta 保存点位元数据
-func (s *PointService) SaveMeta(nodeID string, p *model.EdgeXPointInfo) error {
+func (s *PointService) SaveMeta(nodeID string, p *model.EdgeCorePointInfo) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(bucketPoints))
 		if err != nil {
@@ -71,7 +71,7 @@ func (s *PointService) SaveMeta(nodeID string, p *model.EdgeXPointInfo) error {
 }
 
 // SaveMetaWithNode 保存带节点ID的点位元数据
-func (s *PointService) SaveMetaWithNode(nodeID string, p *model.EdgeXPointInfo) error {
+func (s *PointService) SaveMetaWithNode(nodeID string, p *model.EdgeCorePointInfo) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(bucketPoints))
 		if err != nil {
@@ -88,8 +88,8 @@ func (s *PointService) SaveMetaWithNode(nodeID string, p *model.EdgeXPointInfo) 
 }
 
 // GetMeta 获取点位元数据
-func (s *PointService) GetMeta(nodeID, deviceID, pointID string) (*model.EdgeXPointInfo, error) {
-	var point model.EdgeXPointInfo
+func (s *PointService) GetMeta(nodeID, deviceID, pointID string) (*model.EdgeCorePointInfo, error) {
+	var point model.EdgeCorePointInfo
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucketPoints))
 		if b == nil {
@@ -105,9 +105,9 @@ func (s *PointService) GetMeta(nodeID, deviceID, pointID string) (*model.EdgeXPo
 }
 
 // ListByDevice 列出设备所有点位元数据
-func (s *PointService) ListByDevice(nodeID, deviceID string) ([]*model.EdgeXPointInfo, error) {
+func (s *PointService) ListByDevice(nodeID, deviceID string) ([]*model.EdgeCorePointInfo, error) {
 	prefix := pointDevicePrefix(nodeID, deviceID)
-	var points []*model.EdgeXPointInfo
+	var points []*model.EdgeCorePointInfo
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucketPoints))
 		if b == nil {
@@ -115,7 +115,7 @@ func (s *PointService) ListByDevice(nodeID, deviceID string) ([]*model.EdgeXPoin
 		}
 		c := b.Cursor()
 		for k, v := c.Seek([]byte(prefix)); k != nil && len(string(k)) > len(prefix) && string(k[:len(prefix)]) == prefix; k, v = c.Next() {
-			var p model.EdgeXPointInfo
+			var p model.EdgeCorePointInfo
 			if err := json.Unmarshal(v, &p); err != nil {
 				continue
 			}
@@ -124,13 +124,13 @@ func (s *PointService) ListByDevice(nodeID, deviceID string) ([]*model.EdgeXPoin
 		return nil
 	})
 	if points == nil {
-		points = []*model.EdgeXPointInfo{}
+		points = []*model.EdgeCorePointInfo{}
 	}
 	return points, err
 }
 
 // UpsertPoint 保存或更新点位元数据
-func (s *PointService) UpsertPoint(nodeID, deviceID string, pt *model.EdgeXPointInfo) error {
+func (s *PointService) UpsertPoint(nodeID, deviceID string, pt *model.EdgeCorePointInfo) error {
 	pt.LastSync = time.Now().Unix()
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(bucketPoints))

@@ -34,7 +34,7 @@ func TestControlHandler_HandleCommandResponse_Success(t *testing.T) {
 			"point_id":   "p1",
 		},
 	}
-	h.HandleCommandResponse(nil, buildMsg("edgex/responses/n1/d1", payload))
+	h.HandleCommandResponse(nil, buildMsg("edgeCore/responses/n1/d1", payload))
 
 	// 验证命令状态已更新
 	got, err := svc.GetCommand(cmd.ID)
@@ -59,7 +59,7 @@ func TestControlHandler_HandleCommandResponse_ErrorStatus(t *testing.T) {
 			"error":      "device timeout",
 		},
 	}
-	h.HandleCommandResponse(nil, buildMsg("edgex/responses/n1", payload))
+	h.HandleCommandResponse(nil, buildMsg("edgeCore/responses/n1", payload))
 
 	got, err := svc.GetCommand(cmd.ID)
 	require.NoError(t, err)
@@ -86,7 +86,7 @@ func TestControlHandler_HandleCommandResponse_RequestIDFromHeader(t *testing.T) 
 			"status":     "success",
 		},
 	}
-	h.HandleCommandResponse(nil, buildMsg("edgex/responses/n1", payload))
+	h.HandleCommandResponse(nil, buildMsg("edgeCore/responses/n1", payload))
 
 	got, err := svc.GetCommand(cmd.ID)
 	require.NoError(t, err)
@@ -104,7 +104,7 @@ func TestControlHandler_HandleCommandResponse_MissingRequestID(t *testing.T) {
 		"header": map[string]interface{}{},
 		"body":   map[string]interface{}{"status": "success"},
 	}
-	h.HandleCommandResponse(nil, buildMsg("edgex/responses/unknown", payload))
+	h.HandleCommandResponse(nil, buildMsg("edgeCore/responses/unknown", payload))
 }
 
 func TestControlHandler_HandleCommandResponse_DefaultStatusSuccess(t *testing.T) {
@@ -124,7 +124,7 @@ func TestControlHandler_HandleCommandResponse_DefaultStatusSuccess(t *testing.T)
 			"status":     "", // 留空
 		},
 	}
-	h.HandleCommandResponse(nil, buildMsg("edgex/responses/n1", payload))
+	h.HandleCommandResponse(nil, buildMsg("edgeCore/responses/n1", payload))
 
 	got, err := svc.GetCommand(cmd.ID)
 	require.NoError(t, err)
@@ -136,7 +136,7 @@ func TestControlHandler_HandleCommandResponse_InvalidPayload(t *testing.T) {
 	defer cleanup()
 
 	h := NewControlHandler(svc, nil, newTestLogger())
-	msg := &mockMessage{topic: "edgex/responses/n1", payload: []byte(`bad json`)}
+	msg := &mockMessage{topic: "edgeCore/responses/n1", payload: []byte(`bad json`)}
 	h.HandleCommandResponse(nil, msg)
 }
 
@@ -147,7 +147,7 @@ func TestControlHandler_HandleCommandResponse_NilControlService(t *testing.T) {
 		"header": map[string]interface{}{},
 		"body":   map[string]interface{}{"request_id": "req-nil", "status": "success"},
 	}
-	h.HandleCommandResponse(nil, buildMsg("edgex/responses/x", payload))
+	h.HandleCommandResponse(nil, buildMsg("edgeCore/responses/x", payload))
 }
 
 // ──────────────────── publishFn 闭包断言 ────────────────────
@@ -171,10 +171,10 @@ func TestControlHandler_PublishFnClosure(t *testing.T) {
 		"header": map[string]interface{}{},
 		"body":   map[string]interface{}{"node_id": "closure-test"},
 	}
-	h.HandleRegister(nil, buildMsg("edgex/nodes/register", regPayload))
+	h.HandleRegister(nil, buildMsg("edgeCore/nodes/register", regPayload))
 
 	require.Len(t, results, 1)
-	assert.Equal(t, "edgex/nodes/closure-test/response", results[0].topic)
+	assert.Equal(t, "edgeCore/nodes/closure-test/response", results[0].topic)
 
 	// 验证 payload 是合法 JSON 且包含 node_id
 	var resp map[string]interface{}
@@ -202,7 +202,7 @@ func TestControlHandler_WaitResponse_ViaHandleResponse(t *testing.T) {
 			"header": map[string]interface{}{},
 			"body":   map[string]interface{}{"request_id": cmd.ID, "status": "success"},
 		}
-		h.HandleCommandResponse(nil, buildMsg("edgex/responses/n1", payload))
+		h.HandleCommandResponse(nil, buildMsg("edgeCore/responses/n1", payload))
 	}()
 
 	// WaitResponse 应在 500ms 内返回

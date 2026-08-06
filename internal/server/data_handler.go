@@ -70,7 +70,7 @@ func handleBackupConfig(store *storage.Storage) fiber.Handler {
 }
 
 // handleClearRuntimeBuckets 清空指定运行时 bucket（配置库 bucket 受保护，返回 403）
-// POST /api/data/clear-cache  body: { "buckets": ["edgex_alerts"] } | { "mode": "all" }
+// POST /api/data/clear-cache  body: { "buckets": ["edgeCore_alerts"] } | { "mode": "all" }
 func handleClearRuntimeBuckets(store *storage.Storage) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if store == nil {

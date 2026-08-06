@@ -28,7 +28,7 @@ const statusMap: Record<string, StatusConfig> = {
   timeout:      { label: '超时',   dotColor: '#F59E0B', textColor: '#F59E0B', bgColor: 'rgba(245,158,11,0.12)' },
   error:        { label: '错误',   dotColor: '#EF4444', textColor: '#EF4444', bgColor: 'rgba(239,68,68,0.12)' },
   connecting:   { label: '连接中', dotColor: '#0EA5E9', textColor: '#0EA5E9', bgColor: 'rgba(14,165,233,0.12)' },
-  // Device Operating State (EdgeX standard)
+  // Device Operating State (edgeCore standard)
   UP:           { label: '在线',   dotColor: '#10B981', textColor: '#10B981', bgColor: 'rgba(16,185,129,0.12)' },
   DOWN:         { label: '离线',   dotColor: '#6B7280', textColor: '#9CA3AF', bgColor: 'rgba(107,114,128,0.12)' },
   // Commands

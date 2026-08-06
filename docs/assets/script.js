@@ -486,7 +486,7 @@ function initHeroVisual() {
 
 // Theme toggle — dark/light switch with localStorage
 function initThemeToggle() {
-  var storageKey = 'edgex-docs-theme';
+  var storageKey = 'edgeCore-docs-theme';
   var root = document.documentElement;
   var button = document.querySelector('[data-theme-toggle]');
   var label = document.querySelector('[data-theme-label]');

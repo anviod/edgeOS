@@ -41,7 +41,7 @@ type commandResponseBody struct {
 }
 
 // HandleCommandResponse 处理命令响应
-// Topic: edgex/responses/# (通配符)
+// Topic: edgeCore/responses/# (通配符)
 // Payload:
 //
 //	{

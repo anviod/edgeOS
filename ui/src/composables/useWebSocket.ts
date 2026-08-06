@@ -1,5 +1,5 @@
 import { ref, onUnmounted } from 'vue'
-import type { RealtimeEvent, WsEventType } from '@/types/edgex'
+import type { RealtimeEvent, WsEventType } from '@/types/edgeCore'
 
 type EventHandler<T = unknown> = (payload: T) => void
 

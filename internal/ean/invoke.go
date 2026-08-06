@@ -21,7 +21,7 @@ type PublishFunc func(topic string, payload []byte) error
 // InvokeOrchestrator 调用编排器，负责发起 Invoke 并关联 Response
 // 核心流程:
 //  1. Invoke() 构建 InvokeRequest，通过 publishFn 发布到 $edgeos/invoke/{target}
-//  2. 启动定时器等待 EdgeX 回复
+//  2. 启动定时器等待 edgeCore 回复
 //  3. HandleReply() 接收 $edgeos/reply/{source} 消息，按 invoke_id 关联并返回结果
 //  4. 超时自动清理 pending 状态
 type InvokeOrchestrator struct {
@@ -50,7 +50,7 @@ type InvokeConfig struct {
 
 // InvokeCall 编排器 Invoke 返回值
 type InvokeCall struct {
-	Response *InvokeResponse // EdgeX 回复（成功时非 nil）
+	Response *InvokeResponse // edgeCore 回复（成功时非 nil）
 	Error    error           // 超时/发布失败等错误
 }
 
@@ -175,7 +175,7 @@ func (io *InvokeOrchestrator) cleanup(invokeID string) {
 
 // ==================== 接收回复 ====================
 
-// HandleReply 处理来自 EdgeX 的 Invoke 回复
+// HandleReply 处理来自 edgeCore 的 Invoke 回复
 // 用作 Subscribe(ReplyTopic(sourceID), orchestrator.HandleReply) 的回调
 // 通过 header.correlation_id / body.invoke_id 关联原始请求
 func (io *InvokeOrchestrator) HandleReply(topic string, payload []byte, transport string) {

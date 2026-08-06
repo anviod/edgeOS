@@ -129,5 +129,5 @@
 
   <line x1="50" y1="1420" x2="950" y2="1420" stroke="#e2e8f0" stroke-width="1" />
   <text x="50" y="1445" class="label-id">EDGE OS v2.4.0 | 工业级边缘计算全量业务逻辑蓝图</text>
-  <text x="950" y="1445" text-anchor="end" class="label-id">COPYRIGHT 2026 | PROJECT: EDGEx_OS</text>
+  <text x="950" y="1445" text-anchor="end" class="label-id">COPYRIGHT 2026 | PROJECT: edgeCore_OS</text>
 </svg>

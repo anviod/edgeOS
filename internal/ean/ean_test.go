@@ -84,27 +84,27 @@ func TestDiscovery_ProtocolEnvelope(t *testing.T) {
 	dc := NewDiscoveryCenter(DiscoveryConfig{}, testLogger(t))
 
 	agentPayload := []byte(`{
-		"header":{"message_id":"m1","timestamp":1,"source":"edgex-node-001","message_type":"agent_descriptor","version":"2.0"},
-		"body":{"agent":{"id":"edgex-node-001","kind":"device","version":"2.0.0","status":"online","transport":"mqtt","heartbeat_interval_sec":30,"metadata":{"os":"linux"}}}
+		"header":{"message_id":"m1","timestamp":1,"source":"edgeCore-node-001","message_type":"agent_descriptor","version":"2.0"},
+		"body":{"agent":{"id":"edgeCore-node-001","kind":"device","version":"2.0.0","status":"online","transport":"mqtt","heartbeat_interval_sec":30,"metadata":{"os":"linux"}}}
 	}`)
 	dc.HandleAgentOnline(TopicDiscoveryAgent, agentPayload, "mqtt")
 
-	agent, ok := dc.GetAgent("edgex-node-001")
+	agent, ok := dc.GetAgent("edgeCore-node-001")
 	require.True(t, ok)
 	require.Equal(t, AgentOnline, agent.Status)
 	require.Equal(t, 30, agent.HeartbeatIntervalSec)
 	require.Equal(t, TransportList{"mqtt"}, agent.Transport)
 
 	capPayload := []byte(`{
-		"header":{"message_id":"m2","timestamp":1,"source":"edgex-node-001","message_type":"capability_descriptor","version":"2.0"},
+		"header":{"message_id":"m2","timestamp":1,"source":"edgeCore-node-001","message_type":"capability_descriptor","version":"2.0"},
 		"body":{"capabilities":[
-			{"id":"system.diagnostics","agent_id":"edgex-node-001","description":"diag","category":"system","timeout_sec":10,"permission":"read"},
-			{"id":"modbus.write","agent_id":"edgex-node-001","description":"write","category":"device","timeout_sec":5,"permission":"write"}
+			{"id":"system.diagnostics","agent_id":"edgeCore-node-001","description":"diag","category":"system","timeout_sec":10,"permission":"read"},
+			{"id":"modbus.write","agent_id":"edgeCore-node-001","description":"write","category":"device","timeout_sec":5,"permission":"write"}
 		]}
 	}`)
 	dc.HandleCapability(TopicDiscoveryCapability, capPayload, "mqtt")
 
-	caps := dc.ListCapabilities("edgex-node-001")
+	caps := dc.ListCapabilities("edgeCore-node-001")
 	require.Len(t, caps, 2)
 	require.Equal(t, 1, dc.OnlineAgentCount())
 
@@ -112,9 +112,9 @@ func TestDiscovery_ProtocolEnvelope(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "modbus.write", found.ID)
 
-	offlinePayload := []byte(`{"header":{"message_type":"agent_offline","source":"edgex-node-001","version":"2.0","message_id":"m3","timestamp":2},"body":{"agent_id":"edgex-node-001","reason":"shutdown"}}`)
+	offlinePayload := []byte(`{"header":{"message_type":"agent_offline","source":"edgeCore-node-001","version":"2.0","message_id":"m3","timestamp":2},"body":{"agent_id":"edgeCore-node-001","reason":"shutdown"}}`)
 	dc.HandleAgentOffline(TopicDiscoveryAgentOffline, offlinePayload, "mqtt")
-	agent, ok = dc.GetAgent("edgex-node-001")
+	agent, ok = dc.GetAgent("edgeCore-node-001")
 	require.True(t, ok)
 	require.Equal(t, AgentOffline, agent.Status)
 }
@@ -187,10 +187,10 @@ func TestEvent_PreviousValueFromEnvelope(t *testing.T) {
 	}, testLogger(t))
 
 	payload := []byte(`{
-		"header":{"message_id":"e1","timestamp":1,"source":"edgex-node-001","message_type":"event","version":"2.0"},
+		"header":{"message_id":"e1","timestamp":1,"source":"edgeCore-node-001","message_type":"event","version":"2.0"},
 		"body":{
 			"event_type":"temperature.changed",
-			"agent_id":"edgex-node-001",
+			"agent_id":"edgeCore-node-001",
 			"device_id":"slave-1",
 			"point_id":"temperature",
 			"value":45.2,
@@ -199,7 +199,7 @@ func TestEvent_PreviousValueFromEnvelope(t *testing.T) {
 			"metadata":{"quality":"good"}
 		}
 	}`)
-	ec.HandleEvent(EventTopic("edgex-node-001"), payload, "nats")
+	ec.HandleEvent(EventTopic("edgeCore-node-001"), payload, "nats")
 
 	require.NotNil(t, got)
 	require.Equal(t, 45.2, got.Value)
@@ -219,8 +219,8 @@ func TestInvoke_CorrelationAndReply(t *testing.T) {
 	}, testLogger(t))
 	require.NoError(t, orch.RegisterReplySubscription(bus))
 
-	// 模拟 EdgeX：收到 invoke 后回 reply
-	require.NoError(t, bus.Subscribe(InvokeTopic("edgex-node-001"), func(topic string, payload []byte, transport string) {
+	// 模拟 edgeCore：收到 invoke 后回 reply
+	require.NoError(t, bus.Subscribe(InvokeTopic("edgeCore-node-001"), func(topic string, payload []byte, transport string) {
 		var msg Message
 		require.NoError(t, json.Unmarshal(payload, &msg))
 		require.Equal(t, "invoke_capability", msg.Header.MessageType)
@@ -239,7 +239,7 @@ func TestInvoke_CorrelationAndReply(t *testing.T) {
 			Header: MessageHeader{
 				MessageID:     "r1",
 				Timestamp:     time.Now().UnixMilli(),
-				Source:        "edgex-node-001",
+				Source:        "edgeCore-node-001",
 				MessageType:   "invoke_response",
 				Version:       "2.0",
 				CorrelationID: req.InvokeID,
@@ -250,7 +250,7 @@ func TestInvoke_CorrelationAndReply(t *testing.T) {
 		_ = bus.Publish(orch.ReplyTopic(), reply)
 	}))
 
-	call := orch.Invoke(context.Background(), "edgex-node-001", "system.diagnostics", map[string]interface{}{}, time.Second)
+	call := orch.Invoke(context.Background(), "edgeCore-node-001", "system.diagnostics", map[string]interface{}{}, time.Second)
 	require.NoError(t, call.Error)
 	require.NotNil(t, call.Response)
 	require.Equal(t, "completed", call.Response.Status)
@@ -299,27 +299,27 @@ func TestHeartbeat_TimeoutMarksOffline(t *testing.T) {
 func TestGovernance_PermissionAndAudit(t *testing.T) {
 	g := NewGovernance(GovernanceConfig{MaxAudit: 100}, testLogger(t))
 
-	deny := g.CheckInvokePermission("t1", "edgex-node-001", "ai.protocol_reverse", PermissionAI)
+	deny := g.CheckInvokePermission("t1", "edgeCore-node-001", "ai.protocol_reverse", PermissionAI)
 	require.False(t, deny.Allowed)
 
 	g.SetPolicy(&TenantPolicy{
 		TenantID: "t1",
 		AllowCap: []string{"ai."},
 	})
-	allow := g.CheckInvokePermission("t1", "edgex-node-001", "ai.protocol_reverse", PermissionAI)
+	allow := g.CheckInvokePermission("t1", "edgeCore-node-001", "ai.protocol_reverse", PermissionAI)
 	require.True(t, allow.Allowed)
 
-	read := g.CheckInvokePermission("t1", "edgex-node-001", "system.diagnostics", PermissionRead)
+	read := g.CheckInvokePermission("t1", "edgeCore-node-001", "system.diagnostics", PermissionRead)
 	require.True(t, read.Allowed)
 
-	g.RecordAudit("edgeos-planner", "edgex-node-001", "ai.protocol_reverse", "inv-1", "completed", "t1")
+	g.RecordAudit("edgeos-planner", "edgeCore-node-001", "ai.protocol_reverse", "inv-1", "completed", "t1")
 	records := g.QueryAuditRecords("edgeos-planner", "", "", 10)
 	require.Len(t, records, 1)
 	require.Equal(t, "inv-1", records[0].InvokeID)
 }
 
 func TestDualTransport_TopicHelpers(t *testing.T) {
-	require.Equal(t, "$edgeos/invoke/edgex-node-001", InvokeTopic("edgex-node-001"))
+	require.Equal(t, "$edgeos/invoke/edgeCore-node-001", InvokeTopic("edgeCore-node-001"))
 	require.Equal(t, "$edgeos/reply/edgeos-planner", ReplyTopic("edgeos-planner"))
 	require.Equal(t, "$edgeos/heartbeat/n1", HeartbeatTopic("n1"))
 	require.Equal(t, "$edgeos/event/n1", EventTopic("n1"))

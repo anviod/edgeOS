@@ -3,13 +3,13 @@ import type {
   DashboardStats,
   MiddlewareConfig,
   MiddlewareForm,
-  EdgeXNodeInfo,
-  EdgeXDeviceInfo,
-  EdgeXPointInfo,
+  EdgeCoreNodeInfo,
+  edgeCoreDeviceInfo,
+  edgeCorePointInfo,
   AlertInfo,
   CommandRecord,
   WritePointRequest,
-} from '@/types/edgex'
+} from '@/types/edgeCore'
 import type {
   EANAgentDescriptor,
   EANCapabilityDescriptor,
@@ -152,10 +152,10 @@ export const middlewareApi = {
 
 export const nodeApi = {
   list() {
-    return request<{ nodes: EdgeXNodeInfo[] }>('/nodes').then(res => res?.nodes ?? [])
+    return request<{ nodes: EdgeCoreNodeInfo[] }>('/nodes').then(res => res?.nodes ?? [])
   },
   get(nodeId: string) {
-    return request<EdgeXNodeInfo>(`/nodes/${nodeId}`)
+    return request<EdgeCoreNodeInfo>(`/nodes/${nodeId}`)
   },
   remove(nodeId: string) {
     return del<void>(`/nodes/${nodeId}`)
@@ -166,11 +166,11 @@ export const nodeApi = {
   },
   // 发现节点 - 通过指定中间件
   triggerDiscoverVia(middlewareId: string) {
-    return post<void>(`/edgex/discover/${middlewareId}`)
+    return post<void>(`/edgeCore/discover/${middlewareId}`)
   },
   // 发现所有节点 - 广播到所有中间件
   discoverAll() {
-    return post<void>('/edgex/discover')
+    return post<void>('/edgeCore/discover')
   },
 }
 
@@ -178,14 +178,14 @@ export const nodeApi = {
 
 export const deviceApi = {
   listByNode(nodeId: string) {
-    return request<{ devices: EdgeXDeviceInfo[] }>(`/nodes/${nodeId}/devices`).then(res => res?.devices ?? [])
+    return request<{ devices: edgeCoreDeviceInfo[] }>(`/nodes/${nodeId}/devices`).then(res => res?.devices ?? [])
   },
 }
 
 // ==================== 点位 ====================
 
 export interface PointsResponse {
-  points: EdgeXPointInfo[]
+  points: edgeCorePointInfo[]
   snapshot?: Record<string, unknown>
 }
 

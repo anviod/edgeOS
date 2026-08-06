@@ -33,14 +33,14 @@ func NewPointHandler(
 }
 
 // HandlePointReport 处理点位元数据上报（物模型定义）
-// Topic: edgex/points/report
+// Topic: edgeCore/points/report
 // Payload:
 //
 //	{
 //	  "body": {
 //	    "node_id": "<node_id>",
 //	    "device_id": "<device_id>",
-//	    "points": [EdgeXPointInfo, ...]
+//	    "points": [EdgeCorePointInfo, ...]
 //	  }
 //	}
 
@@ -86,11 +86,11 @@ func (h *PointHandler) HandlePointReport(_ pahomqtt.Client, msg pahomqtt.Message
 
 	saved := 0
 	for _, raw := range envelope.Body.Points {
-		p := model.EdgeXPointInfo{
+		p := model.EdgeCorePointInfo{
 			PointID:     raw.PointID,
 			PointName:   raw.PointName,
 			DeviceID:    raw.DeviceID,
-			ServiceName: "edgex-service",
+			ServiceName: "edgeCore-service",
 			ProfileName: "default",
 			DataType:    raw.DataType,
 			Units:       raw.Unit,
@@ -142,7 +142,7 @@ func (h *PointHandler) HandlePointReport(_ pahomqtt.Client, msg pahomqtt.Message
 }
 
 // HandleRealtimeData 处理实时数据流（支持全量/差量Merge）
-// Topic: edgex/data/stream
+// Topic: edgeCore/data/stream
 // Payload:
 //
 //	{

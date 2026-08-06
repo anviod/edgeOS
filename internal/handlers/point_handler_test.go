@@ -26,7 +26,7 @@ func TestPointHandler_HandlePointReport_Success(t *testing.T) {
 			},
 		},
 	}
-	h.HandlePointReport(nil, buildMsg("edgex/points/report", payload))
+	h.HandlePointReport(nil, buildMsg("edgeCore/points/report", payload))
 
 	pts, err := svc.ListByDevice("n1", "d1")
 	require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestPointHandler_HandlePointReport_NodeIDFromHeader(t *testing.T) {
 			},
 		},
 	}
-	h.HandlePointReport(nil, buildMsg("edgex/points/report", payload))
+	h.HandlePointReport(nil, buildMsg("edgeCore/points/report", payload))
 
 	pts, err := svc.ListByDevice("n-hdr", "d-hdr")
 	require.NoError(t, err)
@@ -72,7 +72,7 @@ func TestPointHandler_HandlePointReport_MissingNodeID(t *testing.T) {
 			},
 		},
 	}
-	h.HandlePointReport(nil, buildMsg("edgex/points/report", payload))
+	h.HandlePointReport(nil, buildMsg("edgeCore/points/report", payload))
 	// 静默返回，无 panic，无写入
 }
 
@@ -80,7 +80,7 @@ func TestPointHandler_HandlePointReport_InvalidPayload(t *testing.T) {
 	svc, cleanup := newTestPointService(t)
 	defer cleanup()
 	h := NewPointHandler(svc, nil, newTestLogger())
-	msg := &mockMessage{topic: "edgex/points/report", payload: []byte(`{bad`)}
+	msg := &mockMessage{topic: "edgeCore/points/report", payload: []byte(`{bad`)}
 	h.HandlePointReport(nil, msg)
 }
 
@@ -104,7 +104,7 @@ func TestPointHandler_HandlePointReport_RwFieldMapping(t *testing.T) {
 			},
 		},
 	}
-	h.HandlePointReport(nil, buildMsg("edgex/points/report", payload))
+	h.HandlePointReport(nil, buildMsg("edgeCore/points/report", payload))
 
 	pts, err := svc.ListByDevice("n-rw", "d-rw")
 	require.NoError(t, err)
@@ -156,7 +156,7 @@ func TestPointHandler_HandleRealtimeData_FullSnapshot(t *testing.T) {
 			},
 		},
 	}
-	h.HandleRealtimeData(nil, buildMsg("edgex/data/stream", payload))
+	h.HandleRealtimeData(nil, buildMsg("edgeCore/data/stream", payload))
 
 	assert.True(t, svc.HasCache("n1", "d1"), "snapshot should be cached after full upload")
 }
@@ -178,7 +178,7 @@ func TestPointHandler_HandleRealtimeData_DeltaMerge(t *testing.T) {
 			"points":           map[string]interface{}{"p1": 1.0, "p2": 2.0},
 		},
 	}
-	h.HandleRealtimeData(nil, buildMsg("edgex/data/stream", full))
+	h.HandleRealtimeData(nil, buildMsg("edgeCore/data/stream", full))
 
 	// 再发差量（只更新 p1）
 	delta := map[string]interface{}{
@@ -191,7 +191,7 @@ func TestPointHandler_HandleRealtimeData_DeltaMerge(t *testing.T) {
 			"points":           map[string]interface{}{"p1": 9.9},
 		},
 	}
-	h.HandleRealtimeData(nil, buildMsg("edgex/data/stream", delta))
+	h.HandleRealtimeData(nil, buildMsg("edgeCore/data/stream", delta))
 
 	// 缓存应仍存在
 	assert.True(t, svc.HasCache("n1", "d1"))
@@ -213,7 +213,7 @@ func TestPointHandler_HandleRealtimeData_AutoFullWhenNoCache(t *testing.T) {
 			"points":           map[string]interface{}{"px": 7.7},
 		},
 	}
-	h.HandleRealtimeData(nil, buildMsg("edgex/data/stream", payload))
+	h.HandleRealtimeData(nil, buildMsg("edgeCore/data/stream", payload))
 
 	assert.True(t, svc.HasCache("n2", "d2"), "should create cache even for delta when no prior snapshot")
 }
@@ -232,13 +232,13 @@ func TestPointHandler_HandleRealtimeData_MissingNodeOrDevice(t *testing.T) {
 			"points": map[string]interface{}{"p1": 1.0},
 		},
 	}
-	h.HandleRealtimeData(nil, buildMsg("edgex/data/stream", payload))
+	h.HandleRealtimeData(nil, buildMsg("edgeCore/data/stream", payload))
 }
 
 func TestPointHandler_HandleRealtimeData_InvalidPayload(t *testing.T) {
 	svc, cleanup := newTestPointService(t)
 	defer cleanup()
 	h := NewPointHandler(svc, nil, newTestLogger())
-	msg := &mockMessage{topic: "edgex/data/stream", payload: []byte(`not-json`)}
+	msg := &mockMessage{topic: "edgeCore/data/stream", payload: []byte(`not-json`)}
 	h.HandleRealtimeData(nil, msg)
 }

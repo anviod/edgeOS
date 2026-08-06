@@ -9,7 +9,7 @@
         <div class="panel-topbar">
           <div class="logo-box">
             <div class="logo-icon">
-              <span>EDGEx</span>
+              <span>edgeCore</span>
             </div>
           </div>
           <div class="panel-header-side">

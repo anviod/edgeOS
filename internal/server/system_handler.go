@@ -21,9 +21,9 @@ import (
 
 // RuntimeExport 运行时映射关系导出结构 | Runtime mapping export structure
 type RuntimeExport struct {
-	Nodes   []*model.EdgeXNodeInfo   `json:"nodes"`
-	Devices []*model.EdgeXDeviceInfo `json:"devices"`
-	Points  []*model.EdgeXPointInfo  `json:"points"`
+	Nodes   []*model.EdgeCoreNodeInfo   `json:"nodes"`
+	Devices []*model.EdgeCoreDeviceInfo `json:"devices"`
+	Points  []*model.EdgeCorePointInfo  `json:"points"`
 }
 
 // FullConfigExport 完整配置导出（含节点和映射关系）
@@ -86,9 +86,9 @@ func handleExportConfig(
 
 		// 2. 导出运行时映射关系 | Export runtime mappings
 		runtimeExport := RuntimeExport{
-			Nodes:   []*model.EdgeXNodeInfo{},
-			Devices: []*model.EdgeXDeviceInfo{},
-			Points:  []*model.EdgeXPointInfo{},
+			Nodes:   []*model.EdgeCoreNodeInfo{},
+			Devices: []*model.EdgeCoreDeviceInfo{},
+			Points:  []*model.EdgeCorePointInfo{},
 		}
 
 		// 获取所有节点 | Get all nodes

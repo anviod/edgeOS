@@ -13,9 +13,9 @@ import (
 	"github.com/anviod/edgeOS/internal/model"
 )
 
-const bucketName = "edgex_nodes"
+const bucketName = "edgeCore_nodes"
 
-// DiscoveryService EdgeX节点发现服务
+// DiscoveryService edgeCore节点发现服务
 type DiscoveryService struct {
 	db     *bbolt.DB
 	nodeID string
@@ -51,8 +51,8 @@ func (s *DiscoveryService) Start() error {
 }
 
 // ListNodes 列出所有节点
-func (s *DiscoveryService) ListNodes() ([]model.EdgeXNodeInfo, error) {
-	var nodes []model.EdgeXNodeInfo
+func (s *DiscoveryService) ListNodes() ([]model.EdgeCoreNodeInfo, error) {
+	var nodes []model.EdgeCoreNodeInfo
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucketName))
 		if b == nil {
@@ -68,14 +68,14 @@ func (s *DiscoveryService) ListNodes() ([]model.EdgeXNodeInfo, error) {
 		})
 	})
 	if nodes == nil {
-		nodes = []model.EdgeXNodeInfo{}
+		nodes = []model.EdgeCoreNodeInfo{}
 	}
 	return nodes, err
 }
 
 // GetNode 根据ID获取节点
-func (s *DiscoveryService) GetNode(id string) (*model.EdgeXNodeInfo, error) {
-	var node *model.EdgeXNodeInfo
+func (s *DiscoveryService) GetNode(id string) (*model.EdgeCoreNodeInfo, error) {
+	var node *model.EdgeCoreNodeInfo
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucketName))
 		if b == nil {
@@ -96,7 +96,7 @@ func (s *DiscoveryService) GetNode(id string) (*model.EdgeXNodeInfo, error) {
 }
 
 // SaveNode 保存节点信息
-func (s *DiscoveryService) SaveNode(node *model.EdgeXNodeInfo) error {
+func (s *DiscoveryService) SaveNode(node *model.EdgeCoreNodeInfo) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucketName))
 		if b == nil {
@@ -122,7 +122,7 @@ func (s *DiscoveryService) DeleteNode(id string) error {
 }
 
 // AddNode 手动添加节点
-func (s *DiscoveryService) AddNode(ip, port, username, password string) (*model.EdgeXNodeInfo, error) {
+func (s *DiscoveryService) AddNode(ip, port, username, password string) (*model.EdgeCoreNodeInfo, error) {
 	if port == "" {
 		port = "59880"
 	}
@@ -130,10 +130,10 @@ func (s *DiscoveryService) AddNode(ip, port, username, password string) (*model.
 	node, err := s.ScanIP(target)
 	if err != nil {
 		// 扫描失败时创建离线节点记录
-		nodeID := fmt.Sprintf("edgex-%s-%s", strings.ReplaceAll(ip, ".", "-"), port)
-		node = &model.EdgeXNodeInfo{
+		nodeID := fmt.Sprintf("edgeCore-%s-%s", strings.ReplaceAll(ip, ".", "-"), port)
+		node = &model.EdgeCoreNodeInfo{
 			NodeID:   nodeID,
-			NodeName: fmt.Sprintf("EdgeX@%s:%s", ip, port),
+			NodeName: fmt.Sprintf("edgeCore@%s:%s", ip, port),
 			Endpoint: &model.EndpointInfo{Host: ip, Port: port},
 			Status:   "offline",
 			LastSeen: time.Now().Unix(),
@@ -145,8 +145,8 @@ func (s *DiscoveryService) AddNode(ip, port, username, password string) (*model.
 	return node, nil
 }
 
-// ScanIP 扫描IP探测EdgeX节点
-func (s *DiscoveryService) ScanIP(target string) (*model.EdgeXNodeInfo, error) {
+// ScanIP 扫描IP探测edgeCore节点
+func (s *DiscoveryService) ScanIP(target string) (*model.EdgeCoreNodeInfo, error) {
 	url := fmt.Sprintf("http://%s/api/v2/ping", target)
 	resp, err := s.client.Get(url)
 	if err != nil {
@@ -170,13 +170,13 @@ func (s *DiscoveryService) ScanIP(target string) (*model.EdgeXNodeInfo, error) {
 		port = parsePort(parts[1])
 	}
 
-	nodeID := fmt.Sprintf("edgex-%s-%d", strings.ReplaceAll(host, ".", "-"), port)
-	nodeName := fmt.Sprintf("EdgeX@%s", target)
+	nodeID := fmt.Sprintf("edgeCore-%s-%d", strings.ReplaceAll(host, ".", "-"), port)
+	nodeName := fmt.Sprintf("edgeCore@%s", target)
 	if v, ok := result["serviceName"].(string); ok && v != "" {
 		nodeName = v
 	}
 
-	node := &model.EdgeXNodeInfo{
+	node := &model.EdgeCoreNodeInfo{
 		NodeID:   nodeID,
 		NodeName: nodeName,
 		Endpoint: &model.EndpointInfo{Host: host, Port: fmt.Sprintf("%d", port)},

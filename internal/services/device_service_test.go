@@ -18,7 +18,7 @@ func TestDeviceService_UpsertAndGet(t *testing.T) {
 
 	svc := NewDeviceService(db)
 
-	dev := &model.EdgeXDeviceInfo{
+	dev := &model.EdgeCoreDeviceInfo{
 		DeviceID:   "dev-1",
 		DeviceName: "Sensor A",
 		AdminState: "UNLOCKED",
@@ -53,9 +53,9 @@ func TestDeviceService_ListDevices(t *testing.T) {
 	assert.Empty(t, devs)
 
 	// 写入 node-1 的 2 个设备和 node-2 的 1 个设备
-	require.NoError(t, svc.UpsertDevice("node-1", &model.EdgeXDeviceInfo{DeviceID: "d1"}))
-	require.NoError(t, svc.UpsertDevice("node-1", &model.EdgeXDeviceInfo{DeviceID: "d2"}))
-	require.NoError(t, svc.UpsertDevice("node-2", &model.EdgeXDeviceInfo{DeviceID: "d3"}))
+	require.NoError(t, svc.UpsertDevice("node-1", &model.EdgeCoreDeviceInfo{DeviceID: "d1"}))
+	require.NoError(t, svc.UpsertDevice("node-1", &model.EdgeCoreDeviceInfo{DeviceID: "d2"}))
+	require.NoError(t, svc.UpsertDevice("node-2", &model.EdgeCoreDeviceInfo{DeviceID: "d3"}))
 
 	devs, err = svc.ListDevices("node-1")
 	require.NoError(t, err)
@@ -71,7 +71,7 @@ func TestDeviceService_DeleteDevice(t *testing.T) {
 	defer cleanup()
 
 	svc := NewDeviceService(db)
-	require.NoError(t, svc.UpsertDevice("node-1", &model.EdgeXDeviceInfo{DeviceID: "del-dev"}))
+	require.NoError(t, svc.UpsertDevice("node-1", &model.EdgeCoreDeviceInfo{DeviceID: "del-dev"}))
 
 	require.NoError(t, svc.DeleteDevice("node-1", "del-dev"))
 
@@ -87,7 +87,7 @@ func TestDeviceService_CountDevices(t *testing.T) {
 	assert.Equal(t, 0, svc.CountDevices())
 
 	for i := 0; i < 5; i++ {
-		require.NoError(t, svc.UpsertDevice("node-1", &model.EdgeXDeviceInfo{
+		require.NoError(t, svc.UpsertDevice("node-1", &model.EdgeCoreDeviceInfo{
 			DeviceID: fmt.Sprintf("d%d", i),
 		}))
 	}
@@ -99,12 +99,12 @@ func TestDeviceService_ReconcileDevices_PrunesMissing(t *testing.T) {
 	defer cleanup()
 
 	svc := NewDeviceService(db)
-	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "old-a", DeviceName: "A"}))
-	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "old-b", DeviceName: "B"}))
-	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "keep", DeviceName: "Keep"}))
-	require.NoError(t, svc.UpsertDevice("n2", &model.EdgeXDeviceInfo{DeviceID: "other", DeviceName: "Other"}))
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{DeviceID: "old-a", DeviceName: "A"}))
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{DeviceID: "old-b", DeviceName: "B"}))
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{DeviceID: "keep", DeviceName: "Keep"}))
+	require.NoError(t, svc.UpsertDevice("n2", &model.EdgeCoreDeviceInfo{DeviceID: "other", DeviceName: "Other"}))
 
-	upserted, removed, err := svc.ReconcileDevices("n1", []model.EdgeXDeviceInfo{
+	upserted, removed, err := svc.ReconcileDevices("n1", []model.EdgeCoreDeviceInfo{
 		{DeviceID: "keep", DeviceName: "Keep Updated"},
 		{DeviceID: "new-c", DeviceName: "C"},
 	})
@@ -134,7 +134,7 @@ func TestDeviceService_ReconcileDevices_EmptyClearsNode(t *testing.T) {
 	defer cleanup()
 
 	svc := NewDeviceService(db)
-	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeXDeviceInfo{DeviceID: "gone"}))
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{DeviceID: "gone"}))
 
 	upserted, removed, err := svc.ReconcileDevices("n1", nil)
 	require.NoError(t, err)

@@ -184,7 +184,7 @@ func TestMiddlewareService_InitFromConfig_CreatesMissing(t *testing.T) {
 		Enabled:       true,
 		Broker:        "tcp://127.0.0.1:18083",
 		ClientID:      "edgeos-test",
-		Subscriptions: []string{"edgex/devices/report", "edgex/data/#"},
+		Subscriptions: []string{"edgeCore/devices/report", "edgeCore/data/#"},
 	}}
 	require.NoError(t, svc.InitFromConfig(cfg))
 

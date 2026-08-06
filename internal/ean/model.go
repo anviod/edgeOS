@@ -64,7 +64,7 @@ const (
 	AgentOffline AgentStatus = "offline"
 )
 
-// FlexibleStringMap 兼容 EdgeX 北向信封中 metadata 值为 string / number / bool 的情况
+// FlexibleStringMap 兼容 edgeCore 北向信封中 metadata 值为 string / number / bool 的情况
 type FlexibleStringMap map[string]string
 
 func (m *FlexibleStringMap) UnmarshalJSON(data []byte) error {
@@ -96,7 +96,7 @@ func (m FlexibleStringMap) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]string(m))
 }
 
-// AgentDescriptor Agent 描述符（EdgeX 北向 mqttBus 发布 → EdgeOS 索引）
+// AgentDescriptor Agent 描述符（edgeCore 北向 mqttBus 发布 → EdgeOS 索引）
 type AgentDescriptor struct {
 	ID                   string            `json:"id"`
 	Kind                 string            `json:"kind"`

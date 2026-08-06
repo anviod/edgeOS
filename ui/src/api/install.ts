@@ -1,4 +1,4 @@
-import type { MiddlewareConfig } from '@/types/edgex'
+import type { MiddlewareConfig } from '@/types/edgeCore'
 
 export interface InstallNodeConfig {
   node_id: string

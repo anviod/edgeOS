@@ -9,8 +9,8 @@ MQTT_PORT = 1883
 def on_connect(client, userdata, flags, rc):
     print(f"Connected with result code {rc}")
     # 订阅响应主题
-    client.subscribe("edgex/responses/#")
-    print("Subscribed to edgex/responses/#")
+    client.subscribe("edgeCore/responses/#")
+    print("Subscribed to edgeCore/responses/#")
 
 def on_message(client, userdata, msg):
     print(f"\nReceived message on {msg.topic}")
@@ -40,14 +40,14 @@ def test_write_command():
             "version": "1.0"
         },
         "body": {
-            "node_id": "edgex-node-001",
+            "node_id": "edgeCore-node-001",
             "device_id": "slave-1",
             "point_id": "hr_40000",
             "value": 401
         }
     }
 
-    write_topic = "edgex/cmd/edgex-node-001/slave-1/write"
+    write_topic = "edgeCore/cmd/edgeCore-node-001/slave-1/write"
     print(f"\nSending write command to {write_topic}")
     print(f"Payload: {json.dumps(write_command, indent=2)}")
     
@@ -63,13 +63,13 @@ def test_write_command():
         "header": {
             "message_id": "test-write-004",
             "timestamp": int(time.time() * 1000),
-            "source": "edgex-node-001",
+            "source": "edgeCore-node-001",
             "message_type": "command_response",
             "version": "1.0"
         },
         "body": {
             "request_id": "test-write-004",
-            "node_id": "edgex-node-001",
+            "node_id": "edgeCore-node-001",
             "device_id": "slave-1",
             "point_id": "hr_40000",
             "success": True,
@@ -77,7 +77,7 @@ def test_write_command():
         }
     }
 
-    response_topic = "edgex/responses/edgex-node-001/test-write-004"
+    response_topic = "edgeCore/responses/edgeCore-node-001/test-write-004"
     print(f"\nSending simulated response to {response_topic}")
     print(f"Payload: {json.dumps(response, indent=2)}")
     

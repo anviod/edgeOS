@@ -286,7 +286,7 @@ func TestMatchPrefix(t *testing.T) {
 		{"anything", "", true},
 		{"", "", true},
 		{"", "prefix", false},
-		{"edgex-node-001", "*", true},
+		{"edgeCore-node-001", "*", true},
 		{"anything", "*", true},
 	}
 

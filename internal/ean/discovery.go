@@ -32,8 +32,8 @@ const (
 )
 
 // DiscoveryCenter 发现中心，全局 Agent/Capability 索引
-// 订阅 EdgeX **北向 EAN Runtime（TransportMQTT + mqttBus）** 发布的发现消息，
-// 维护在线 Agent 列表与能力注册表。不对接 EdgeX MCP Runtime（TransportSDK + NoopBus）。
+// 订阅 edgeCore **北向 EAN Runtime（TransportMQTT + mqttBus）** 发布的发现消息，
+// 维护在线 Agent 列表与能力注册表。不对接 edgeCore MCP Runtime（TransportSDK + NoopBus）。
 type DiscoveryCenter struct {
 	// 索引存储
 	agents       map[string]*AgentDescriptor       // agentID -> Agent
@@ -131,7 +131,7 @@ func (dc *DiscoveryCenter) HandleAgentOnline(topic string, payload []byte, trans
 
 // HandleAgentOffline 处理 Agent 下线消息
 // 用作 Subscribe(TopicDiscoveryAgentOffline, discovery.HandleAgentOffline) 的回调
-// 设计（v2.25 / EdgeOS 端）：北向关闭 EAN 能力层时 EdgeX 发送 reason=graceful_shutdown 下线——
+// 设计（v2.25 / EdgeOS 端）：北向关闭 EAN 能力层时 edgeCore 发送 reason=graceful_shutdown 下线——
 // 该 Agent 不再是 EAN 参与者，从 Agent 管理页与能力索引中**彻底移除**（与节点注册表删除一致，
 // 避免残留 offline 幽灵 Agent）。心跳超时/异常掉线仍标记 offline（保留历史）。
 // | On graceful_shutdown (northbound EAN disabled) the agent is removed entirely;
@@ -201,9 +201,9 @@ func (dc *DiscoveryCenter) HandleCapability(topic string, payload []byte, transp
 	}
 }
 
-// HandleDiscoveryResponse 处理 EdgeX 对 $edgeos/discovery/query 的响应
+// HandleDiscoveryResponse 处理 edgeCore 对 $edgeos/discovery/query 的响应
 // 响应格式: {"header":..., "body":{"agent":{...}, "capabilities":[...]}}
-// EdgeX 回复的 Capability 均为原生 EAN，优先级最高
+// edgeCore 回复的 Capability 均为原生 EAN，优先级最高
 func (dc *DiscoveryCenter) HandleDiscoveryResponse(topic string, payload []byte, transport string) {
 	body := unwrapBody(payload)
 
@@ -721,7 +721,7 @@ func (dc *DiscoveryCenter) RegisterSubscriptions(bus interface{ Subscribe(string
 	if err := bus.Subscribe(TopicDiscoveryCapability, dc.HandleCapability); err != nil {
 		return fmt.Errorf("subscribe capability failed: %w", err)
 	}
-	// Discovery Response（EdgeX 响应主动查询）
+	// Discovery Response（edgeCore 响应主动查询）
 	if err := bus.Subscribe(TopicDiscoveryResponse, dc.HandleDiscoveryResponse); err != nil {
 		return fmt.Errorf("subscribe discovery response failed: %w", err)
 	}

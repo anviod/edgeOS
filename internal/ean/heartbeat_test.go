@@ -222,7 +222,7 @@ func TestHeartbeatWithDiscovery(t *testing.T) {
 	// Agent 先上线
 	agent := AgentDescriptor{
 		ID:                   "agent-001",
-		Kind:                 "edgex",
+		Kind:                 "edgeCore",
 		HeartbeatIntervalSec: 15,
 		Metadata:             make(map[string]string),
 	}
@@ -253,7 +253,7 @@ func TestCheckTimeouts_PurgeOfflineAgentAfterRetention(t *testing.T) {
 	// Agent 先上线
 	agent := AgentDescriptor{
 		ID:                   "agent-001",
-		Kind:                 "edgex",
+		Kind:                 "edgeCore",
 		HeartbeatIntervalSec: 5,
 		Metadata:             make(map[string]string),
 	}
@@ -292,7 +292,7 @@ func TestCheckTimeouts_PurgeOfflineAgentAfterRetention(t *testing.T) {
 	_, ok = dc.GetAgent("agent-001")
 	assert.True(t, ok, "agent should remain during retention window")
 
-	// 离线保留期已过 → 彻底删除（模拟 EdgeX 关闭 EAN）
+	// 离线保留期已过 → 彻底删除（模拟 edgeCore 关闭 EAN）
 	hm.checkTimeouts(time.Now().Add(2 * time.Hour))
 	_, ok = dc.GetAgent("agent-001")
 	assert.False(t, ok, "agent should be purged after retention expires")
@@ -303,7 +303,7 @@ func TestCheckTimeouts_ReconnectResetsOfflineRetention(t *testing.T) {
 
 	agent := AgentDescriptor{
 		ID:                   "agent-001",
-		Kind:                 "edgex",
+		Kind:                 "edgeCore",
 		HeartbeatIntervalSec: 5,
 		Metadata:             make(map[string]string),
 	}
@@ -353,7 +353,7 @@ func TestCheckTimeouts_NoPurgeWhenRetentionDisabled(t *testing.T) {
 
 	agent := AgentDescriptor{
 		ID:                   "agent-001",
-		Kind:                 "edgex",
+		Kind:                 "edgeCore",
 		HeartbeatIntervalSec: 5,
 		Metadata:             make(map[string]string),
 	}

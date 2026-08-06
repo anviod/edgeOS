@@ -32,14 +32,14 @@ func NewDeviceHandler(
 }
 
 // HandleDeviceReport 处理设备列表上报
-// Topic: edgex/devices/report
+// Topic: edgeCore/devices/report
 // Payload:
 //
 //	{
 //	  "header": {"source": "<node_id>", ...},
 //	  "body": {
 //	    "node_id": "<node_id>",
-//	    "devices": [EdgeXDeviceInfo, ...]
+//	    "devices": [EdgeCoreDeviceInfo, ...]
 //	  }
 //	}
 func (h *DeviceHandler) HandleDeviceReport(_ pahomqtt.Client, msg pahomqtt.Message) {
@@ -49,7 +49,7 @@ func (h *DeviceHandler) HandleDeviceReport(_ pahomqtt.Client, msg pahomqtt.Messa
 		} `json:"header"`
 		Body struct {
 			NodeID  string                  `json:"node_id"`
-			Devices []model.EdgeXDeviceInfo `json:"devices"`
+			Devices []model.EdgeCoreDeviceInfo `json:"devices"`
 		} `json:"body"`
 	}
 

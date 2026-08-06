@@ -53,7 +53,7 @@ type DeviceRule struct {
 
 // ==================== EventCenter ====================
 
-// EventCenter 事件中心，订阅并路由 EdgeX 上报的事件
+// EventCenter 事件中心，订阅并路由 edgeCore 上报的事件
 // 支持点位变化事件（含 previous_value）和设备上下线事件
 // 提供短期缓存和规则路由能力
 type EventCenter struct {

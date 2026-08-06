@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const bucketAlerts = "edgex_alerts"
+const bucketAlerts = "edgeCore_alerts"
 
 // AlertService 告警服务
 type AlertService struct {

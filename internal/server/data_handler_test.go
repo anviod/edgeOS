@@ -40,7 +40,7 @@ func TestHandleDataStats(t *testing.T) {
 	cs, err := storage.NewConfigStore(store.GetConfigDB())
 	require.NoError(t, err)
 	require.NoError(t, cs.SaveNodeConfig(storage.NodeConfigData{NodeID: "node-001", NodeType: "primary", Listen: ":8000"}))
-	require.NoError(t, store.SaveData("edgex_nodes", "n1", map[string]string{"id": "n1"}))
+	require.NoError(t, store.SaveData("edgeCore_nodes", "n1", map[string]string{"id": "n1"}))
 
 	app.Get("/api/data/stats", handleDataStats(store))
 
@@ -98,13 +98,13 @@ func TestHandleClearRuntimeBuckets(t *testing.T) {
 	store, cleanup := newTestDataStore(t)
 	defer cleanup()
 
-	require.NoError(t, store.SaveData("edgex_alerts", "a1", map[string]string{"msg": "x"}))
+	require.NoError(t, store.SaveData("edgeCore_alerts", "a1", map[string]string{"msg": "x"}))
 
 	app.Post("/api/data/clear-cache", handleClearRuntimeBuckets(store))
 
 	// 清理运行时 bucket → 成功
 	req := httptest.NewRequest("POST", "/api/data/clear-cache",
-		bytes.NewReader([]byte(`{"buckets":["edgex_alerts"]}`)))
+		bytes.NewReader([]byte(`{"buckets":["edgeCore_alerts"]}`)))
 	req.Header.Set("Content-Type", "application/json")
 	setAuthHeader(req)
 	resp, err := app.Test(req)
@@ -112,7 +112,7 @@ func TestHandleClearRuntimeBuckets(t *testing.T) {
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	var result map[string]string
-	require.Error(t, store.GetData("edgex_alerts", "a1", &result), "runtime data should be cleared")
+	require.Error(t, store.GetData("edgeCore_alerts", "a1", &result), "runtime data should be cleared")
 
 	// 清理配置 bucket → 403 拒绝
 	req = httptest.NewRequest("POST", "/api/data/clear-cache",
@@ -130,8 +130,8 @@ func TestHandleClearAllRuntime(t *testing.T) {
 	store, cleanup := newTestDataStore(t)
 	defer cleanup()
 
-	require.NoError(t, store.SaveData("edgex_nodes", "n1", map[string]string{"id": "n1"}))
-	require.NoError(t, store.SaveData("edgex_alerts", "a1", map[string]string{"msg": "x"}))
+	require.NoError(t, store.SaveData("edgeCore_nodes", "n1", map[string]string{"id": "n1"}))
+	require.NoError(t, store.SaveData("edgeCore_alerts", "a1", map[string]string{"msg": "x"}))
 
 	app.Post("/api/data/clear-all-runtime", handleClearAllRuntime(store))
 
@@ -145,10 +145,10 @@ func TestHandleClearAllRuntime(t *testing.T) {
 	data := body["data"].(map[string]interface{})
 	assert.Equal(t, "success", data["status"])
 	cleared := data["cleared"].([]interface{})
-	assert.Contains(t, cleared, "edgex_nodes")
+	assert.Contains(t, cleared, "edgeCore_nodes")
 
 	var result map[string]string
-	require.Error(t, store.GetData("edgex_nodes", "n1", &result))
+	require.Error(t, store.GetData("edgeCore_nodes", "n1", &result))
 }
 
 // TestHandleCompactRuntime 验证压缩运行时库。
@@ -157,7 +157,7 @@ func TestHandleCompactRuntime(t *testing.T) {
 	store, cleanup := newTestDataStore(t)
 	defer cleanup()
 
-	require.NoError(t, store.SaveData("edgex_nodes", "n1", map[string]string{"id": "n1"}))
+	require.NoError(t, store.SaveData("edgeCore_nodes", "n1", map[string]string{"id": "n1"}))
 
 	app.Post("/api/data/compact-runtime", handleCompactRuntime(store))
 
@@ -173,5 +173,5 @@ func TestHandleCompactRuntime(t *testing.T) {
 	assert.Equal(t, "success", data["status"])
 
 	// 压缩后运行时数据仍可写
-	require.NoError(t, store.SaveData("edgex_nodes", "n2", map[string]string{"id": "n2"}))
+	require.NoError(t, store.SaveData("edgeCore_nodes", "n2", map[string]string{"id": "n2"}))
 }

@@ -1,6 +1,6 @@
 /**
  * EAN 联合调试指南数据
- * 对照 docs/edgeos/EAN2.0-EdgeX-EdgeOS改造指南.md §2.3 / §6.3
+ * 对照 docs/edgeos/EAN2.0-edgeCore-EdgeOS改造指南.md §2.3 / §6.3
  * 与 docs/MQTT_NATS_Implementation_Guide.md（V1 Topic 并存说明）
  */
 
@@ -48,7 +48,7 @@ export const eanFlowSteps: EanFlowStep[] = [
     id: 'transport-mqtt',
     title: 'MQTT 传输连 Broker',
     detail:
-      'ean.mqtt.enabled=true，broker 默认 tcp://127.0.0.1:18083（与 EdgeX 北向联调端口一致）。health.transport_details 中 mqtt.connected=true。',
+      'ean.mqtt.enabled=true，broker 默认 tcp://127.0.0.1:18083（与 edgeCore 北向联调端口一致）。health.transport_details 中 mqtt.connected=true。',
     link: { label: '协调中心', path: '/ean' },
     check: 'transport_details 含 {name:mqtt, connected:true, endpoint:tcp://127.0.0.1:18083}',
   },
@@ -64,9 +64,9 @@ export const eanFlowSteps: EanFlowStep[] = [
     id: 'discovery',
     title: 'Discovery 上线',
     detail:
-      'EdgeX 北向 mqttBus/natsBus 发布 Agent / Capability 到 $edgeos/discovery/*；EdgeOS 建立索引。NATS 通道 Agent.metadata.northbound=edgeos_nats。',
+      'edgeCore 北向 mqttBus/natsBus 发布 Agent / Capability 到 $edgeos/discovery/*；EdgeOS 建立索引。NATS 通道 Agent.metadata.northbound=edgeos_nats。',
     link: { label: 'Agent 管理', path: '/ean/agents' },
-    check: 'Agent 列表出现 edgex-node-001 且 status=online',
+    check: 'Agent 列表出现 edgeCore-node-001 且 status=online',
   },
   {
     id: 'invoke',
@@ -107,21 +107,21 @@ export const eanGuideExamples: EanGuideExample[] = [
   {
     id: 'discovery-agent',
     title: 'Discovery · Agent 上线',
-    description: 'EdgeX → EdgeOS：注册 Agent 描述符',
+    description: 'edgeCore → EdgeOS：注册 Agent 描述符',
     topic: '$edgeos/discovery/agent',
     payload: JSON.stringify(
       {
         header: {
           message_id: 'msg-agent-1',
           timestamp: Date.now(),
-          source: 'edgex-node-001',
+          source: 'edgeCore-node-001',
           message_type: 'discovery_agent',
           version: '2.0',
         },
         body: {
           agent: {
-            id: 'edgex-node-001',
-            kind: 'edgex',
+            id: 'edgeCore-node-001',
+            kind: 'edgeCore',
             version: '2.0',
             status: 'online',
             transport: ['mqtt', 'nats'],
@@ -133,7 +133,7 @@ export const eanGuideExamples: EanGuideExample[] = [
       null,
       2,
     ),
-    expect: 'Agent 管理页出现 edgex-node-001，状态 online',
+    expect: 'Agent 管理页出现 edgeCore-node-001，状态 online',
   },
   {
     id: 'discovery-capability',
@@ -145,7 +145,7 @@ export const eanGuideExamples: EanGuideExample[] = [
         header: {
           message_id: 'msg-cap-1',
           timestamp: Date.now(),
-          source: 'edgex-node-001',
+          source: 'edgeCore-node-001',
           message_type: 'discovery_capability',
           version: '2.0',
         },
@@ -153,7 +153,7 @@ export const eanGuideExamples: EanGuideExample[] = [
           capabilities: [
             {
               id: 'system.diagnostics',
-              agent_id: 'edgex-node-001',
+              agent_id: 'edgeCore-node-001',
               description: '系统诊断',
               category: 'system',
               timeout_sec: 30,
@@ -181,12 +181,12 @@ export const eanGuideExamples: EanGuideExample[] = [
           'ean.nats.url': 'nats://127.0.0.1:4222',
           'ean.nats.client_name': 'edgeos-ean',
         },
-        edgex_channel: {
+        edgeCore_channel: {
           name: 'EAN-NATS',
           enable: true,
           ean_enabled: true,
           url: 'nats://127.0.0.1:4222',
-          node_id: 'edgex-node-001',
+          node_id: 'edgeCore-node-001',
         },
       },
       null,
@@ -198,7 +198,7 @@ export const eanGuideExamples: EanGuideExample[] = [
     id: 'invoke-diagnostics',
     title: 'Invoke · system.diagnostics',
     description: 'EdgeOS Planner 发起调用；也可在 UI「能力调用」页用示例填充',
-    topic: '$edgeos/invoke/edgex-node-001',
+    topic: '$edgeos/invoke/edgeCore-node-001',
     payload: JSON.stringify(
       {
         header: {
@@ -211,7 +211,7 @@ export const eanGuideExamples: EanGuideExample[] = [
         },
         body: {
           invoke_id: 'inv-1',
-          target: 'edgex-node-001',
+          target: 'edgeCore-node-001',
           capability: 'system.diagnostics',
           arguments: {},
         },
@@ -221,7 +221,7 @@ export const eanGuideExamples: EanGuideExample[] = [
     ),
     expect: 'Reply 到 $edgeos/reply/edgeos-planner，status=completed/success，invoke_id 对齐',
     fillInvoke: {
-      target: 'edgex-node-001',
+      target: 'edgeCore-node-001',
       capability: 'system.diagnostics',
       arguments: '{}',
       timeout_sec: 30,
@@ -232,19 +232,19 @@ export const eanGuideExamples: EanGuideExample[] = [
     id: 'event-previous',
     title: 'Event · previous_value',
     description: '点位变化须带 previous_value',
-    topic: '$edgeos/event/edgex-node-001',
+    topic: '$edgeos/event/edgeCore-node-001',
     payload: JSON.stringify(
       {
         header: {
           message_id: 'msg-evt-1',
           timestamp: Date.now(),
-          source: 'edgex-node-001',
+          source: 'edgeCore-node-001',
           message_type: 'point_change',
           version: '2.0',
         },
         body: {
           event_type: 'point.change',
-          agent_id: 'edgex-node-001',
+          agent_id: 'edgeCore-node-001',
           device_id: 'device-001',
           point_id: 'temp',
           value: 26.5,
@@ -261,18 +261,18 @@ export const eanGuideExamples: EanGuideExample[] = [
     id: 'heartbeat',
     title: 'Heartbeat',
     description: '周期性心跳；停止后超时标记 offline',
-    topic: '$edgeos/heartbeat/edgex-node-001',
+    topic: '$edgeos/heartbeat/edgeCore-node-001',
     payload: JSON.stringify(
       {
         header: {
           message_id: 'msg-hb-1',
           timestamp: Date.now(),
-          source: 'edgex-node-001',
+          source: 'edgeCore-node-001',
           message_type: 'heartbeat',
           version: '2.0',
         },
         body: {
-          agent_id: 'edgex-node-001',
+          agent_id: 'edgeCore-node-001',
           status: 'online',
           timestamp: Date.now(),
           sequence: 1,
@@ -319,8 +319,8 @@ export const eanTroubleshoot: EanTroubleshootItem[] = [
   },
   {
     symptom: '与 V1 数据混乱 / 双写',
-    cause: '同一业务同时走 edgex/* 命令与 EAN Invoke',
-    fix: 'Topic 隔离：V1=edgex/*，EAN=$edgeos/*；新功能只走 EAN',
+    cause: '同一业务同时走 edgeCore/* 命令与 EAN Invoke',
+    fix: 'Topic 隔离：V1=edgeCore/*，EAN=$edgeos/*；新功能只走 EAN',
   },
 ]
 

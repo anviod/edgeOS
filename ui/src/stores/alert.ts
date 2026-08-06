@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { AlertInfo } from '@/types/edgex'
+import type { AlertInfo } from '@/types/edgeCore'
 import { alertApi } from '@/api/index'
 
 export const useAlertStore = defineStore('alert', () => {

@@ -1,6 +1,6 @@
 package model
 
-// PointValue 点位实时值（扩展 EdgeXPointInfo）
+// PointValue 点位实时值（扩展 EdgeCorePointInfo）
 type PointValue struct {
 	NodeID       string      `json:"node_id"`
 	DeviceID     string      `json:"device_id"`

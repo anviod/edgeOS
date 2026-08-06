@@ -5,7 +5,7 @@ import { useMiddlewareStore } from '@/stores/middleware'
 import MiddlewareCard from '@/components/edge/MiddlewareCard.vue'
 import AddMiddlewareModal from '@/components/edge/AddMiddlewareModal.vue'
 import DangerDialog from '@/components/edge/DangerDialog.vue'
-import type { MiddlewareConfig, MiddlewareForm } from '@/types/edgex'
+import type { MiddlewareConfig, MiddlewareForm } from '@/types/edgeCore'
 
 const mwStore = useMiddlewareStore()
 const showModal = ref(false)
@@ -116,7 +116,7 @@ async function confirmDelete() {
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-xl font-bold page-title">消息总线</h1>
-        <p class="text-sm mt-1 page-subtitle">管理 MQTT/NATS 消息总线，订阅 EdgeX 数据主题</p>
+        <p class="text-sm mt-1 page-subtitle">管理 MQTT/NATS 消息总线，订阅 edgeCore 数据主题</p>
       </div>
       <div class="flex items-center gap-2">
         <button
@@ -149,7 +149,7 @@ async function confirmDelete() {
         <Plus class="w-7 h-7 empty-icon" />
       </div>
       <p class="text-base font-medium mb-1 empty-title">尚未配置消息总线</p>
-      <p class="text-sm mb-5 empty-subtitle">添加 MQTT 连接以开始接收 EdgeX 数据</p>
+      <p class="text-sm mb-5 empty-subtitle">添加 MQTT 连接以开始接收 edgeCore 数据</p>
       <button
         @click="openAdd"
         class="px-5 py-2 rounded-xl text-sm font-medium btn-add"

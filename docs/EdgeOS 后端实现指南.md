@@ -7,10 +7,10 @@ description: EdgeOS 后端服务职责、接口协作与实现路径说明。
 # EdgeOS 后端实现指南
 
 > 本文档聚焦于 **EdgeOS 通过 UI 添加消息总线（MQTT/NATS），再通过中间件监听指定主题**，按以下四个核心功能顺序完整说明后端实现：
-> 1. EdgeX 节点注册
-> 2. EdgeX 子设备列表同步
-> 3. EdgeX 子设备点位同步(即物模型点位上报 可用将实时数据点位理解成物模型)
-> 4. EdgeX 子设备双向控制
+> 1. edgeCore 节点注册
+> 2. edgeCore 子设备列表同步
+> 3. edgeCore 子设备点位同步(即物模型点位上报 可用将实时数据点位理解成物模型)
+> 4. edgeCore 子设备双向控制
 
 ---
 
@@ -18,10 +18,10 @@ description: EdgeOS 后端服务职责、接口协作与实现路径说明。
 
 1. [架构总览](#1-架构总览)
 2. [消息总线管理](#2-消息总线管理)
-3. [EdgeX 节点注册](#3-edgex-节点注册)
-4. [EdgeX 子设备列表同步](#4-edgex-子设备列表同步)
-5. [EdgeX 子设备点位同步(即物模型点位上报 可用将实时数据点位理解成物模型)](#5-edgex-子设备点位同步(即物模型点位上报 可用将实时数据点位理解成物模型))
-6. [EdgeX 子设备双向控制](#6-edgex-子设备双向控制)
+3. [edgeCore 节点注册](#3-edgeCore-节点注册)
+4. [edgeCore 子设备列表同步](#4-edgeCore-子设备列表同步)
+5. [edgeCore 子设备点位同步(即物模型点位上报 可用将实时数据点位理解成物模型)](#5-edgeCore-子设备点位同步(即物模型点位上报 可用将实时数据点位理解成物模型))
+6. [edgeCore 子设备双向控制](#6-edgeCore-子设备双向控制)
 7. [心跳与状态管理](#7-心跳与状态管理)
 8. [告警与事件处理](#8-告警与事件处理)
 9. [错误处理与重试策略](#9-错误处理与重试策略)
@@ -65,7 +65,7 @@ description: EdgeOS 后端服务职责、接口协作与实现路径说明。
          │  消息中间件 (MQTT/NATS)             │
          ▼                                    ▼
 ┌──────────────────────────────────────────────────────────────┐
-│                       EdgeX 边缘采集网关                      │
+│                       edgeCore 边缘采集网关                      │
 │  发布：节点注册 / 设备上报 / 点位上报 / 实时数据 / 心跳       │
 │  订阅：设备发现命令 / 写入命令 / 任务控制 / 配置更新          │
 └──────────────────────────────────────────────────────────────┘
@@ -74,8 +74,8 @@ description: EdgeOS 后端服务职责、接口协作与实现路径说明。
 **核心数据流向：**
 
 ```
-EdgeX → 发布 → 消息中间件 → EdgeOS 订阅 → 路由 → 处理器 → 服务层 → 存储/推送
-EdgeOS → 发布控制命令 → 消息中间件 → EdgeX 订阅 → 执行 → 响应
+edgeCore → 发布 → 消息中间件 → EdgeOS 订阅 → 路由 → 处理器 → 服务层 → 存储/推送
+EdgeOS → 发布控制命令 → 消息中间件 → edgeCore 订阅 → 执行 → 响应
 ```
 
 ---
@@ -282,43 +282,43 @@ func buildTopicList(t MiddlewareType) []string {
     if t == MiddlewareMQTT {
         return []string{
             // 1. 节点注册（Stage 1：被动）
-            "edgex/nodes/register",
-            "edgex/nodes/unregister",
-            // 1b. 节点发现（Stage 2：主动触发 EdgeX 重新注册）
-            "edgex/cmd/nodes/register",
+            "edgeCore/nodes/register",
+            "edgeCore/nodes/unregister",
+            // 1b. 节点发现（Stage 2：主动触发 edgeCore 重新注册）
+            "edgeCore/cmd/nodes/register",
             // 2. 设备同步
-            "edgex/devices/report",
+            "edgeCore/devices/report",
             // 3. 点位同步(即物模型点位上报 可用将实时数据点位理解成物模型)
-            "edgex/points/report",
+            "edgeCore/points/report",
             // 4. 实时数据（双向控制读侧）
-            "edgex/data/#",
+            "edgeCore/data/#",
             // 响应
-            "edgex/responses/#",
+            "edgeCore/responses/#",
             // 心跳与状态
-            "edgex/nodes/+/heartbeat",
-            "edgex/nodes/+/status",
-            "edgex/nodes/+/online",
-            "edgex/nodes/+/offline",
+            "edgeCore/nodes/+/heartbeat",
+            "edgeCore/nodes/+/status",
+            "edgeCore/nodes/+/online",
+            "edgeCore/nodes/+/offline",
             // 告警
-            "edgex/events/alert",
-            "edgex/events/error",
-            "edgex/events/info",
+            "edgeCore/events/alert",
+            "edgeCore/events/error",
+            "edgeCore/events/info",
         }
     }
     // NATS
     return []string{
-        "edgex.nodes.register",
-        "edgex.nodes.unregister",
-        "edgex.cmd.nodes.register",
-        "edgex.devices.report",
-        "edgex.points.report",
-        "edgex.data.>",
-        "edgex.res.>",
-        "edgex.nodes.heartbeat.>",
-        "edgex.nodes.status.>",
-        "edgex.events.alert",
-        "edgex.events.error",
-        "edgex.events.info",
+        "edgeCore.nodes.register",
+        "edgeCore.nodes.unregister",
+        "edgeCore.cmd.nodes.register",
+        "edgeCore.devices.report",
+        "edgeCore.points.report",
+        "edgeCore.data.>",
+        "edgeCore.res.>",
+        "edgeCore.nodes.heartbeat.>",
+        "edgeCore.nodes.status.>",
+        "edgeCore.events.alert",
+        "edgeCore.events.error",
+        "edgeCore.events.info",
     }
 }
 ```
@@ -528,25 +528,25 @@ func (c *natsClient) Request(subject string, msgType string, body interface{}, t
 
 ---
 
-## 3. EdgeX 节点注册
+## 3. edgeCore 节点注册
 
 ### 3.1 两阶段注册流程概述
 
-EdgeX 节点注册分为两个阶段：
+edgeCore 节点注册分为两个阶段：
 
-- **Stage 1（被动注册）**：EdgeX 节点主动发布 `edgex/nodes/register`，EdgeOS 接收并处理注册请求。这是节点初始化时的标准注册流程。
-- **Stage 2（主动发现）**：EdgeOS 主动发布 `edgex/cmd/nodes/register`，触发已注册或待注册的 EdgeX 节点重新上报注册信息。用于运维管理场景——例如节点重启后需重新建立映射、拓扑变更后需刷新节点列表、或 EdgeOS 重启后需主动探测可用节点。
+- **Stage 1（被动注册）**：edgeCore 节点主动发布 `edgeCore/nodes/register`，EdgeOS 接收并处理注册请求。这是节点初始化时的标准注册流程。
+- **Stage 2（主动发现）**：EdgeOS 主动发布 `edgeCore/cmd/nodes/register`，触发已注册或待注册的 edgeCore 节点重新上报注册信息。用于运维管理场景——例如节点重启后需重新建立映射、拓扑变更后需刷新节点列表、或 EdgeOS 重启后需主动探测可用节点。
 
 ```
-Stage 1: 被动注册（EdgeX → EdgeOS）
-EdgeX 节点 ──(edgex/nodes/register)──→ MQTT Broker ──→ EdgeOS（处理注册）
+Stage 1: 被动注册（edgeCore → EdgeOS）
+edgeCore 节点 ──(edgeCore/nodes/register)──→ MQTT Broker ──→ EdgeOS（处理注册）
 
-Stage 2: 主动发现（EdgeOS → EdgeX → EdgeOS）
-EdgeOS ──(edgex/cmd/nodes/register)──→ MQTT Broker ──→ EdgeX 节点
+Stage 2: 主动发现（EdgeOS → edgeCore → EdgeOS）
+EdgeOS ──(edgeCore/cmd/nodes/register)──→ MQTT Broker ──→ edgeCore 节点
                                                      │
                                                      ▼
-                                          EdgeX 节点重新发布:
-                                          edgex/nodes/register
+                                          edgeCore 节点重新发布:
+                                          edgeCore/nodes/register
                                                      │
                                                      ▼
                                           MQTT Broker ──→ EdgeOS（处理注册）
@@ -555,10 +555,10 @@ EdgeOS ──(edgex/cmd/nodes/register)──→ MQTT Broker ──→ EdgeX 节
 ### 3.2 Stage 1：被动注册
 
 ```
-EdgeX                    消息中间件               EdgeOS
+edgeCore                    消息中间件               EdgeOS
   │                          │                      │
   │── node_register ────────►│                      │
-  │   Topic: edgex/nodes/register                   │
+  │   Topic: edgeCore/nodes/register                   │
   │                          │──────────────────────►│
   │                          │      处理注册消息      │
   │                          │   1. 验证消息格式      │
@@ -573,55 +573,55 @@ EdgeX                    消息中间件               EdgeOS
 
 | 协议 | 主题 | QoS | 说明 |
 |------|------|-----|------|
-| MQTT | `edgex/nodes/register` | 1 | **Stage 1: 节点被动注册** |
-| MQTT | `edgex/nodes/unregister` | 1 | 节点注销 |
-| MQTT | `edgex/cmd/nodes/register` | 1 | **Stage 2: EdgeOS 主动触发节点重新注册** |
-| NATS | `edgex.nodes.register` | - | **Stage 1: 节点被动注册** |
-| NATS | `edgex.nodes.unregister` | - | 节点注销 |
-| NATS | `edgex.cmd.nodes.register` | - | **Stage 2: EdgeOS 主动触发节点重新注册** |
+| MQTT | `edgeCore/nodes/register` | 1 | **Stage 1: 节点被动注册** |
+| MQTT | `edgeCore/nodes/unregister` | 1 | 节点注销 |
+| MQTT | `edgeCore/cmd/nodes/register` | 1 | **Stage 2: EdgeOS 主动触发节点重新注册** |
+| NATS | `edgeCore.nodes.register` | - | **Stage 1: 节点被动注册** |
+| NATS | `edgeCore.nodes.unregister` | - | 节点注销 |
+| NATS | `edgeCore.cmd.nodes.register` | - | **Stage 2: EdgeOS 主动触发节点重新注册** |
 
 ### 3.3 消息结构
 
-**接收（EdgeX → EdgeOS）：**
+**接收（edgeCore → EdgeOS）：**
 ```json
 {
   "header": {
     "message_id": "msg-node-reg-001",
     "timestamp": 1744680000000,
-    "source": "edgex-node-001",
+    "source": "edgeCore-node-001",
     "destination": "edgeos-queen",
     "message_type": "node_register",
     "version": "1.0"
   },
   "body": {
-    "node_id": "edgex-node-001",
-    "node_name": "EdgeX Gateway Node",
+    "node_id": "edgeCore-node-001",
+    "node_name": "edgeCore Gateway Node",
     "model": "edge-gateway",
     "version": "1.0.0",
     "api_version": "v1",
     "capabilities": ["shadow-sync", "heartbeat", "device-control", "task-execution"],
     "protocol": "edgeOS(MQTT)",
     "endpoint": { "host": "127.0.0.1", "port": 8082 },
-    "metadata": { "os": "linux", "arch": "amd64", "hostname": "edgex-node-001.local" }
+    "metadata": { "os": "linux", "arch": "amd64", "hostname": "edgeCore-node-001.local" }
   }
 }
 ```
 
-**回复（EdgeOS → EdgeX）：**
+**回复（EdgeOS → edgeCore）：**
 ```json
 {
   "header": {
     "message_id": "msg-node-reg-resp-001",
     "timestamp": 1744680000500,
     "source": "edgeos-queen",
-    "destination": "edgex-node-001",
+    "destination": "edgeCore-node-001",
     "message_type": "node_register_response",
     "version": "1.0",
     "correlation_id": "msg-node-reg-001"
   },
   "body": {
     "success": true,
-    "node_id": "edgex-node-001",
+    "node_id": "edgeCore-node-001",
     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "expires_in": 3600,
     "message": "Node registered successfully"
@@ -705,7 +705,7 @@ func (h *NodeHandler) replyRegisterSuccess(reqHeader MessageHeader, nodeID strin
         Version:       "1.0",
         CorrelationID: reqHeader.MessageID,
     }
-    topic := fmt.Sprintf("edgex/responses/%s/%s", reqHeader.Source, reqHeader.MessageID)
+    topic := fmt.Sprintf("edgeCore/responses/%s/%s", reqHeader.Source, reqHeader.MessageID)
     return h.publisher.Publish(topic, respHeader, respBody)
 }
 
@@ -747,23 +747,23 @@ type NodeEndpoint struct {
 
 ### 3.7 Stage 2：主动节点发现
 
-EdgeOS 支持主动向中间件发布节点发现请求，触发 EdgeX 节点重新注册。
+EdgeOS 支持主动向中间件发布节点发现请求，触发 edgeCore 节点重新注册。
 
 **API 端点：**
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `POST` | `/api/edgex/discover` | 向第一个已连接中间件发布发现请求（广播模式） |
-| `POST` | `/api/edgex/discover/:middlewareId` | 向指定中间件实例发布发现请求 |
+| `POST` | `/api/edgeCore/discover` | 向第一个已连接中间件发布发现请求（广播模式） |
+| `POST` | `/api/edgeCore/discover/:middlewareId` | 向指定中间件实例发布发现请求 |
 
 **请求示例：**
 ```bash
 # 触发所有已连接中间件的节点发现
-curl -X POST http://localhost:8000/api/edgex/discover \
+curl -X POST http://localhost:8000/api/edgeCore/discover \
   -H "Authorization: Bearer <token>"
 
 # 向指定中间件触发发现
-curl -X POST http://localhost:8000/api/edgex/discover/mqtt-1 \
+curl -X POST http://localhost:8000/api/edgeCore/discover/mqtt-1 \
   -H "Authorization: Bearer <token>"
 ```
 
@@ -781,7 +781,7 @@ func (m *Manager) PublishNodeDiscovery() error {
         "body": map[string]interface{}{},
     }
     payload, _ := json.Marshal(msg)
-    return m.publishToFirstClient("edgex/cmd/nodes/register", payload)
+    return m.publishToFirstClient("edgeCore/cmd/nodes/register", payload)
 }
 
 // PublishNodeDiscoveryTo 向指定中间件发布节点发现请求
@@ -801,7 +801,7 @@ func (m *Manager) PublishNodeDiscoveryTo(middlewareID string) error {
         "body": map[string]interface{}{},
     }
     payload, _ := json.Marshal(msg)
-    return entry.publishFn("edgex/cmd/nodes/register", payload)
+    return entry.publishFn("edgeCore/cmd/nodes/register", payload)
 }
 ```
 
@@ -819,7 +819,7 @@ func (c *natsClient) PublishDiscoveryRequest() error {
         "body": map[string]interface{}{},
     }
     payload, _ := json.Marshal(msg)
-    return c.nc.Publish("edgex.cmd.nodes.register", payload)
+    return c.nc.Publish("edgeCore.cmd.nodes.register", payload)
 }
 ```
 
@@ -836,19 +836,19 @@ func (c *natsClient) PublishDiscoveryRequest() error {
 }
 ```
 
-EdgeX 节点收到该消息后，应立即重新发布 `edgex/nodes/register` 消息，从而触发完整的 Stage 1 注册流程（验证 + 持久化 + 响应）。
+edgeCore 节点收到该消息后，应立即重新发布 `edgeCore/nodes/register` 消息，从而触发完整的 Stage 1 注册流程（验证 + 持久化 + 响应）。
 
 ---
 
-## 4. EdgeX 子设备列表同步
+## 4. edgeCore 子设备列表同步
 
 ### 4.1 功能流程
 
 ```
-EdgeX                    消息中间件               EdgeOS
+edgeCore                    消息中间件               EdgeOS
   │                          │                      │
   │── device_report ────────►│                      │
-  │   Topic: edgex/devices/report                   │
+  │   Topic: edgeCore/devices/report                   │
   │                          │──────────────────────►│
   │                          │   1. 校验来源节点是否  │
   │                          │      已注册            │
@@ -861,26 +861,26 @@ EdgeX                    消息中间件               EdgeOS
   │── device list response ─►│──────────────────────►│
 ```
 
-EdgeOS 也可主动发起设备同步：向 `edgex/devices/{node_id}/list` 发布查询命令，EdgeX 以 `edgex/devices/report` 响应。
+EdgeOS 也可主动发起设备同步：向 `edgeCore/devices/{node_id}/list` 发布查询命令，edgeCore 以 `edgeCore/devices/report` 响应。
 
 ### 4.2 订阅 / 发布主题
 
 | 方向 | 协议 | 主题 | 说明 |
 |------|------|------|------|
-| 订阅（收） | MQTT | `edgex/devices/report` | 接收设备列表上报 |
-| 订阅（收） | NATS | `edgex.devices.report` | 接收设备列表上报 |
-| 发布（发） | MQTT | `edgex/devices/{node_id}/list` | 主动查询设备列表 |
-| 发布（发） | NATS | `edgex.devices.{node_id}.list` | 主动查询设备列表 |
-| 发布（发） | MQTT | `edgex/cmd/{node_id}/discover` | 触发设备发现 |
+| 订阅（收） | MQTT | `edgeCore/devices/report` | 接收设备列表上报 |
+| 订阅（收） | NATS | `edgeCore.devices.report` | 接收设备列表上报 |
+| 发布（发） | MQTT | `edgeCore/devices/{node_id}/list` | 主动查询设备列表 |
+| 发布（发） | NATS | `edgeCore.devices.{node_id}.list` | 主动查询设备列表 |
+| 发布（发） | MQTT | `edgeCore/cmd/{node_id}/discover` | 触发设备发现 |
 
 ### 4.3 消息结构
 
-**接收（EdgeX → EdgeOS）：**
+**接收（edgeCore → EdgeOS）：**
 ```json
 {
-  "header": { "message_type": "device_report", "source": "edgex-node-001" },
+  "header": { "message_type": "device_report", "source": "edgeCore-node-001" },
   "body": {
-    "node_id": "edgex-node-001",
+    "node_id": "edgeCore-node-001",
     "devices": [
       {
         "device_id": "device-001",
@@ -978,7 +978,7 @@ func (h *DeviceHandler) TriggerDiscover(nodeID string, protocol string, publishe
             "sync_immediately": true,
         },
     }
-    topic := fmt.Sprintf("edgex/cmd/%s/discover", nodeID)
+    topic := fmt.Sprintf("edgeCore/cmd/%s/discover", nodeID)
     return publisher.Publish(topic, "discover_command", body)
 }
 ```
@@ -1007,32 +1007,32 @@ type Device struct {
 
 ---
 
-## 5. EdgeX 子设备点位同步（物模型）
+## 5. edgeCore 子设备点位同步（物模型）
 
 ### 5.1 设计原则：物模型驱动的两阶段数据流
 
-EdgeX 的点位数据通过**实时数据消息**（`edgex/data/{node_id}/{device_id}`）传递，遵循以下两阶段规则：
+edgeCore 的点位数据通过**实时数据消息**（`edgeCore/data/{node_id}/{device_id}`）传递，遵循以下两阶段规则：
 
 | 阶段 | 触发时机 | 消息内容 | EdgeOS 处理方式 |
 |------|---------|---------|---------------|
 | **全量上报**（物模型初始化） | 设备连接后首次上报，或 EdgeOS 主动触发同步 | `points` 包含该设备**全部**点位及其当前值 | 以 `point_id` 为 key 全量写入点位缓存，建立物模型快照 |
 | **差量上报**（增量实时数据） | 后续周期性或变化触发 | `points` 仅包含**自上次上报以来发生变化**的点位 | Merge 到全量缓存，仅更新出现的 key，不删除未出现的点位 |
 
-> **关键原则**：两种消息结构完全相同，区分方式由 EdgeOS 业务逻辑判断——设备无缓存时首条视为全量，有缓存后每条均视为差量 Merge。`edgex/points/report` 是独立的**点位元数据上报**（含类型/单位/地址等配置信息），与实时数据上报相互独立、可选。
+> **关键原则**：两种消息结构完全相同，区分方式由 EdgeOS 业务逻辑判断——设备无缓存时首条视为全量，有缓存后每条均视为差量 Merge。`edgeCore/points/report` 是独立的**点位元数据上报**（含类型/单位/地址等配置信息），与实时数据上报相互独立、可选。
 
 ### 5.2 功能流程
 
 ```
-EdgeX                    消息中间件               EdgeOS
+edgeCore                    消息中间件               EdgeOS
   │                          │                      │
   │  ─(可选) point_report ──►│                      │
-  │   Topic: edgex/points/report                    │
+  │   Topic: edgeCore/points/report                    │
   │                          │──────────────────────►│
   │                          │  保存点位元数据定义    │
   │                          │  (类型/单位/地址/范围) │
   │                          │                      │
   │  ── data [首次·全量] ────►│                      │
-  │   Topic: edgex/data/{node}/{dev}                │
+  │   Topic: edgeCore/data/{node}/{dev}                │
   │   body.points = {所有点位:当前值}                 │
   │                          │──────────────────────►│
   │                          │  1. 设备无缓存         │
@@ -1051,28 +1051,28 @@ EdgeX                    消息中间件               EdgeOS
   │                          │     (is_full_snapshot=false)
 ```
 
-EdgeOS 可主动触发全量同步：向 `edgex/cmd/{node_id}/sync` 发布请求，EdgeX 将重新触发全量数据上报。
+EdgeOS 可主动触发全量同步：向 `edgeCore/cmd/{node_id}/sync` 发布请求，edgeCore 将重新触发全量数据上报。
 
 ### 5.3 订阅 / 发布主题
 
 | 方向 | 协议 | 主题 | 说明 |
 |------|------|------|------|
-| 订阅（收） | MQTT | `edgex/points/report` | 接收点位元数据定义（可选） |
-| 订阅（收） | MQTT | `edgex/data/#` | 接收实时数据（全量或差量） |
-| 订阅（收） | NATS | `edgex.points.report` | 接收点位元数据定义（可选） |
-| 订阅（收） | NATS | `edgex.data.>` | 接收实时数据（全量或差量） |
-| 发布（发） | MQTT | `edgex/cmd/{node_id}/sync` | 主动触发 EdgeX 全量上报 |
-| 发布（发） | MQTT | `edgex/points/{node_id}/{device_id}/sync` | 请求指定设备点位元数据同步 |
+| 订阅（收） | MQTT | `edgeCore/points/report` | 接收点位元数据定义（可选） |
+| 订阅（收） | MQTT | `edgeCore/data/#` | 接收实时数据（全量或差量） |
+| 订阅（收） | NATS | `edgeCore.points.report` | 接收点位元数据定义（可选） |
+| 订阅（收） | NATS | `edgeCore.data.>` | 接收实时数据（全量或差量） |
+| 发布（发） | MQTT | `edgeCore/cmd/{node_id}/sync` | 主动触发 edgeCore 全量上报 |
+| 发布（发） | MQTT | `edgeCore/points/{node_id}/{device_id}/sync` | 请求指定设备点位元数据同步 |
 
 ### 5.4 消息结构
 
-**点位元数据上报 `edgex/points/report`（可选，含配置信息）：**
+**点位元数据上报 `edgeCore/points/report`（可选，含配置信息）：**
 
 ```json
 {
-  "header": { "message_type": "point_report", "source": "edgex-node-001" },
+  "header": { "message_type": "point_report", "source": "edgeCore-node-001" },
   "body": {
-    "node_id": "edgex-node-001",
+    "node_id": "edgeCore-node-001",
     "device_id": "Room_FC_2014_19",
     "points": [
       {
@@ -1101,13 +1101,13 @@ EdgeOS 可主动触发全量同步：向 `edgex/cmd/{node_id}/sync` 发布请求
   "header": {
     "message_id": "msg-c9028d5e3e3018e6324ad61c91927561",
     "timestamp": 1776312621808,
-    "source": "edgex-node-001",
+    "source": "edgeCore-node-001",
     "message_type": "data",
     "version": "1.0"
   },
   "body": {
     "device_id": "Room_FC_2014_19",
-    "node_id": "edgex-node-001",
+    "node_id": "edgeCore-node-001",
     "points": {
       "SetPoint.Value": 19,
       "Setpoint.1": 19,
@@ -1134,13 +1134,13 @@ EdgeOS 可主动触发全量同步：向 `edgex/cmd/{node_id}/sync` 发布请求
   "header": {
     "message_id": "msg-c9028d5e3e3018e6324ad61c91927561",
     "timestamp": 1776312623000,
-    "source": "edgex-node-001",
+    "source": "edgeCore-node-001",
     "message_type": "data",
     "version": "1.0"
   },
   "body": {
     "device_id": "Room_FC_2014_19",
-    "node_id": "edgex-node-001",
+    "node_id": "edgeCore-node-001",
     "points": {
       "SetPoint.Value": 20,
       "Setpoint.1": 20,
@@ -1177,7 +1177,7 @@ type PointHandler struct {
     log           *logrus.Logger
 }
 
-// HandlePointReport 处理点位元数据上报（edgex/points/report，可选）
+// HandlePointReport 处理点位元数据上报（edgeCore/points/report，可选）
 // 保存点位的配置定义：类型、单位、地址、范围等，不覆盖 CurrentValue/Quality/LastUpdated。
 func (h *PointHandler) HandlePointReport(topic string, msg *Message) error {
     var body PointReportBody
@@ -1223,7 +1223,7 @@ func (h *PointHandler) HandlePointReport(topic string, msg *Message) error {
     return nil
 }
 
-// HandleRealtimeData 处理实时数据上报（edgex/data/{node_id}/{device_id}）
+// HandleRealtimeData 处理实时数据上报（edgeCore/data/{node_id}/{device_id}）
 //
 // 两阶段 Merge 策略：
 //   - 首次上报（设备无缓存）：body.points 为物模型全量数据，全量写入缓存，
@@ -1374,50 +1374,50 @@ T2 收到差量上报（IsFullSnapshot=false）:
 
 ---
 
-## 6. EdgeX 子设备双向控制
+## 6. edgeCore 子设备双向控制
 
 ### 6.1 功能流程
 
 ```
-EdgeOS (控制发起)        消息中间件               EdgeX (执行)
+EdgeOS (控制发起)        消息中间件               edgeCore (执行)
     │                        │                       │
     │─── write_command ──────►│                      │
-    │  edgex/cmd/{node}/{dev}/write                  │
+    │  edgeCore/cmd/{node}/{dev}/write                  │
     │                        │──────────────────────►│
-    │                        │  EdgeX 写入物理设备   │
+    │                        │  edgeCore 写入物理设备   │
     │                        │◄──────────────────────│
-    │◄─── 命令响应 ───────────│  edgex/responses/... │
+    │◄─── 命令响应 ───────────│  edgeCore/responses/... │
     │                        │                       │
     │                        │                       │
     │  (实时状态反馈路径)      │                       │
     │◄── data ───────────────│◄──────────────────────│
-    │  edgex/data/{node}/{dev} 实时数据包含控制结果   │
+    │  edgeCore/data/{node}/{dev} 实时数据包含控制结果   │
 ```
 
 **双向指的是：**
-- **下行（EdgeOS → EdgeX）**：写入命令、任务控制、配置更新、设备发现
-- **上行（EdgeX → EdgeOS）**：命令执行响应、实时数据（含写后读验证）、告警
+- **下行（EdgeOS → edgeCore）**：写入命令、任务控制、配置更新、设备发现
+- **上行（edgeCore → EdgeOS）**：命令执行响应、实时数据（含写后读验证）、告警
 
 ### 6.2 下行控制主题
 
 | 协议 | 主题 | 消息类型 | 说明 |
 |------|------|---------|------|
-| MQTT | `edgex/cmd/{node_id}/{device_id}/write` | `write_command` | 写入设备点位 |
-| MQTT | `edgex/cmd/{node_id}/discover` | `discover_command` | 触发设备发现 |
-| MQTT | `edgex/cmd/{node_id}/task/create` | `task_create` | 创建采集任务 |
-| MQTT | `edgex/cmd/{node_id}/task/{task_id}/pause` | `task_control` | 暂停任务 |
-| MQTT | `edgex/cmd/{node_id}/task/{task_id}/resume` | `task_control` | 恢复任务 |
-| MQTT | `edgex/cmd/{node_id}/task/{task_id}/stop` | `task_control` | 停止任务 |
-| MQTT | `edgex/cmd/{node_id}/config/update` | `config_update` | 更新节点配置 |
-| NATS | `edgex.cmd.{node_id}.{device_id}.write` | `write_command` | 写入设备点位 |
+| MQTT | `edgeCore/cmd/{node_id}/{device_id}/write` | `write_command` | 写入设备点位 |
+| MQTT | `edgeCore/cmd/{node_id}/discover` | `discover_command` | 触发设备发现 |
+| MQTT | `edgeCore/cmd/{node_id}/task/create` | `task_create` | 创建采集任务 |
+| MQTT | `edgeCore/cmd/{node_id}/task/{task_id}/pause` | `task_control` | 暂停任务 |
+| MQTT | `edgeCore/cmd/{node_id}/task/{task_id}/resume` | `task_control` | 恢复任务 |
+| MQTT | `edgeCore/cmd/{node_id}/task/{task_id}/stop` | `task_control` | 停止任务 |
+| MQTT | `edgeCore/cmd/{node_id}/config/update` | `config_update` | 更新节点配置 |
+| NATS | `edgeCore.cmd.{node_id}.{device_id}.write` | `write_command` | 写入设备点位 |
 
 ### 6.3 上行响应主题
 
 | 协议 | 主题 | 说明 |
 |------|------|------|
-| MQTT | `edgex/responses/{node_id}/{request_id}` | 命令执行响应 |
-| MQTT | `edgex/responses/{node_id}/error/{request_id}` | 错误响应 |
-| NATS | `edgex.res.{node_id}.{request_id}` | 命令执行响应 |
+| MQTT | `edgeCore/responses/{node_id}/{request_id}` | 命令执行响应 |
+| MQTT | `edgeCore/responses/{node_id}/error/{request_id}` | 错误响应 |
+| NATS | `edgeCore.res.{node_id}.{request_id}` | 命令执行响应 |
 
 ### 6.4 写入命令消息
 
@@ -1427,7 +1427,7 @@ EdgeOS (控制发起)        消息中间件               EdgeX (执行)
     "message_id": "msg-cmd-write-001",
     "timestamp": 1744680000000,
     "source": "edgeos-queen",
-    "destination": "edgex-node-001",
+    "destination": "edgeCore-node-001",
     "message_type": "write_command",
     "version": "1.0",
     "correlation_id": "req-write-001"
@@ -1467,7 +1467,7 @@ type ControlService struct {
     log         *logrus.Logger
 }
 
-// WritePoints 向 EdgeX 写入设备点位（异步等待响应）
+// WritePoints 向 edgeCore 写入设备点位（异步等待响应）
 func (s *ControlService) WritePoints(nodeID, deviceID string, points map[string]interface{}, timeout time.Duration) (*CommandResponse, error) {
     reqID := generateUUID()
     respCh := make(chan *CommandResponse, 1)
@@ -1484,7 +1484,7 @@ func (s *ControlService) WritePoints(nodeID, deviceID string, points map[string]
             "timeout_seconds": int(timeout.Seconds()),
         },
     }
-    topic := fmt.Sprintf("edgex/cmd/%s/%s/write", nodeID, deviceID)
+    topic := fmt.Sprintf("edgeCore/cmd/%s/%s/write", nodeID, deviceID)
     if err := s.publisher.Publish(topic, "write_command", body); err != nil {
         return nil, fmt.Errorf("publish write_command: %w", err)
     }
@@ -1497,7 +1497,7 @@ func (s *ControlService) WritePoints(nodeID, deviceID string, points map[string]
     }
 }
 
-// HandleCommandResponse 处理来自 EdgeX 的命令响应
+// HandleCommandResponse 处理来自 edgeCore 的命令响应
 func (s *ControlService) HandleCommandResponse(topic string, msg *Message) error {
     var body CommandResponseBody
     if err := decodeBody(msg.Body, &body); err != nil {
@@ -1524,7 +1524,7 @@ func (s *ControlService) CreateTask(nodeID string, task *TaskCreateRequest) erro
         "points":    task.Points,
         "options":   task.Options,
     }
-    topic := fmt.Sprintf("edgex/cmd/%s/task/create", nodeID)
+    topic := fmt.Sprintf("edgeCore/cmd/%s/task/create", nodeID)
     return s.publisher.Publish(topic, "task_create", body)
 }
 
@@ -1534,7 +1534,7 @@ func (s *ControlService) ControlTask(nodeID, taskID, action string) error {
         "task_id": taskID,
         "action":  action,
     }
-    topic := fmt.Sprintf("edgex/cmd/%s/task/%s/%s", nodeID, taskID, action)
+    topic := fmt.Sprintf("edgeCore/cmd/%s/task/%s/%s", nodeID, taskID, action)
     return s.publisher.Publish(topic, "task_control", body)
 }
 ```
@@ -1550,8 +1550,8 @@ func (s *ControlService) ControlTask(nodeID, taskID, action string) error {
 | `PUT` | `/api/v1/nodes/:nodeId/tasks/:taskId/resume` | 恢复任务 |
 | `DELETE` | `/api/v1/nodes/:nodeId/tasks/:taskId` | 停止并删除任务 |
 | `POST` | `/api/v1/nodes/:nodeId/config` | 更新节点配置 |
-| `POST` | `/api/edgex/discover` | **Stage 2: 触发全量节点发现** |
-| `POST` | `/api/edgex/discover/:middlewareId` | **Stage 2: 向指定中间件触发节点发现** |
+| `POST` | `/api/edgeCore/discover` | **Stage 2: 触发全量节点发现** |
+| `POST` | `/api/edgeCore/discover/:middlewareId` | **Stage 2: 向指定中间件触发节点发现** |
 
 ---
 
@@ -1561,12 +1561,12 @@ func (s *ControlService) ControlTask(nodeID, taskID, action string) error {
 
 | 协议 | 主题 | QoS | 说明 |
 |------|------|-----|------|
-| MQTT | `edgex/nodes/+/heartbeat` | 0 | 节点心跳 |
-| MQTT | `edgex/nodes/+/status` | 1 | 节点状态变更 |
-| MQTT | `edgex/nodes/+/online` | 2 | 节点上线 |
-| MQTT | `edgex/nodes/+/offline` | 2 | 节点离线 |
-| NATS | `edgex.nodes.heartbeat.>` | - | 节点心跳 |
-| NATS | `edgex.nodes.status.>` | - | 节点状态 |
+| MQTT | `edgeCore/nodes/+/heartbeat` | 0 | 节点心跳 |
+| MQTT | `edgeCore/nodes/+/status` | 1 | 节点状态变更 |
+| MQTT | `edgeCore/nodes/+/online` | 2 | 节点上线 |
+| MQTT | `edgeCore/nodes/+/offline` | 2 | 节点离线 |
+| NATS | `edgeCore.nodes.heartbeat.>` | - | 节点心跳 |
+| NATS | `edgeCore.nodes.status.>` | - | 节点状态 |
 
 ### 7.2 心跳超时自动离线
 
@@ -1626,10 +1626,10 @@ func (s *HeartbeatService) checkTimeouts() {
 
 | 协议 | 主题 | QoS | 说明 |
 |------|------|-----|------|
-| MQTT | `edgex/events/alert` | 2 | 告警 |
-| MQTT | `edgex/events/error` | 1 | 错误 |
-| MQTT | `edgex/events/info` | 0 | 信息 |
-| NATS | `edgex.events.alert` | - | 告警 |
+| MQTT | `edgeCore/events/alert` | 2 | 告警 |
+| MQTT | `edgeCore/events/error` | 1 | 错误 |
+| MQTT | `edgeCore/events/info` | 0 | 信息 |
+| NATS | `edgeCore.events.alert` | - | 告警 |
 
 ### 8.2 处理器
 
@@ -1729,7 +1729,7 @@ mqtt:
   ca_cert: "/etc/edgeos/certs/ca.crt"
   client_cert: "/etc/edgeos/certs/client.crt"
   client_key: "/etc/edgeos/certs/client.key"
-  # ACL: edgex/# 仅 edgeos 用户可订阅
+  # ACL: edgeCore/# 仅 edgeos 用户可订阅
 ```
 
 ### 10.2 NATS 安全配置
@@ -1745,7 +1745,7 @@ nats:
 
 ### 10.3 节点 access_token
 
-节点注册成功后 EdgeOS 返回 `access_token`，后续 EdgeX 发送的消息头中应携带此 token，EdgeOS 在处理消息时校验有效性：
+节点注册成功后 EdgeOS 返回 `access_token`，后续 edgeCore 发送的消息头中应携带此 token，EdgeOS 在处理消息时校验有效性：
 
 ```go
 func (h *BaseHandler) ValidateToken(msg *Message) error {
@@ -1771,45 +1771,45 @@ docker run -d --name emqx -p 1883:1883 -p 18083:18083 emqx/emqx:latest
 docker run -d --name nats -p 4222:4222 -p 8222:8222 nats -js
 ```
 
-### 11.2 模拟 EdgeX 消息
+### 11.2 模拟 edgeCore 消息
 
 ```bash
 # 1. 模拟节点注册
-mosquitto_pub -h 127.0.0.1 -p 1883 -t "edgex/nodes/register" -m '{
-  "header":{"message_id":"test-reg-001","timestamp":1744680000000,"source":"edgex-test-001","message_type":"node_register","version":"1.0"},
-  "body":{"node_id":"edgex-test-001","node_name":"测试网关","model":"edge-gateway","version":"1.0.0","api_version":"v1","capabilities":["shadow-sync","heartbeat"],"protocol":"edgeOS(MQTT)"}
+mosquitto_pub -h 127.0.0.1 -p 1883 -t "edgeCore/nodes/register" -m '{
+  "header":{"message_id":"test-reg-001","timestamp":1744680000000,"source":"edgeCore-test-001","message_type":"node_register","version":"1.0"},
+  "body":{"node_id":"edgeCore-test-001","node_name":"测试网关","model":"edge-gateway","version":"1.0.0","api_version":"v1","capabilities":["shadow-sync","heartbeat"],"protocol":"edgeOS(MQTT)"}
 }'
 
 # 2. 模拟设备上报
-mosquitto_pub -h 127.0.0.1 -p 1883 -t "edgex/devices/report" -m '{
-  "header":{"message_id":"test-dev-001","source":"edgex-test-001","message_type":"device_report","version":"1.0","timestamp":1744680000000},
-  "body":{"node_id":"edgex-test-001","devices":[{"device_id":"dev-001","device_name":"Modbus设备","device_profile":"modbus-tcp","admin_state":"ENABLED","operating_state":"ENABLED"}]}
+mosquitto_pub -h 127.0.0.1 -p 1883 -t "edgeCore/devices/report" -m '{
+  "header":{"message_id":"test-dev-001","source":"edgeCore-test-001","message_type":"device_report","version":"1.0","timestamp":1744680000000},
+  "body":{"node_id":"edgeCore-test-001","devices":[{"device_id":"dev-001","device_name":"Modbus设备","device_profile":"modbus-tcp","admin_state":"ENABLED","operating_state":"ENABLED"}]}
 }'
 
 # 3. 模拟点位上报
-mosquitto_pub -h 127.0.0.1 -p 1883 -t "edgex/points/report" -m '{
-  "header":{"message_id":"test-pt-001","source":"edgex-test-001","message_type":"point_report","version":"1.0","timestamp":1744680000000},
-  "body":{"node_id":"edgex-test-001","device_id":"dev-001","points":[{"point_id":"Temperature","point_name":"温度","value_type":"Float32","access_mode":"R","unit":"°C"}]}
+mosquitto_pub -h 127.0.0.1 -p 1883 -t "edgeCore/points/report" -m '{
+  "header":{"message_id":"test-pt-001","source":"edgeCore-test-001","message_type":"point_report","version":"1.0","timestamp":1744680000000},
+  "body":{"node_id":"edgeCore-test-001","device_id":"dev-001","points":[{"point_id":"Temperature","point_name":"温度","value_type":"Float32","access_mode":"R","unit":"°C"}]}
 }'
 
 # 4. 模拟实时数据
-mosquitto_pub -h 127.0.0.1 -p 1883 -t "edgex/data/edgex-test-001/dev-001" -m '{
-  "header":{"message_id":"test-data-001","source":"edgex-test-001","message_type":"data","version":"1.0","timestamp":1744680000000},
-  "body":{"node_id":"edgex-test-001","device_id":"dev-001","timestamp":1744680000000,"points":{"Temperature":25.5,"Humidity":65.2},"quality":"good"}
+mosquitto_pub -h 127.0.0.1 -p 1883 -t "edgeCore/data/edgeCore-test-001/dev-001" -m '{
+  "header":{"message_id":"test-data-001","source":"edgeCore-test-001","message_type":"data","version":"1.0","timestamp":1744680000000},
+  "body":{"node_id":"edgeCore-test-001","device_id":"dev-001","timestamp":1744680000000,"points":{"Temperature":25.5,"Humidity":65.2},"quality":"good"}
 }'
 
 # 5. 订阅监听 EdgeOS 下发的控制命令（验证双向控制）
-mosquitto_sub -h 127.0.0.1 -p 1883 -t "edgex/cmd/#" -v
+mosquitto_sub -h 127.0.0.1 -p 1883 -t "edgeCore/cmd/#" -v
 ```
 
 ### 11.3 NATS 测试
 
 ```bash
-# 订阅所有 edgex 消息
-nats sub "edgex.>"
+# 订阅所有 edgeCore 消息
+nats sub "edgeCore.>"
 
 # 发布节点注册
-nats pub "edgex.nodes.register" '{"header":{"message_id":"test-001","timestamp":1744680000000,"source":"edgex-test","message_type":"node_register","version":"1.0"},"body":{"node_id":"edgex-test","node_name":"Test Node","protocol":"edgeOS(NATS)"}}'
+nats pub "edgeCore.nodes.register" '{"header":{"message_id":"test-001","timestamp":1744680000000,"source":"edgeCore-test","message_type":"node_register","version":"1.0"},"body":{"node_id":"edgeCore-test","node_name":"Test Node","protocol":"edgeOS(NATS)"}}'
 ```
 
 ### 11.4 常见排查
@@ -1819,8 +1819,8 @@ nats pub "edgex.nodes.register" '{"header":{"message_id":"test-001","timestamp":
 | 连接失败 | 检查 broker/url 地址与端口，检查用户名密码，`telnet host port` |
 | 消息未接收 | 检查订阅 Topic 是否正确，检查 QoS，确认消息发布成功 |
 | 注册无响应 | 检查响应 Topic 订阅，检查 correlation_id 匹配 |
-| 点位不更新 | 确认 `edgex/data/#` 已订阅，检查 data 消息格式 |
-| 控制命令无反应 | 检查下行 Topic 拼写，检查 EdgeX 是否在线，查看响应 Topic 日志 |
+| 点位不更新 | 确认 `edgeCore/data/#` 已订阅，检查 data 消息格式 |
+| 控制命令无反应 | 检查下行 Topic 拼写，检查 edgeCore 是否在线，查看响应 Topic 日志 |
 
 ---
 

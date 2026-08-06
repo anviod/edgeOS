@@ -68,7 +68,7 @@ export interface MiddlewareForm {
 
 export type NodeStatus = 'online' | 'offline' | 'timeout' | 'error'
 
-export interface EdgeXNodeInfo {
+export interface EdgeCoreNodeInfo {
   node_id: string
   node_name: string
   model: string
@@ -93,7 +93,7 @@ export interface EdgeXNodeInfo {
 
 // ==================== 设备 ====================
 
-export interface EdgeXDeviceInfo {
+export interface edgeCoreDeviceInfo {
   device_id: string
   device_name: string
   device_profile: string
@@ -109,7 +109,7 @@ export interface EdgeXDeviceInfo {
 
 // ==================== 点位 ====================
 
-export interface EdgeXPointInfo {
+export interface edgeCorePointInfo {
   point_id: string
   point_name: string
   device_id: string

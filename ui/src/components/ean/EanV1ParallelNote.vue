@@ -11,7 +11,7 @@ import { Info } from 'lucide-vue-next'
     <div class="text-xs leading-relaxed" style="color: var(--text-secondary);">
       <span class="font-medium" style="color: var(--text-primary);">V1 并行：</span>
       EAN 使用 <code class="font-mono" style="color: var(--accent-primary);">$edgeos/*</code>；
-      V1 仍走 <code class="font-mono">edgex/*</code>（MQTT）/ <code class="font-mono">edgex.*</code>（NATS）。
+      V1 仍走 <code class="font-mono">edgeCore/*</code>（MQTT）/ <code class="font-mono">edgeCore.*</code>（NATS）。
       Topic 无冲突；新功能请只走 EAN，避免同一业务双写。
     </div>
   </div>
