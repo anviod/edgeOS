@@ -241,6 +241,9 @@ const (
 	TopicEventBroadcast = "$edgeos/event/broadcast"
 
 	TopicHeartbeatPrefix = "$edgeos/heartbeat/"
+
+	// NatsHeartbeatPrefix NATS 点分 Subject 前缀（MQTT TopicHeartbeatPrefix 的 / → . 映射）
+	NatsHeartbeatPrefix = "$edgeos.heartbeat."
 )
 
 // ==================== 辅助函数 ====================

@@ -69,46 +69,46 @@ func TestMqttTopicToNatsSubject(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{
-			name:     "exact topic unchanged",
-			input:    "$edgeos/discovery/agent",
-			expected: "$edgeos/discovery/agent",
-		},
-		{
-			name:     "single level wildcard + to *",
-			input:    "$edgeos/event/+/status",
-			expected: "$edgeos/event/*/status",
-		},
-		{
-			name:     "multi-level wildcard # to >",
-			input:    "$edgeos/event/#",
-			expected: "$edgeos/event/>",
-		},
-		{
-			name:     "multi-level with invoke",
-			input:    "$edgeos/invoke/edgeCore-node-001",
-			expected: "$edgeos/invoke/edgeCore-node-001",
-		},
-		{
-			name:     "multiple single-level wildcards",
-			input:    "$edgeos/+/+/capability",
-			expected: "$edgeos/*/*/capability",
-		},
-		{
-			name:     "trailing wildcard",
-			input:    "$edgeos/heartbeat/#",
-			expected: "$edgeos/heartbeat/>",
-		},
-		{
-			name:     "empty string",
-			input:    "",
-			expected: "",
-		},
-		{
-			name:     "no wildcards simple topic",
-			input:    "a/b/c/d",
-			expected: "a/b/c/d",
-		},
+	{
+		name:     "exact topic converts slash to dot",
+		input:    "$edgeos/discovery/agent",
+		expected: "$edgeos.discovery.agent",
+	},
+	{
+		name:     "single level wildcard + to *",
+		input:    "$edgeos/event/+/status",
+		expected: "$edgeos.event.*.status",
+	},
+	{
+		name:     "multi-level wildcard # to >",
+		input:    "$edgeos/event/#",
+		expected: "$edgeos.event.>",
+	},
+	{
+		name:     "multi-level with invoke",
+		input:    "$edgeos/invoke/edgeCore-node-001",
+		expected: "$edgeos.invoke.edgeCore-node-001",
+	},
+	{
+		name:     "multiple single-level wildcards",
+		input:    "$edgeos/+/+/capability",
+		expected: "$edgeos.*.*.capability",
+	},
+	{
+		name:     "trailing wildcard",
+		input:    "$edgeos/heartbeat/#",
+		expected: "$edgeos.heartbeat.>",
+	},
+	{
+		name:     "empty string",
+		input:    "",
+		expected: "",
+	},
+	{
+		name:     "no wildcards simple topic",
+		input:    "a/b/c/d",
+		expected: "a.b.c.d",
+	},
 	}
 
 	for _, tt := range tests {

@@ -14,7 +14,7 @@ import (
 // ==================== 接口定义 ====================
 
 // MessageHandler 消息回调签名，所有传输层共享
-// topic: 原始主题（MQTT 保持 $edgeos/...，NATS 同样保持 $edgeos/...）
+// topic: 消息主题（MQTT 为斜杠 Topic $edgeos/...，NATS 为点分 Subject $edgeos....）
 // payload: 原始消息体
 // transport: 传输层标识（"mqtt" / "nats"）
 type MessageHandler func(topic string, payload []byte, transport string)
@@ -267,7 +267,7 @@ type NATSConfig struct {
 
 // NATSTransport NATS 传输适配器，实现 Transport 接口
 // 启动韧性：服务器不可用时仍创建实例（RetryOnFailedConnect），订阅本地登记，
-// Connect/Reconnect 时补订。Subject 保持 $edgeos/... 斜杠形式。
+// Connect/Reconnect 时补订。Subject 采用 NATS 点分形式（$edgeos....，MQTT / 映射为 .）。
 type NATSTransport struct {
 	cfg      NATSConfig
 	conn     *nats.Conn
@@ -280,7 +280,7 @@ type NATSTransport struct {
 }
 
 // NewNATSTransport 创建 NATS 传输适配器
-// 注意: NATS subject 保持 $edgeos/... 斜杠形式，不转换为点分形式
+// 注意: NATS subject 采用标准点分形式（MQTT 斜杠 / 映射为点 .），符合 NATS 主题约定
 // 服务器不可用时启用 RetryOnFailedConnect，不拖垮进程。
 func NewNATSTransport(cfg NATSConfig, logger *zap.Logger) (*NATSTransport, error) {
 	if cfg.URL == "" {
@@ -347,7 +347,7 @@ func (t *NATSTransport) Name() string { return "nats" }
 func (t *NATSTransport) Endpoint() string { return t.cfg.URL }
 
 // Subscribe 订阅 NATS subject；未连接或订阅失败时仅登记，待 Connect/Reconnect 补订
-// topic 参数为 MQTT 风格的斜杠主题，自动转换通配符（+→* / #→>），分隔符保持斜杠
+// topic 参数为 MQTT 风格的斜杠主题，自动转换分隔符与通配符（/→.  +→*  #→>）
 func (t *NATSTransport) Subscribe(topic string, handler MessageHandler) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -488,16 +488,16 @@ func (t *NATSTransport) JetStream() (nats.JetStreamContext, error) {
 // ==================== 主题转换工具 ====================
 
 // mqttTopicToNatsSubject 将 MQTT 风格主题转为 NATS subject
-// 规则: + -> *, # -> >，其余保持斜杠形式不变
+// 规则: / -> .，+ -> *，# -> >（NATS 标准点分 Subject 约定）
 //
 // 示例:
 //
-//	$edgeos/discovery/agent          -> $edgeos/discovery/agent
-//	$edgeos/event/+/status           -> $edgeos/event/*/status
-//	$edgeos/event/#                  -> $edgeos/event/>
-//	$edgeos/invoke/edgeCore-node-001    -> $edgeos/invoke/edgeCore-node-001
+//	$edgeos/discovery/agent          -> $edgeos.discovery.agent
+//	$edgeos/event/+/status           -> $edgeos.event.*.status
+//	$edgeos/event/#                  -> $edgeos.event.>
+//	$edgeos/invoke/edgeCore-node-001    -> $edgeos.invoke.edgeCore-node-001
 func mqttTopicToNatsSubject(topic string) string {
-	r := strings.NewReplacer("+", "*", "#", ">")
+	r := strings.NewReplacer("/", ".", "+", "*", "#", ">")
 	return r.Replace(topic)
 }
 

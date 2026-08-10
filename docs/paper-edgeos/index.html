@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基于 EdgeCore 数字底座的工业边缘协调平台——EdgeOS 的设计与实现</title>
+<style>
+/* ===== Font Faces ===== */
+@font-face { font-family: 'IBMPlexSerif'; src: url('./_shared/fonts/IBMPlexSerif-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+@font-face { font-family: 'IBMPlexSerif'; src: url('./_shared/fonts/IBMPlexSerif-Bold.ttf') format('truetype'); font-weight: 700; font-style: normal; }
+@font-face { font-family: 'IBMPlexSerif'; src: url('./_shared/fonts/IBMPlexSerif-Italic.ttf') format('truetype'); font-weight: 400; font-style: italic; }
+@font-face { font-family: 'WorkSans'; src: url('./_shared/fonts/WorkSans-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+@font-face { font-family: 'WorkSans'; src: url('./_shared/fonts/WorkSans-Bold.ttf') format('truetype'); font-weight: 700; font-style: normal; }
+@font-face { font-family: 'WorkSans'; src: url('./_shared/fonts/WorkSans-Italic.ttf') format('truetype'); font-weight: 400; font-style: italic; }
+@font-face { font-family: 'IBMPlexMono'; src: url('./_shared/fonts/IBMPlexMono-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+@font-face { font-family: 'IBMPlexMono'; src: url('./_shared/fonts/IBMPlexMono-Bold.ttf') format('truetype'); font-weight: 700; font-style: normal; }
+
+/* ===== CSS Variables ===== */
+:root {
+  --bg: #ffffff;
+  --bg2: #f8f7f5;
+  --bg3: #f2f0ec;
+  --ink: #1a1a1a;
+  --muted: #6b6b6b;
+  --rule: #e5e2dd;
+  --accent: #c8102e;
+  --accent2: #1a5490;
+  --accent-light: rgba(200, 16, 46, 0.08);
+  --font-body: 'IBMPlexSerif', 'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', '宋体', Georgia, serif;
+  --font-heading: 'WorkSans', 'Source Han Sans SC', 'Noto Sans CJK SC', 'Microsoft YaHei', '微软雅黑', sans-serif;
+  --font-mono: 'IBMPlexMono', 'Courier New', monospace;
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.8;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Journal Header ===== */
+.journal-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg);
+  border-bottom: 2px solid var(--accent);
+  padding: 0.5rem 2rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.journal-header .jh-name { font-weight: 700; color: var(--accent); }
+.journal-header .jh-meta { font-weight: 400; }
+
+/* ===== Layout ===== */
+.article-wrap { display: flex; max-width: 1200px; margin: 0 auto; padding: 0 2rem; gap: 2rem; }
+
+/* TOC Sidebar */
+.toc-sidebar {
+  position: sticky; top: 60px; align-self: flex-start;
+  width: 200px; flex-shrink: 0;
+  max-height: calc(100vh - 80px); overflow-y: auto;
+  font-family: var(--font-heading);
+  font-size: 0.78rem; line-height: 1.6;
+  padding-top: 2rem;
+}
+.toc-sidebar h4 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 0.5rem; font-weight: 700; }
+.toc-sidebar ul { list-style: none; }
+.toc-sidebar li { margin-bottom: 0.2rem; }
+.toc-sidebar a { color: var(--muted); text-decoration: none; display: block; padding: 0.15rem 0; transition: color 0.2s; border-left: 2px solid transparent; padding-left: 0.6rem; }
+.toc-sidebar a:hover { color: var(--accent); border-left-color: var(--accent); }
+.toc-sidebar .toc-sub a { padding-left: 1.4rem; font-size: 0.72rem; }
+
+/* Main Content */
+.article-main {
+  flex: 1; max-width: 860px; min-width: 0;
+  padding: 2rem 0 4rem;
+}
+
+/* ===== Typography ===== */
+h1, h2, h3, h4, h5 { font-family: var(--font-heading); font-weight: 700; color: var(--ink); }
+h2 { font-size: 1.6rem; margin: 3rem 0 1.2rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--rule); line-height: 1.3; }
+h2 .sec-num { color: var(--accent); margin-right: 0.5rem; }
+h3 { font-size: 1.2rem; margin: 2rem 0 0.8rem; color: var(--ink); line-height: 1.4; }
+h4 { font-size: 1rem; margin: 1.5rem 0 0.6rem; color: var(--muted); font-weight: 700; }
+p { margin-bottom: 1rem; }
+a { color: var(--accent2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+strong { font-weight: 700; }
+sup a { color: var(--accent); text-decoration: none; font-size: 0.75em; font-weight: 600; }
+sup a:hover { text-decoration: underline; }
+
+/* ===== Title Block ===== */
+.title-block { text-align: center; margin: 2rem 0 3rem; padding-bottom: 2rem; border-bottom: 2px solid var(--accent); }
+.title-block h1 { font-size: 1.8rem; line-height: 1.4; margin-bottom: 0.8rem; }
+.title-block .subtitle { font-size: 1rem; color: var(--muted); font-family: var(--font-heading); font-style: italic; margin-bottom: 1.5rem; }
+.title-block .author-info { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+/* ===== Abstract ===== */
+.abstract-block { background: var(--bg2); border-left: 3px solid var(--accent); padding: 1.5rem 2rem; margin: 2rem 0; }
+.abstract-block h3 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-top: 0; }
+.abstract-block p { font-size: 0.92rem; line-height: 1.7; margin-bottom: 0.5rem; }
+.abstract-block .keywords { font-size: 0.88rem; color: var(--muted); margin-top: 0.8rem; }
+.abstract-block .keywords strong { color: var(--ink); }
+
+/* ===== Code Blocks ===== */
+pre { background: var(--bg3); border: 1px solid var(--rule); border-radius: 4px; padding: 1rem 1.2rem; overflow-x: auto; margin: 1.2rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.5; }
+code { font-family: var(--font-mono); font-size: 0.85em; background: var(--bg3); padding: 0.1em 0.3em; border-radius: 3px; }
+pre code { background: none; padding: 0; font-size: inherit; }
+
+/* ===== Three-line Tables ===== */
+.table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+table caption { caption-side: top; text-align: left; font-weight: 700; font-family: var(--font-heading); font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--ink); line-height: 1.5; }
+table caption .en-caption { font-weight: 400; font-style: italic; color: var(--muted); display: block; font-size: 0.82rem; margin-top: 0.2rem; }
+th { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--ink); font-family: var(--font-heading); font-weight: 700; text-align: left; padding: 0.6rem 0.8rem; background: none; }
+td { padding: 0.5rem 0.8rem; border-bottom: none; vertical-align: top; }
+tbody tr:last-child td { border-bottom: 2px solid var(--ink); }
+tbody tr:hover { background: none; }
+
+/* ===== Figures & Diagrams ===== */
+figure { margin: 1.5rem 0; text-align: center; }
+figure figcaption { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; font-family: var(--font-heading); }
+.diagram { margin: 2rem 0; text-align: center; }
+.diagram pre { display: inline-block; text-align: left; background: var(--bg2); border: 1px solid var(--rule); }
+.chart-figure { margin: 2rem 0; }
+.chart-figure figcaption { font-size: 0.9rem; font-weight: 600; color: var(--ink); margin-bottom: 0.75rem; font-family: var(--font-heading); }
+
+/* ===== Illustration Figures ===== */
+.img-figure { margin: 2rem 0; text-align: center; page-break-inside: avoid; break-inside: avoid; }
+.img-figure img { width: 100%; max-width: 760px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg2); }
+.img-figure figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.6rem; font-family: var(--font-heading); line-height: 1.5; }
+.img-figure figcaption strong { color: var(--ink); }
+.img-figure svg { width: 100%; max-width: 720px; height: auto; margin: 0 auto; display: block; }
+
+/* ===== Callouts ===== */
+.callout { background: var(--bg2); border-left: 3px solid var(--accent2); padding: 1rem 1.5rem; margin: 1.5rem 0; font-size: 0.92rem; }
+.callout .callout-title { font-family: var(--font-heading); font-weight: 700; color: var(--accent2); font-size: 0.85rem; margin-bottom: 0.4rem; }
+
+/* ===== Formula ===== */
+.formula { text-align: center; margin: 1.5rem 0; font-family: var(--font-mono); font-size: 0.95rem; background: var(--bg2); padding: 1rem; border-radius: 4px; }
+
+/* ===== Sources ===== */
+footer { border-top: 2px solid var(--accent); margin-top: 4rem; padding: 2rem 0; }
+footer .sources h2 { font-size: 1.2rem; border-bottom: none; }
+footer .sources .ref-list { list-style: none; padding-left: 0; font-size: 0.85rem; color: var(--ink); }
+footer .sources .ref-list li { margin-bottom: 0.6rem; padding-left: 1.5rem; text-indent: -1.5rem; overflow-wrap: break-word; }
+footer .sources .ref-author { font-weight: 700; }
+footer .sources .ref-url { color: var(--accent2); word-break: break-all; }
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .toc-sidebar { display: none; }
+  .article-wrap { padding: 0 1rem; }
+  .article-main { max-width: 100%; }
+}
+@media print {
+  .toc-sidebar, .journal-header { display: none; }
+  .article-wrap { max-width: 100%; padding: 0; }
+  body { font-size: 12pt; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  h2 { page-break-before: always; page-break-after: avoid; }
+  h2:first-of-type { page-break-before: avoid; }
+  h3, h4 { page-break-after: avoid; }
+  pre, table, figure, .diagram, .formula, .callout, .img-figure { page-break-inside: avoid; break-inside: avoid; }
+  .abstract-block { page-break-inside: avoid; }
+  .title-block { page-break-inside: avoid; }
+  .title-block .author-info { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- Journal Header -->
+<div class="journal-header">
+  <span class="jh-name">工业互联网与边缘计算 · 工程研究</span>
+  <span class="jh-meta">Vol. 2, No. 3 · 2026</span>
+</div>
+
+<div class="article-wrap">
+
+<!-- TOC Sidebar -->
+<nav class="toc-sidebar">
+  <h4>目录</h4>
+  <ul>
+    <li><a href="#sec1">1 绪论</a></li>
+    <li class="toc-sub"><a href="#sec1-1">1.1 研究背景</a></li>
+    <li class="toc-sub"><a href="#sec1-2">1.2 问题与挑战</a></li>
+    <li class="toc-sub"><a href="#sec1-3">1.3 主要贡献</a></li>
+    <li><a href="#sec2">2 需求分析</a></li>
+    <li class="toc-sub"><a href="#sec2-1">2.1 边缘协调需求</a></li>
+    <li class="toc-sub"><a href="#sec2-2">2.2 高可用需求</a></li>
+    <li class="toc-sub"><a href="#sec2-3">2.3 安全与治理需求</a></li>
+    <li><a href="#sec3">3 总体架构</a></li>
+    <li class="toc-sub"><a href="#sec3-1">3.1 架构概览</a></li>
+    <li class="toc-sub"><a href="#sec3-2">3.2 N+2 冗余架构</a></li>
+    <li class="toc-sub"><a href="#sec3-3">3.3 EAN 协调层</a></li>
+    <li><a href="#sec4">4 EAN 2.0 核心设计</a></li>
+    <li class="toc-sub"><a href="#sec4-1">4.1 统一能力模型</a></li>
+    <li class="toc-sub"><a href="#sec4-2">4.2 双传输对称</a></li>
+    <li class="toc-sub"><a href="#sec4-3">4.3 消息信封</a></li>
+    <li class="toc-sub"><a href="#sec4-4">4.4 协议幂等性与安全路由</a></li>
+    <li><a href="#sec5">5 发现中心</a></li>
+    <li class="toc-sub"><a href="#sec5-1">5.1 Agent 生命周期</a></li>
+    <li class="toc-sub"><a href="#sec5-2">5.2 Capability 索引</a></li>
+    <li class="toc-sub"><a href="#sec5-3">5.3 主动查询</a></li>
+    <li class="toc-sub"><a href="#sec5-4">5.4 V1 Bridge 隔离</a></li>
+    <li><a href="#sec6">6 调用编排</a></li>
+    <li class="toc-sub"><a href="#sec6-1">6.1 同步调用</a></li>
+    <li class="toc-sub"><a href="#sec6-2">6.2 超时与幂等</a></li>
+    <li class="toc-sub"><a href="#sec6-3">6.3 监控指标</a></li>
+    <li><a href="#sec7">7 事件流处理</a></li>
+    <li class="toc-sub"><a href="#sec7-1">7.1 事件模型</a></li>
+    <li class="toc-sub"><a href="#sec7-2">7.2 设备对账</a></li>
+    <li><a href="#sec8">8 心跳监控与治理</a></li>
+    <li class="toc-sub"><a href="#sec8-1">8.1 心跳超时判定</a></li>
+    <li class="toc-sub"><a href="#sec8-2">8.2 离线保留期</a></li>
+    <li class="toc-sub"><a href="#sec8-3">8.3 权限控制</a></li>
+    <li><a href="#sec9">9 AI 协同能力</a></li>
+    <li class="toc-sub"><a href="#sec9-1">9.1 协议逆向</a></li>
+    <li class="toc-sub"><a href="#sec9-2">9.2 Human-in-the-loop</a></li>
+    <li class="toc-sub"><a href="#sec9-3">9.3 AI MCP 运行时架构</a></li>
+    <li class="toc-sub"><a href="#sec9-4">9.4 AI 与 EAN 协议协同设计</a></li>
+    <li><a href="#sec10">10 实现与测试</a></li>
+    <li><a href="#sec11">11 总结与展望</a></li>
+  </ul>
+</nav>
+
+<!-- Main Article -->
+<main class="article-main">
+
+<!-- Title Block -->
+<div class="title-block">
+  <h1>基于 EdgeCore 数字底座的工业边缘协调平台——EdgeOS 的设计与实现</h1>
+  <div class="subtitle">Design and Implementation of EdgeOS: An Industrial Edge Coordination Platform Based on EdgeCore Digital Foundation</div>
+  <div class="author-info">
+    二手科学家<br>
+    anviod@aliyun.com<br>
+    收稿日期：2026-08-10
+  </div>
+</div>
+
+<!-- Abstract -->
+<div class="abstract-block">
+  <h3>摘要</h3>
+  <p><strong>目的：</strong>针对工业边缘计算场景中多网关协调困难、能力发现缺乏统一机制、跨节点调用无编排框架、运维决策依赖人工经验等问题，提出基于 EdgeCore 数字底座的工业边缘协调平台 EdgeOS。EdgeOS 与 EdgeStark 作为平级上层组件，共同订阅 EdgeCore 通过 EAN 网络发布的数据，形成"数字底座—EAN 网络—平级上层应用"三层生态体系。<strong>方法：</strong>EdgeOS 以 N+2 双母皇冗余架构为高可用基座，通过 MQTT 集群 EMQX / NATS 消息队列集群双传输消息总线订阅 N 台 EdgeCore 边缘网关的能力发布与事件流，构建集发现中心、调用编排器、事件中心、心跳监控器与治理模块于一体的主控大脑。EdgeOS 为 AI MCP 提供运行时，调度边缘 EdgeCore 网关，承担数据汇总与分析职责，并可扩展定制为业务后台或大屏智能座舱。同时，EdgeOS 自身也通过 EAN 网络向上层发布告警、预测与分析结果，使 EdgeStark 等平级组件能够同步显示与协同工作，实现上层组件间的低延迟数据协同。设计统一能力模型（Agent/Capability/Discovery/Invoke/Event）实现跨网关能力发现与调用编排；采用主动查询与渐进降频策略确保发现索引完整性；通过权限分区与审计记录实现安全治理；以 Human-in-the-loop 机制约束 AI 产出落库。<strong>结果：</strong>在 12 台 EdgeCore 网关、7.5 万 Tag 规模下，Discovery 索引同步延迟 P99 为 48 ms，Invoke 端到端延迟 P99 为 112 ms，心跳超时检测准确率 100%，主备切换耗时低于 3 秒。已在 Modbus TCP、OPC UA、BACnet 等多协议场景完成实机联调验证，全部 go test 用例通过。<strong>结论：</strong>EdgeOS 有效解决了多网关协调、能力发现、安全治理与 AI 协同四大瓶颈，为工业边缘计算提供了可工程落地的协调平台方案。</p>
+  <div class="keywords"><strong>关键词：</strong>边缘计算；EAN 2.0 协议；AI MCP 协同；能力发现；调用编排；协议幂等性；N+2 冗余；双传输；安全治理</div>
+
+  <h3>Abstract</h3>
+  <p><strong>Purpose:</strong> To address multi-gateway coordination, lack of unified capability discovery, absence of cross-node invocation orchestration, and reliance on manual operational decisions in industrial edge computing, this paper proposes EdgeOS, an industrial edge coordination platform based on EdgeCore digital foundation. EdgeOS and EdgeStark serve as peer upper-layer components, jointly subscribing to data published by EdgeCore via the EAN network, forming a "digital foundation — EAN network — peer upper-layer applications" three-tier ecosystem. <strong>Methods:</strong> EdgeOS adopts an N+2 dual-queen redundancy architecture for high availability, subscribes to N EdgeCore gateways via MQTT cluster (EMQX) / NATS message queue cluster dual-transport messaging, and integrates Discovery Center, Invoke Orchestrator, Event Center, Heartbeat Monitor, and Governance modules as the master control brain. EdgeOS provides runtime for AI MCP, schedules edge EdgeCore gateways, handles data aggregation and analysis, and can be extended into business backends or large-screen smart cockpits. Furthermore, EdgeOS itself publishes alerts, predictions, and analysis results back through the EAN network, enabling peer components like EdgeStark to synchronously display and collaborate, achieving low-latency data coordination among upper-layer components. A unified capability model (Agent/Capability/Discovery/Invoke/Event) enables cross-gateway discovery and orchestration. Progressive query frequency reduction ensures discovery index completeness. Permission zoning and audit logging provide security governance. Human-in-the-loop constrains AI output persistence. <strong>Results:</strong> At 12-gateway, 75K Tag scale, Discovery index sync P99 was 48 ms, Invoke end-to-end P99 was 112 ms, heartbeat timeout detection accuracy was 100%, and primary-secondary failover completed within 3 seconds. Multi-protocol integration tests passed on real ARM64 hardware. <strong>Conclusion:</strong> EdgeOS resolves the four core bottlenecks of multi-gateway coordination, capability discovery, security governance, and AI collaboration, providing a deployable coordination platform for industrial edge computing.</p>
+  <div class="keywords"><strong>Keywords:</strong> Edge Computing; EAN 2.0 Protocol; AI MCP Collaboration; Capability Discovery; Invoke Orchestration; Protocol Idempotency; N+2 Redundancy; Dual Transport; Security Governance</div>
+</div>
+
+<!-- ===== Section 1: 绪论 ===== -->
+<h2 id="sec1"><span class="sec-num">1</span>绪论</h2>
+
+<h3 id="sec1-1">1.1 研究背景</h3>
+
+<p>工业互联网的深入发展推动着边缘计算从"单网关数据采集"向"多网关协同自治"演进。在数据采集层面，EdgeCore 边缘计算网关已系统性地解决了异构协议统一接入问题：通过 ScanEngine 统一调度内核与 ShadowCore 实时状态模型，EdgeCore 实现了对 Modbus、OPC UA、BACnet、S7 等 15 类工业协议的统一接入、协议适配、设备抽象和元数据管理(工业互联网边缘计算研究室，2026)。EdgeCore 作为开源免费的工业数字底座，支持采集计算、群控、节流、多路分发与分布式边缘网关部署，通过 EAN 网络协议（MQTT 集群 EMQX 或 NATS 消息队列集群）向北发布数据。然而，当工业现场部署多台 EdgeCore 网关时，各网关之间处于"信息孤岛"状态——网关 A 无法感知网关 B 上线了哪些设备、提供了哪些读写能力，跨网关的设备操作需要人工指定目标网关，缺乏自动化的能力发现与调用编排机制。</p>
+
+<p>在数据消费层面，EdgeStark 工业数字孪生可视化平台（闭源授权模式，桌面端程序）已通过 EAN 网络订阅多台 EdgeCore 网关的实时数据流，构建了十万级元数据的三维数字孪生场景(工业互联网边缘计算研究室，2026a)。EdgeStark 以虚拟化引擎为核心，支持四端渲染（桌面端、VR、AR、全息投影），聚焦数字孪生可视化与沉浸式交互。然而，工业现场还需要一个"主控大脑"来承担 AI 协同（MCP）、运维决策、自动诊断等智能化职责。EdgeOS（开源免费，支持 Web 访问）正是为填补这一职责空白而设计的边缘大脑系统——采用 N+2 双母皇模式实现高可用，为 AI MCP 提供运行时，调度边缘 EdgeCore 网关，并承担数据汇总与分析职责。EdgeOS 还可扩展定制为业务后台或大屏展示智能座舱。关键在于，EdgeOS 与 EdgeStark 作为平级上层组件，均通过 EAN 网络订阅 EdgeCore 发布的数据；同时 EdgeOS 自身也通过 EAN 向上层发布告警、预测与分析结果，使 EdgeStark 能够同步显示与协同工作。这种平级架构既保证了数据从底座到上层组件的低延迟直达，又实现了上层组件间的智能协同，使 EAN 通信协议成为连接全生态的智能数据总线。平台全景生态如图 1 所示。</p>
+
+<figure class="img-figure">
+<svg viewBox="0 0 780 540" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;height:auto;background:#faf9f6;border:1px solid #ccc;border-radius:4px;">
+  <defs>
+    <!-- Hand-drawn rough filter -->
+    <filter id="rough">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5"/>
+    </filter>
+    <!-- Arrowhead marker -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#222"/>
+    </marker>
+    <marker id="arrowDash" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+    <!-- Cross-hatch pattern -->
+    <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6">
+      <path d="M0,6 L6,0" stroke="#bbb" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- ===== TOP LAYER: Peer Components ===== -->
+  <!-- EdgeOS box -->
+  <g filter="url(#rough)">
+    <rect x="20" y="15" width="350" height="220" rx="8" fill="#fff" stroke="#222" stroke-width="2"/>
+    <rect x="20" y="15" width="350" height="36" rx="8" fill="#222"/>
+  </g>
+  <text x="195" y="39" text-anchor="middle" fill="#fff" font-family="'Segoe UI',sans-serif" font-size="16" font-weight="bold">EdgeOS</text>
+  <text x="195" y="62" text-anchor="middle" fill="#666" font-family="'Segoe UI',sans-serif" font-size="10">开源 · 免费 · Web</text>
+  <text x="195" y="80" text-anchor="middle" fill="#333" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="bold">主控大脑</text>
+  <!-- Feature icons + text -->
+  <g font-family="'Segoe UI',sans-serif" font-size="9.5" fill="#333">
+    <!-- Row 1 -->
+    <rect x="35" y="92" width="150" height="28" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <circle cx="45" cy="101" r="3" fill="#555"/>
+    <text x="55" y="105">N+2 双母皇模式</text>
+    <text x="45" y="116" font-size="7.5" fill="#aaa">Dual-Queen HA</text>
+
+    <rect x="195" y="92" width="160" height="28" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <circle cx="205" cy="101" r="3" fill="#555"/>
+    <text x="215" y="105">AI MCP 运行时</text>
+    <text x="205" y="116" font-size="7.5" fill="#aaa">Model Context Protocol</text>
+
+    <!-- Row 2 -->
+    <rect x="35" y="128" width="150" height="28" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <circle cx="45" cy="137" r="3" fill="#555"/>
+    <text x="55" y="141">edgeCore 调度</text>
+    <text x="45" y="152" font-size="7.5" fill="#aaa">Gateway Scheduling</text>
+
+    <rect x="195" y="128" width="160" height="28" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <circle cx="205" cy="137" r="3" fill="#555"/>
+    <text x="215" y="141">数据汇总分析</text>
+    <text x="205" y="152" font-size="7.5" fill="#aaa">Data Aggregation</text>
+
+    <!-- Row 3 -->
+    <rect x="35" y="164" width="150" height="28" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <circle cx="45" cy="173" r="3" fill="#555"/>
+    <text x="55" y="177">业务后台</text>
+    <text x="45" y="188" font-size="7.5" fill="#aaa">Business Backend</text>
+
+    <rect x="195" y="164" width="160" height="28" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <circle cx="205" cy="173" r="3" fill="#555"/>
+    <text x="215" y="177">大屏智能座舱</text>
+    <text x="205" y="188" font-size="7.5" fill="#aaa">Smart Cockpit</text>
+  </g>
+  <!-- EdgeOS downward publish arrow (left side, x=145) -->
+  <line x1="145" y1="235" x2="145" y2="283" stroke="#555" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arrowDash)"/>
+  <text x="100" y="255" font-family="'Segoe UI',sans-serif" font-size="8.5" fill="#666">EAN 发布</text>
+  <text x="95" y="267" font-family="'Segoe UI',sans-serif" font-size="7.5" fill="#999">告警/预测</text>
+
+  <!-- EdgeOS upward subscribe arrow (right side, x=250) -->
+  <line x1="250" y1="285" x2="250" y2="237" stroke="#222" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="262" y="255" font-family="'Segoe UI',sans-serif" font-size="8.5" fill="#333">订阅 + 编排</text>
+  <text x="262" y="267" font-family="'Segoe UI',sans-serif" font-size="7.5" fill="#666">Subscribe</text>
+
+  <!-- EdgeStark box -->
+  <g filter="url(#rough)">
+    <rect x="410" y="15" width="350" height="220" rx="8" fill="#fff" stroke="#222" stroke-width="2"/>
+    <rect x="410" y="15" width="350" height="36" rx="8" fill="#333"/>
+  </g>
+  <text x="585" y="39" text-anchor="middle" fill="#fff" font-family="'Segoe UI',sans-serif" font-size="16" font-weight="bold">EdgeStark</text>
+  <text x="585" y="62" text-anchor="middle" fill="#666" font-family="'Segoe UI',sans-serif" font-size="10">闭源 · 授权 · 桌面端</text>
+  <text x="585" y="80" text-anchor="middle" fill="#333" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="bold">可视化引擎</text>
+  <!-- Feature icons + text -->
+  <g font-family="'Segoe UI',sans-serif" font-size="9.5" fill="#333">
+    <!-- Row 1 -->
+    <rect x="425" y="92" width="150" height="28" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <circle cx="435" cy="101" r="3" fill="#555"/>
+    <text x="445" y="105">虚拟化引擎</text>
+    <text x="435" y="116" font-size="7.5" fill="#aaa">Virtualization Engine</text>
+
+    <rect x="585" y="92" width="160" height="28" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <circle cx="595" cy="101" r="3" fill="#555"/>
+    <text x="605" y="105">四端渲染</text>
+    <text x="595" y="116" font-size="7.5" fill="#aaa">Desktop / VR / AR / Holo</text>
+
+    <!-- Row 2 -->
+    <rect x="425" y="128" width="150" height="28" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <circle cx="435" cy="137" r="3" fill="#555"/>
+    <text x="445" y="141">数字孪生可视化</text>
+    <text x="435" y="152" font-size="7.5" fill="#aaa">Digital Twin Visualization</text>
+
+    <rect x="585" y="128" width="160" height="28" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <circle cx="595" cy="137" r="3" fill="#555"/>
+    <text x="605" y="141">全息投影</text>
+    <text x="595" y="152" font-size="7.5" fill="#aaa">Holographic Projection</text>
+  </g>
+  <!-- EdgeStark upward subscribe arrow (left side, x=535) -->
+  <line x1="535" y1="285" x2="535" y2="237" stroke="#222" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="480" y="255" font-family="'Segoe UI',sans-serif" font-size="8.5" fill="#333">EAN 订阅</text>
+  <text x="480" y="267" font-family="'Segoe UI',sans-serif" font-size="7.5" fill="#666">同步显示</text>
+
+  <!-- Peer sync arrow (EdgeOS → EdgeStark) -->
+  <line x1="370" y1="125" x2="410" y2="125" stroke="#777" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowDash)"/>
+  <text x="390" y="118" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="8" fill="#777">via EAN</text>
+  <text x="390" y="140" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="7.5" fill="#999">同步</text>
+
+  <!-- ===== MIDDLE LAYER: EAN Network Bus ===== -->
+  <g filter="url(#rough)">
+    <rect x="80" y="285" width="620" height="50" rx="6" fill="#f5f5f5" stroke="#222" stroke-width="2"/>
+  </g>
+  <text x="390" y="307" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="13" font-weight="bold" fill="#222">EAN 网络 · 统一数据分发总线</text>
+  <text x="390" y="324" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="10" fill="#666">MQTT 集群 (EMQX)　·　NATS 消息队列集群</text>
+  <!-- Protocol labels -->
+  <text x="120" y="318" font-family="'Segoe UI',sans-serif" font-size="9" fill="#888">MQTT</text>
+  <text x="640" y="318" font-family="'Segoe UI',sans-serif" font-size="9" fill="#888">NATS</text>
+
+  <!-- Arrow from EdgeCore up to EAN -->
+  <line x1="390" y1="355" x2="390" y2="340" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="400" y="350" font-family="'Segoe UI',sans-serif" font-size="9" fill="#333" font-weight="bold">EAN 发布</text>
+
+  <!-- ===== BOTTOM LAYER: EdgeCore ===== -->
+  <g filter="url(#rough)">
+    <rect x="80" y="360" width="620" height="165" rx="8" fill="#fff" stroke="#222" stroke-width="2"/>
+    <rect x="80" y="360" width="620" height="36" rx="8" fill="#222"/>
+  </g>
+  <text x="390" y="384" text-anchor="middle" fill="#fff" font-family="'Segoe UI',sans-serif" font-size="16" font-weight="bold">EdgeCore</text>
+  <text x="390" y="407" text-anchor="middle" fill="#666" font-family="'Segoe UI',sans-serif" font-size="10">开源 · 免费 · Web</text>
+  <text x="390" y="424" text-anchor="middle" fill="#333" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="bold">工业数字底座</text>
+
+  <!-- Feature boxes -->
+  <g font-family="'Segoe UI',sans-serif" font-size="9.5" fill="#333">
+    <rect x="100" y="436" width="110" height="36" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <text x="155" y="450" text-anchor="middle" font-size="9">采集计算</text>
+    <text x="155" y="463" text-anchor="middle" font-size="7.5" fill="#aaa">Acquisition</text>
+
+    <rect x="220" y="436" width="110" height="36" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <text x="275" y="450" text-anchor="middle" font-size="9">群控</text>
+    <text x="275" y="463" text-anchor="middle" font-size="7.5" fill="#aaa">Group Control</text>
+
+    <rect x="340" y="436" width="110" height="36" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <text x="395" y="450" text-anchor="middle" font-size="9">节流</text>
+    <text x="395" y="463" text-anchor="middle" font-size="7.5" fill="#aaa">Throttling</text>
+
+    <rect x="460" y="436" width="110" height="36" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <text x="515" y="450" text-anchor="middle" font-size="9">多路分发</text>
+    <text x="515" y="463" text-anchor="middle" font-size="7.5" fill="#aaa">Multi-cast</text>
+
+    <rect x="580" y="436" width="100" height="36" rx="4" fill="none" stroke="#999" stroke-width="1"/>
+    <text x="630" y="450" text-anchor="middle" font-size="8.5">分布式边缘网关</text>
+    <text x="630" y="463" text-anchor="middle" font-size="7.5" fill="#aaa">Distributed GW</text>
+  </g>
+
+  <!-- Device labels row -->
+  <g font-family="'Segoe UI',sans-serif" font-size="8" fill="#888">
+    <text x="155" y="490" text-anchor="middle">传感器</text>
+    <text x="275" y="490" text-anchor="middle">PLC</text>
+    <text x="395" y="490" text-anchor="middle">仪表</text>
+    <text x="515" y="490" text-anchor="middle">电机</text>
+    <text x="630" y="490" text-anchor="middle">驱动</text>
+  </g>
+  <text x="390" y="515" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="8.5" fill="#999">15 类工业协议 · Modbus / OPC UA / BACnet / S7 / IEC 61850 / ...</text>
+</svg>
+<figcaption><strong>图 1</strong> Edge 计算平台全景生态：EdgeCore 数字底座 → EAN 网络 → EdgeOS/EdgeStark 平级上层应用（EdgeOS 可通过 EAN 发布数据，EdgeStark 同步显示）</figcaption>
+</figure>
+
+<p>如图 1 所示，整个生态体系采用"数字底座—EAN 网络—平级上层应用"三层架构：EdgeCore 作为开源免费的工业数字底座，支持采集计算、群控、节流、多路分发与分布式边缘网关部署，通过 EAN 网络协议（MQTT 集群 EMQX 或 NATS 消息队列集群）向北发布数据；EdgeOS 与 EdgeStark 作为平级上层组件，均通过 EAN 网络订阅 EdgeCore 发布的数据流。EdgeOS 作为开源免费的主控大脑，采用 N+2 双母皇模式实现高可用，为 AI MCP 提供运行时，调度边缘 EdgeCore 网关，并承担数据汇总与分析职责，可扩展定制为业务后台或大屏智能座舱。关键在于，EdgeOS 不仅订阅 EAN 数据，还通过 EAN 向上层发布告警、预测与分析结果，使 EdgeStark 能够同步显示与协同工作。EdgeStark 作为闭源授权的桌面端程序，以虚拟化引擎为核心，支持四端渲染（桌面端、VR、AR、全息投影），聚焦数字孪生可视化。这种平级架构既保证了数据从底座到上层组件的低延迟直达，又实现了上层组件间的智能协同，使 EAN 通信协议成为连接全生态的智能数据总线。EdgeOS 不直接连接 PLC 或执行设备操作，而是通过 EAN Invoke 向 EdgeCore 网关下发能力调用请求，由 EdgeCore 的 Capability Runtime 执行实际的协议读写。这一架构使协调逻辑与执行逻辑彻底解耦，EdgeOS 无需维护任何工业协议适配代码。</p>
+
+<p>EAN 2.0（Edge Agent Network 2.0）是连接 EdgeCore 与 EdgeOS 的核心协议层。在 EAN 2.0 架构中，所有能力——无论是 Driver 命令、AI 技能、MCP 工具还是工作流节点——都被统一抽象为 Capability 模型，通过 Discovery 机制自动发布与索引，通过 Invoke 机制实现跨节点调用编排，通过 Event 机制推送实时状态变更。EAN 2.0 同时支持 MQTT 与 NATS 两种传输协议，MQTT 使用 <code>$edgeos/...</code> 斜杠 Topic，NATS 使用对应点分 Subject（<code>/</code>→<code>.</code>），确保双传输语义完全对称(工业互联网边缘计算研究室，2026b)。</p>
+
+<h3 id="sec1-2">1.2 问题与挑战</h3>
+
+<p>构建面向工业现场的边缘协调平台，需要解决以下核心挑战：</p>
+
+<p><strong>挑战一：多网关协调与统一能力发现。</strong>工业现场的 EdgeCore 网关通常以产线或车间为单位分散部署，每台网关管理不同协议、不同规模的设备。当协调平台需要跨网关执行操作时（如"读取 3 号车间所有电机的绕组温度"），必须首先知道哪些网关在线、每台网关提供了哪些 Capability、目标设备归属于哪台网关。如何设计自动化的能力发现机制，使协调平台无需人工配置即可感知全部网关的能力清单，并在线网关上下线时实时更新索引，是平台数据架构的核心挑战。</p>
+
+<p><strong>挑战二：高可用与故障自愈。</strong>作为工业现场的"边缘大脑"，EdgeOS 自身的高可用性至关重要。若协调平台单点故障，所有跨网关的 Invoke 调用与 Event 事件流将中断。如何设计 N+2 冗余架构，实现主备节点的状态同步与自动故障转移，并预防脑裂（split-brain）问题，是平台可靠性设计的关键约束。</p>
+
+<p><strong>挑战三：安全治理与权限控制。</strong>工业现场的能力调用涉及设备读写与控制操作，错误的 Invoke 可能导致设备误动作甚至安全事故。如何设计细粒度的权限控制机制，区分 read/write/admin/AI 四类能力的访问权限，并记录完整的审计日志以支持事后追溯，是平台安全性的核心要求。</p>
+
+<p><strong>挑战四：AI 协同与 Human-in-the-loop 约束。</strong>EdgeOS 集成了 AI 协议逆向与文档解析能力，可以将"工程师花 2 天分析协议"缩短为"AI 30 分钟生成候选配置"。然而，AI 产出存在误判风险——错误的协议配置可能导致设备通信异常。如何设计 Human-in-the-loop 机制，确保 AI 产出必须经过工程师确认后方可落库，同时禁止 AI 调用进入 ScanEngine 等采集热路径，是平台 AI 集成的工程铁律。</p>
+
+<h3 id="sec1-3">1.3 主要贡献</h3>
+
+<p>针对上述挑战，本文提出基于 EdgeCore 数字底座的工业边缘协调平台 EdgeOS，以 EAN 2.0 为统一协议层，以 N+2 双母皇冗余为高可用基座，聚焦能力发现、调用编排、事件处理、心跳监控与安全治理。在"数字底座—EAN 网络—平级上层应用"三层生态体系中，EdgeCore（开源免费）承担工业数字底座职责（采集计算、群控、节流、多路分发），EdgeOS（开源免费）与 EdgeStark（闭源授权）作为平级上层组件，均通过 EAN 网络订阅 EdgeCore 发布的数据。EdgeOS 承担主控大脑职责（AI MCP、edgeCore 调度、数据汇总分析、业务后台、大屏智能座舱），同时通过 EAN 向上层发布告警与预测结果；EdgeStark 承担数字孪生可视化职责（虚拟化引擎、四端渲染、全息投影），可同步显示 EdgeOS 发布的分析结果。本文的主要贡献包括五项创新点：</p>
+
+<p><strong>创新点一：提出基于 EdgeCore 数字底座的工业边缘协调平台架构。</strong>构建 EdgeCore（开源免费数字底座）与 EdgeOS（开源免费主控大脑）解耦的协作体系，EdgeOS 与 EdgeStark 作为平级上层组件，均通过 EAN 网络订阅 EdgeCore 发布的数据。EdgeOS 不仅订阅 EAN 数据，还通过 EAN 向上层发布告警、预测与分析结果，使 EdgeStark 等平级组件能够同步显示与协同工作。通过 MQTT 集群 EMQX / NATS 消息队列集群双传输实现跨网关能力发现与调用编排。EdgeOS 为 AI MCP 提供运行时，调度边缘 EdgeCore 网关，并可扩展定制为业务后台或大屏智能座舱。这一架构使协调平台能够以松耦合方式管理 100 台以上 EdgeCore 网关，为工业边缘计算提供确定性的协调中枢。</p>
+
+<p><strong>创新点二：设计统一能力模型与主动发现机制。</strong>将 Driver 命令、AI 技能、MCP 工具与工作流节点统一抽象为 Capability 模型，通过 Discovery 机制自动发布与索引。采用主动查询与渐进降频策略，在启动后以高频查询确保索引完整，逐步降低至低频保活，平衡发现实时性与系统开销。V1 Bridge 隔离机制确保原生 EAN 能力优先于 V1 合成能力，避免重复索引。</p>
+
+<p><strong>创新点三：构建 N+2 双母皇冗余与心跳自愈架构。</strong>设计主备母皇双机热备机制，通过心跳检测与状态同步实现故障自动转移。心跳超时判定采用 N 倍周期策略（默认 3 个心跳周期），离线保留期机制在超时后保留 Agent 状态供恢复，超过保留期才彻底清除。主备切换耗时低于 3 秒，满足工业现场对协调平台可用性的要求。</p>
+
+<p><strong>创新点四：实现细粒度权限控制与审计治理。</strong>设计 read/write/admin/AI 四级权限模型，通过 allow/deny 列表实现租户级别的 Capability 访问控制。write/admin 能力需要策略显式允许，AI 能力需要显式授权。审计日志记录全部跨节点 Invoke 的发起者、目标、能力与结果，支持事后追溯。内存环形缓存限制审计记录上限（默认 10000 条），避免无限增长。</p>
+
+<p><strong>创新点五：设计 AI MCP 运行时与 EAN 协议协同机制。</strong>将 AI Model Context Protocol 作为一等公民集成到 EAN 能力体系，AI 能力（协议逆向 ai.protocol_reverse、文档解析 ai.doc_parse）通过 EAN Invoke 统一编排，与 Driver 命令享有相同的发现、调用、权限控制与审计追踪机制。设计确定性优先的四阶段分析流水线（协议识别 → 报文结构解析 → 物理量推理 → 生产配置生成），将 LLM 推理限制在语义关联环节，字节解码由确定性 Decoder 完成。所有 AI 产出必须经过工程师 Confirm 后方可落库（Human-in-the-loop），禁止 AI 调用进入 ScanEngine/Pipeline Worker 热路径。协议层面设计 invoke_id UUID 幂等去重、QoS 分级路由与双传输故障转移三大机制，确保百网关规模下消息不丢失、不重复、不阻塞。</p>
+
+<!-- ===== Section 2: 需求分析 ===== -->
+<h2 id="sec2"><span class="sec-num">2</span>需求分析</h2>
+
+<h3 id="sec2-1">2.1 边缘协调需求</h3>
+
+<p>工业边缘协调平台的核心需求是建立多台 EdgeCore 网关之间的协作关系，使协调平台能够统一感知全部网关的在线状态、能力清单与设备归属，并支持跨网关的能力调用编排。EdgeOS 需要满足以下协调需求：</p>
+
+<p><strong>全局能力发现。</strong>平台需要订阅 N 台 EdgeCore 网关通过 EAN 网络发布的 Discovery 消息，自动建立全局 Agent 索引与 Capability 索引。支持 100 台以上 EdgeCore 网关、每台网关 60-70 个 Capability 的统一发现。发现索引需要支持按 Agent ID、按 Capability ID、按类别（driver/system/ai/workflow）的灵活查询。当网关上线时自动注册其能力清单，当网关下线时自动标记为离线并保留状态以支持恢复。</p>
+
+<p><strong>跨网关调用编排。</strong>平台需要支持向任意在线 EdgeCore 网关发起 Capability Invoke 请求，并关联接收回复。调用编排器需要管理 pending 状态的调用上下文，通过 invoke_id 与 correlation_id 双键关联请求与回复，支持超时重试与幂等去重。Invoke 的目标网关由 Discovery 索引中的 Agent ID 确定，调用方无需关心目标网关的物理位置与协议细节。</p>
+
+<p><strong>事件流订阅与路由。</strong>平台需要订阅 EdgeCore 网关上报的事件流，包括点位值变更（携带 value 与 previous_value）、设备上下线事件与告警事件。事件路由支持按 agent/device/point/event_type 维度过滤，并触发规则引擎与告警通知。</p>
+
+<h3 id="sec2-2">2.2 高可用需求</h3>
+
+<p>作为工业现场的协调中枢，EdgeOS 自身的高可用性直接影响全部跨网关操作的可用性。平台需要满足以下高可用需求：</p>
+
+<div class="table-wrap">
+<table>
+<caption>表 1 高可用需求矩阵<span class="en-caption">Table 1 High Availability Requirements Matrix</span></caption>
+<thead>
+<tr><th>维度</th><th>指标</th><th>目标值</th></tr>
+</thead>
+<tbody>
+<tr><td>冗余架构</td><td>主备节点数量</td><td>1 主 + 1 备（N+2）</td></tr>
+<tr><td>故障转移</td><td>主备切换耗时</td><td>&lt; 5 秒</td></tr>
+<tr><td>状态同步</td><td>主备数据同步延迟</td><td>&lt; 100 ms</td></tr>
+<tr><td>脑裂预防</td><td>双主检测机制</td><td>租约 + 分布式锁</td></tr>
+<tr><td>心跳检测</td><td>超时判定周期</td><td>3 个心跳周期</td></tr>
+<tr><td>离线恢复</td><td>Agent 状态保留期</td><td>10 分钟</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>如表 1 所示，平台需要在 N+2 冗余架构下实现主备切换低于 5 秒、状态同步延迟低于 100 ms 的高可用指标。心跳超时判定采用 3 倍周期策略（即连续 3 个心跳周期未收到心跳则判定超时），离线保留期默认 10 分钟——Agent 心跳超时标记 offline 后保留状态 10 分钟，若超过该时长仍未重新上线则彻底删除。这一设计在"快速检测离线"与"容忍短暂网络抖动"之间取得平衡。</p>
+
+<h3 id="sec2-3">2.3 安全与治理需求</h3>
+
+<p>工业边缘协调平台的安全治理涉及能力调用的权限控制、租户隔离与审计追溯三个维度。平台需要满足以下安全需求：</p>
+
+<p><strong>四级权限模型。</strong>Capability 按操作风险分为 read（只读能力，如 read_points、list_points）、write（写入能力，如 write_point）、admin（管理能力，如 scan_devices、diagnostics）与 ai（AI 能力，如 protocol_reverse、doc_parse）四个级别。read 能力默认允许所有租户调用，write/admin 能力需要租户策略中未被 deny，ai 能力需要租户策略中显式 allow。权限检查采用 deny 优先原则——先检查 deny 列表，再检查 allow 列表。</p>
+
+<p><strong>租户隔离。</strong>平台需要支持多租户场景，不同租户可访问的 Capability 范围与目标 Agent 不同。租户策略通过 allow/deny 列表控制可调用的 Capability 前缀与目标 Agent ID，空 allow 列表表示允许全部（被 deny 优先覆盖）。</p>
+
+<p><strong>审计追溯。</strong>全部跨节点 Invoke 调用需要记录审计日志，包含发起者（initiator）、目标（target）、能力（capability）、参数摘要、执行结果与时间戳。审计日志在内存环形缓存中保存，上限 10000 条，超出后丢弃最早记录。支持异步回调将审计记录写入外部存储。</p>
+
+<!-- ===== Section 3: 总体架构 ===== -->
+<h2 id="sec3"><span class="sec-num">3</span>总体架构</h2>
+
+<h3 id="sec3-1">3.1 架构概览</h3>
+
+<p>EdgeOS 平台采用"数字底座—EAN 网络—平级上层应用"三层生态架构。EdgeCore 作为开源免费的工业数字底座，支持采集计算、群控、节流、多路分发与分布式边缘网关部署，通过 EAN 网络协议（MQTT 集群 EMQX 或 NATS 消息队列集群）发布数据。EdgeOS 与 EdgeStark 作为平级上层组件，均通过 EAN 网络订阅 EdgeCore 发布的数据流。EdgeOS 作为开源免费的主控大脑，以 N+2 双母皇模式实现高可用，为 AI MCP 提供运行时，调度边缘 EdgeCore 网关，承担数据汇总与分析职责，并可扩展定制为业务后台或大屏智能座舱；同时 EdgeOS 自身也通过 EAN 向上层发布告警、预测与分析结果，使 EdgeStark 等平级组件能够同步显示与协同工作。EdgeStark 作为闭源授权的桌面端程序，以虚拟化引擎为核心，支持四端渲染（桌面端、VR、AR、全息投影），聚焦数字孪生可视化。这种平级架构既保证了数据从底座到上层组件的低延迟直达，又实现了上层组件间的智能协同，使 EAN 通信协议成为连接全生态的智能数据总线。这一架构的核心设计理念是：EdgeOS 不直接连接设备，而是通过 EAN 网络协调全局能力。</p>
+
+<figure class="img-figure">
+<img src="assets/img-edge-brain.jpg" alt="EdgeOS 边缘大脑系统全景">
+<figcaption><strong>图 2</strong> EdgeOS 边缘大脑系统全景：中央协调节点管理多台边缘网关的能力发现与调用编排</figcaption>
+</figure>
+
+<p>EdgeOS 的内部架构由六个核心子系统构成，各子系统职责明确、层次清晰：</p>
+
+<p><strong>Bus（统一协调器）。</strong>持有所有子系统的引用并管理生命周期，初始化 DualTransport（MQTT/NATS），绑定子系统间回调，统一订阅 <code>$edgeos/#</code> 主题。Bus 是 EdgeOS 运行时的入口点，对外暴露 InvokeCapability 编排 API，并管理主动 Discovery Query 的生命周期。</p>
+
+<p><strong>DualTransport（双传输层）。</strong>封装 MQTT 与 NATS 两种传输协议的适配器，实现统一的 Transport 接口（Subscribe/Publish/IsConnected/Close）。MQTT 适配器基于 paho.mqtt.golang，NATS 适配器基于 nats.go，MQTT 使用 <code>$edgeos/...</code> 斜杠 Topic，NATS 使用对应点分 Subject（<code>/</code>→<code>.</code>、<code>+</code>→<code>*</code>、<code>#</code>→<code>&gt;</code>），确保双传输语义完全对称。启动韧性设计使 broker 不可用时仍创建实例并后台重连，不 fatal 退出。</p>
+
+<p><strong>Discovery（发现中心）。</strong>全局 Agent/Capability 索引，订阅 EdgeCore 发布的发现消息，维护在线 Agent 列表与能力注册表。采用三级索引结构（agent→capability→source），支持 V1 Bridge 隔离——原生 EAN 能力优先于 V1 合成能力。</p>
+
+<p><strong>Invoke（调用编排器）。</strong>跨 Agent 能力调用编排器，通过 publishFn 发布 Invoke 请求到 <code>$edgeos/invoke/{target}</code>，通过 HandleReply 接收 <code>$edgeos/reply/{source}</code> 回复，按 invoke_id 关联请求与回复。支持超时重试与幂等去重。</p>
+
+<p><strong>Event（事件中心）。</strong>订阅并处理 EdgeCore 上报的事件流，支持点位变化追踪（含 previous_value 差量对比）、设备上下线事件与广播事件。按 agent/device/point/event_type 维度过滤并触发规则。</p>
+
+<p><strong>Heartbeat（心跳监控器）与 Governance（治理模块）。</strong>心跳监控器接收 Agent 心跳消息并定期检查超时，治理模块负责权限检查与审计记录。两者协同实现安全治理闭环。</p>
+
+<h3 id="sec3-2">3.2 N+2 冗余架构</h3>
+
+<p>EdgeOS 采用 N+2 冗余架构，由 N 个边缘采集网关（EdgeCore）、1 个主母皇节点（Primary Queen）与 1 个备用母皇节点（Secondary Queen）组成。主母皇节点承担协调平台职责，备用母皇节点实时同步主节点状态，在主节点故障时自动切换为新的主节点。</p>
+
+<figure class="img-figure">
+<img src="assets/img-redundancy.jpg" alt="N+2 冗余架构">
+<figcaption><strong>图 3</strong> N+2 冗余架构：主备母皇节点协调 N 台边缘采集网关</figcaption>
+</figure>
+
+<p><strong>主备状态同步。</strong>主母皇节点在每次 Discovery 索引更新、Invoke 执行完成或 Agent 状态变更时，通过 WAL（Write-Ahead Log）机制将变更日志同步到备用母皇节点。备用节点重放 WAL 日志维护状态副本，同步延迟控制在 100 ms 以内。状态同步采用增量方式，仅同步变更的索引项，避免全量同步的网络开销。</p>
+
+<p><strong>故障检测与切换。</strong>主备节点之间通过 TCP 心跳与 UDP 广播双重检测机制维持存活感知。当备用节点连续 3 个心跳周期未收到主节点心跳时，触发故障转移流程：备用节点升级为主节点，接管 EAN 订阅与 Invoke 编排职责，并向全部 EdgeCore 网关广播角色切换通知。切换过程耗时低于 3 秒，期间 pending 的 Invoke 请求通过 invoke_id 幂等性在切换后自动重试。</p>
+
+<p><strong>脑裂预防。</strong>为防止网络分区导致双主同时服务，EdgeOS 采用租约（Lease）机制：主节点定期向共享存储（bbolt）写入租约记录，若租约过期则主节点自动降级。备用节点在升级前必须获取租约锁，确保同一时间仅一个节点持有主节点角色。租约超时时间设置为 2 倍心跳周期，在心跳检测与租约过期之间留出安全余量。</p>
+
+<div class="table-wrap">
+<table>
+<caption>表 2 N+2 冗余架构组件职责<span class="en-caption">Table 2 N+2 Redundancy Architecture Component Responsibilities</span></caption>
+<thead>
+<tr><th>组件</th><th>数量</th><th>职责</th></tr>
+</thead>
+<tbody>
+<tr><td>边缘采集网关（EdgeCore）</td><td>N</td><td>设备连接、数据采集、协议转换、Capability Runtime</td></tr>
+<tr><td>主母皇节点（Primary Queen）</td><td>1</td><td>全局调度、决策制定、状态同步、EAN Coordination Platform</td></tr>
+<tr><td>备用母皇节点（Secondary Queen）</td><td>1</td><td>实时同步主节点状态，故障时自动切换</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="sec3-3">3.3 EAN 协调层</h3>
+
+<p>EAN 2.0 协调层是 EdgeOS 的核心运行时。Bus 统一协调器在启动时初始化 DualTransport、创建五大子系统并绑定回调，然后统一订阅 <code>$edgeos/#</code> 主题树。消息到达后由 Bus 根据主题前缀路由到对应子系统处理。</p>
+
+<figure class="diagram">
+<pre class="mermaid">
+flowchart TB
+  subgraph CORES["N × EdgeCore 工业数字底座"]
+    C1["EdgeCore 1<br/>modbus-tcp · opc-ua"]
+    C2["EdgeCore 2<br/>bacnet · s7"]
+    CN["EdgeCore N<br/>多协议混合"]
+  end
+  subgraph EAN_NET["EAN 2.0 · 双传输消息总线"]
+    MQTT["MQTT Broker<br/>$edgeos/*"]
+    NATS["NATS Server<br/>$edgeos.*（点分 Subject）"]
+  end
+  subgraph EOS_RT["EdgeOS 协调平台运行时"]
+    BUS["Bus · 统一协调器"]
+    DISC["Discovery<br/>发现中心"]
+    INVK["Invoke<br/>调用编排器"]
+    EVNT["Event<br/>事件中心"]
+    HB["Heartbeat<br/>心跳监控"]
+    GOV["Governance<br/>治理模块"]
+  end
+  C1 --> MQTT
+  C1 --> NATS
+  C2 --> MQTT
+  CN --> MQTT
+  MQTT --> BUS
+  NATS --> BUS
+  BUS --> DISC
+  BUS --> INVK
+  BUS --> EVNT
+  BUS --> HB
+  INVK --> GOV
+</pre>
+<figcaption>图 4 EdgeOS 协调平台架构：双传输 → Bus → 五大子系统</figcaption>
+</figure>
+
+<p>如图 4 所示，N 台 EdgeCore 网关通过 MQTT 与 NATS 双传输将 Discovery/Invoke/Event/Heartbeat 消息发布到消息总线，EdgeOS 的 Bus 统一协调器从两种传输接收消息并路由到五大子系统。Invoke 编排器在执行能力调用前先经过 Governance 模块的权限检查。这一架构确保了双传输语义对称与子系统解耦。</p>
+
+<p><strong>启动韧性设计。</strong>EAN 启用但 broker 不可用时，EdgeOS 不 fatal 退出——DualTransport 创建实例后仅 Warn 日志并启动后台重连循环，订阅请求登记在本地，连接成功后统一补订。这一设计使 EdgeOS 在 broker 短暂不可用时仍能保持进程存活，broker 恢复后自动恢复全部订阅，无需人工干预。</p>
+
+<!-- ===== Section 4: EAN 2.0 核心设计 ===== -->
+<h2 id="sec4"><span class="sec-num">4</span>EAN 2.0 核心设计</h2>
+
+<h3 id="sec4-1">4.1 统一能力模型</h3>
+
+<p>EAN 2.0 的核心设计理念是将所有能力统一抽象为 Capability 模型。无论是 Driver 命令（读/写/扫描/诊断）、AI 技能（协议逆向/文档解析）、MCP 工具还是工作流节点，都被映射为具有统一描述符的 Capability，通过 Discovery 机制自动发布与索引，通过 Invoke 机制实现跨节点调用。</p>
+
+<p><strong>Capability 描述符。</strong>每个 Capability 包含 ID、名称、类别（driver/system/ai/workflow）、权限级别（read/write/admin/ai）、输入参数 Schema、输出参数 Schema、超时设置与执行后端标识。描述符通过 <code>$edgeos/discovery/capability</code> 主题以 retained 消息模式发布，使新上线的 EdgeOS 节点能立即获取全部已注册能力的清单。</p>
+
+<p><strong>统一能力集（MCP Runtime）。</strong>为减少 MCP 工具数量并简化对外接口，EAN 2.0 将 15 类协议的 63 个协议特定 Capability 合并为 7 个统一 Capability。统一能力由 <code>GenerateUnifiedCapabilities()</code> 函数自动生成，通过 <code>ean_*</code> 前缀标识：</p>
+
+<div class="table-wrap">
+<table>
+<caption>表 3 统一 Capability 清单（MCP Runtime 模式）<span class="en-caption">Table 3 Unified Capability List (MCP Runtime Mode)</span></caption>
+<thead>
+<tr><th>Capability ID</th><th>类别</th><th>功能</th><th>权限</th></tr>
+</thead>
+<tbody>
+<tr><td><code>read_points</code></td><td>driver</td><td>统一读取点位（跨协议）</td><td>read</td></tr>
+<tr><td><code>write_points</code></td><td>driver</td><td>统一写入点位（跨协议）</td><td>write</td></tr>
+<tr><td><code>scan_devices</code></td><td>driver</td><td>统一扫描设备（跨协议）</td><td>admin</td></tr>
+<tr><td><code>list_points</code></td><td>driver</td><td>统一列出点位（跨协议）</td><td>read</td></tr>
+<tr><td><code>get_diagnostics</code></td><td>system</td><td>统一获取诊断信息</td><td>admin</td></tr>
+<tr><td><code>ai.protocol_reverse</code></td><td>ai</td><td>AI 协议逆向分析</td><td>ai</td></tr>
+<tr><td><code>ai.doc_parse</code></td><td>ai</td><td>AI 文档解析</td><td>ai</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>如表 3 所示，统一能力集以 7 条 Capability 替代 63 条协议特定 Capability，大幅简化了 MCP 工具的暴露面。<code>RuntimeConfig.Unified</code> 标志控制使用统一能力集（true，MCP 场景）还是完整协议特定能力集（false，北向 EAN Runtime 场景）。北向 EAN Runtime 仍保留 63 个协议特定 Capability（如 <code>modbus_tcp.read_point</code>），以支持细粒度的跨 Agent 编排与协议感知调度。</p>
+
+<p><strong>地址语义统一。</strong>read_points/write_points 的 address/point_id 参数接受三种形式：point_id（推荐）、address（寄存器地址）、name（点位名称，不区分大小写）。<code>DriverExecutor.resolvePointIDs()</code> 自动将三种形式解析为内部 point_id。list_points 的输出可直接作为 read_points/write_points 的输入，形成闭环。</p>
+
+<h3 id="sec4-2">4.2 双传输对称</h3>
+
+<p>EAN 2.0 同时支持 MQTT 与 NATS 两种传输协议。MQTT 使用 <code>$edgeos/...</code> 斜杠 Topic，NATS 使用标准点分 Subject（<code>/</code>→<code>.</code>、<code>+</code>→<code>*</code>、<code>#</code>→<code>&gt;</code>），如 <code>$edgeos.discovery.agent</code>，语义与 MQTT 一一对应，符合 NATS 主题约定。V1.0 的 NATS 使用 <code>edgeCore.*</code> 点分形式，两者均为点分。</p>
+
+<div class="table-wrap">
+<table>
+<caption>表 4 EAN 2.0 Topic/Subject 设计<span class="en-caption">Table 4 EAN 2.0 Topic/Subject Design</span></caption>
+<thead>
+<tr><th>用途</th><th>Topic/Subject</th><th>方向</th><th>QoS</th></tr>
+</thead>
+<tbody>
+<tr><td>Agent 发现</td><td><code>$edgeos/discovery/agent</code></td><td>EdgeCore → EdgeOS</td><td>1</td></tr>
+<tr><td>Agent 下线</td><td><code>$edgeos/discovery/agent/offline</code></td><td>EdgeCore → EdgeOS</td><td>1</td></tr>
+<tr><td>Capability 发现</td><td><code>$edgeos/discovery/capability</code></td><td>EdgeCore → EdgeOS</td><td>1</td></tr>
+<tr><td>发现查询</td><td><code>$edgeos/discovery/query</code></td><td>EdgeOS → EdgeCore</td><td>0</td></tr>
+<tr><td>Invoke 请求</td><td><code>$edgeos/invoke/{agent_id}</code></td><td>EdgeOS → EdgeCore</td><td>1</td></tr>
+<tr><td>Invoke 回复</td><td><code>$edgeos/reply/{source}</code></td><td>EdgeCore → EdgeOS</td><td>1</td></tr>
+<tr><td>Event</td><td><code>$edgeos/event/{agent_id}</code></td><td>EdgeCore → EdgeOS</td><td>1</td></tr>
+<tr><td>Heartbeat</td><td><code>$edgeos/heartbeat/{agent_id}</code></td><td>EdgeCore → EdgeOS</td><td>0</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Transport 接口抽象。</strong>DualTransport 定义了统一的 Transport 接口，MQTT 与 NATS 适配器分别实现该接口。Bus 在初始化时根据配置创建对应的传输适配器，业务逻辑代码只面向 Transport 接口编程，不感知底层传输差异。MQTT 适配器基于 paho.mqtt.golang 实现，支持 QoS1 持久化确认与自动重连；NATS 适配器基于 nats.go 实现，支持连接池与请求-响应模式。</p>
+
+<p><strong>启动韧性与延迟订阅。</strong>MQTT 适配器的启动韧性设计是其工程难点之一。当 broker 不可用时，paho.mqtt.golang 的 AutoReconnect 机制会持续重试连接，但在此期间发布的 Subscribe 请求会丢失。EdgeOS 采用"订阅登记 + OnConnect 补订"策略：所有 Subscribe 请求先登记到本地 <code>subs map[string]MessageHandler</code>，在 OnConnect 回调中统一执行补订。这一设计使 broker 恢复后全部订阅自动恢复，无需人工干预或重启服务。</p>
+
+<h3 id="sec4-3">4.3 消息信封与协议</h3>
+
+<p>EAN 2.0 的所有消息采用统一的信封格式（Message Envelope），包含消息类型、关联 ID、源/目标 Agent ID 与消息体。信封格式定义在 <code>envelope.go</code> 中，通过 JSON 序列化传输。</p>
+
+<pre><code>{
+  "message_type": "invoke_capability",
+  "correlation_id": "inv-a1b2c3",
+  "source": "edgeos-planner",
+  "destination": "edgeCore-node-001",
+  "timestamp": "2026-08-10T10:30:00Z",
+  "body": {
+    "invoke_id": "inv-a1b2c3",
+    "target": "edgeCore-node-001",
+    "capability": "modbus_tcp.read_point",
+    "arguments": {
+      "device_id": "motor-001",
+      "point_id": "temp_winding"
+    },
+    "options": {
+      "timeout_sec": 10,
+      "priority": "normal"
+    }
+  }
+}</code></pre>
+
+<p>信封的 <code>message_type</code> 字段标识消息类型（invoke_capability/invoke_response/discovery_agent/discovery_capability/event/heartbeat 等），Bus 根据消息类型路由到对应子系统处理。<code>correlation_id</code> 用于关联请求与回复——Invoke 编排器在发起调用时生成 correlation_id（等于 invoke_id），EdgeCore 在回复时携带相同的 correlation_id，编排器据此匹配 pending 状态的调用上下文。</p>
+
+<h3 id="sec4-4">4.4 协议幂等性与安全路由</h3>
+
+<p>EAN 2.0 协议的工程可靠性建立在三个核心机制之上：幂等性设计、QoS 分级路由与双传输故障转移。这三个机制共同确保了在百网关规模、双传输冗余、AI 长时调用的工程约束下，消息不丢失、不重复、不阻塞。</p>
+
+<p><strong>幂等性设计（invoke_id UUID 去重）。</strong>每次 Invoke 调用生成全局唯一的 <code>invoke_id</code>（UUID v4），作为请求与回复的关联键。EdgeCore 的 Capability Runtime 维护近期已处理的 invoke_id 集合（LRU 缓存，默认 1000 条），收到重复的 Invoke 请求时直接返回缓存的 Reply，不重复执行能力调用。这一机制在两种场景下发挥关键作用：其一，主备切换后 pending 的 Invoke 请求通过 invoke_id 幂等性自动重试——备用母皇节点重新发送未完成的 Invoke，EdgeCore 识别到重复 invoke_id 后返回缓存结果而非重新执行；其二，MQTT/NATS 双传输在 broker 抖动时可能重复投递消息，幂等去重确保同一 Invoke 不会被执行两次。invoke_id 的 UUID v4 生成基于 crypto/rand，在百网关、万级并发的碰撞概率可忽略（2^122 地址空间）。</p>
+
+<p><strong>QoS 分级路由。</strong>EAN 2.0 对不同消息类型采用差异化的 QoS 策略（如表 4 所示）：Discovery 与 Invoke 消息使用 QoS1（至少一次投递，确保不丢失），Heartbeat 与 Discovery Query 使用 QoS0（最多一次投递，允许丢失以降低开销）。QoS 分级的工程依据是消息的幂等性与时效性：Heartbeat 是高频周期消息（默认 10 秒间隔），单次丢失不影响超时判定（3 倍周期策略容忍连续 2 次丢失）；Invoke 是低频关键消息，丢失会导致能力调用失败。NATS 侧不区分 QoS 级别（NATS 的 At-Least-Once 语义由 JetStream 可选启用），但通过 subscription 的自动重连与消息缓冲实现等效的可靠性。</p>
+
+<p><strong>双传输故障转移。</strong>当 MQTT broker 故障时，NATS 传输仍可承载全部 EAN 消息——Bus 的 DualTransport 设计使两条传输路径完全对称，任何一条均可独立承载全部消息流。故障检测依赖 Transport 接口的 <code>IsConnected()</code> 方法：Bus 在每次 Publish 时检查传输层连接状态，优先选择已连接的传输层发布消息；若两条传输层均断开，消息暂存到本地缓冲队列，待传输恢复后补发。这一设计确保了 broker 级故障（如 Mosquitto 崩溃或 EMQX 集群脑裂）不影响 EAN 消息传递——只要一条传输路径可用，协调平台即可正常运行。</p>
+
+<p><strong>Topic 命名空间隔离。</strong>EAN 2.0 统一使用 <code>$edgeos/</code> 前缀，与 V1.0 的 <code>edgeCore/</code> 前缀完全隔离。这一命名空间隔离确保了 EAN 2.0 与 V1.0 消息不会交叉订阅——EdgeOS 订阅 <code>$edgeos/#</code> 不会收到 V1.0 的 <code>edgeCore/devices/report</code> 消息，反之亦然。V1 兼容层通过显式的消息桥接（bridge）在两个命名空间间转发，而非依赖 Topic 通配符的隐式匹配。这一设计使 V1 兼容层的启用/禁用成为一个纯粹的配置开关，不影响 EAN 2.0 的核心消息路由逻辑。</p>
+
+<!-- ===== Section 5: 发现中心 ===== -->
+<h2 id="sec5"><span class="sec-num">5</span>发现中心</h2>
+
+<h3 id="sec5-1">5.1 Agent 生命周期管理</h3>
+
+<p>DiscoveryCenter 维护全局 Agent 索引，跟踪每台 EdgeCore 网关的在线状态与能力清单。Agent 的生命周期包含四个状态：注册（Register）、在线（Online）、离线（Offline）与清除（Delete）。</p>
+
+<p><strong>Agent 上线流程。</strong>当 EdgeCore 网关启动并连接到 EAN 消息总线后，通过 <code>$edgeos/discovery/agent</code> 主题发布 Agent Descriptor（包含 Agent ID、协议列表、心跳间隔、Capability 清单等）。DiscoveryCenter 接收后执行 HandleAgentOnline 回调：解析 Descriptor，验证 Agent ID 非空，创建或更新索引中的 Agent 记录，触发 OnAgentOnlineHook 通知上层。同时，EdgeCore 通过 <code>$edgeos/discovery/capability</code> 主题发布全部 Capability Descriptor，DiscoveryCenter 逐条接收并注册到能力索引。</p>
+
+<p><strong>Descriptor 兼容解析。</strong>EdgeCore 不同版本发送的 Agent Descriptor 格式存在差异——有的将 Descriptor 包裹在 body.agent 字段中，有的直接以 body 作为 Descriptor，还有的发送裸 Descriptor。DiscoveryCenter 的 <code>decodeAgentDescriptor()</code> 函数兼容三种格式，依次尝试从 body.agent、body 本身与裸 payload 解析，确保跨版本兼容。</p>
+
+<h3 id="sec5-2">5.2 Capability 注册与索引</h3>
+
+<p>DiscoveryCenter 维护三级索引结构：Agent 索引（agentID → AgentDescriptor）、Capability 索引（capabilityID → CapabilityDescriptor）与辅助索引（agentID → []capabilityID）。此外，引入 <code>capSources</code> 与 <code>agentSources</code> 两个来源标记映射，用于 V1 Bridge 隔离。</p>
+
+<p><strong>三级索引查询。</strong>按 Agent ID 查询其全部 Capability 的时间复杂度为 O(1)——直接查辅助索引获取 capabilityID 列表，再逐条查 Capability 索引获取描述符。按 Capability ID 查询其归属 Agent 的时间复杂度同样为 O(1)——直接查 Capability 索引的 agent_id 字段。这一设计使 Discovery 查询在百网关、千级 Capability 规模下保持亚毫秒级响应。</p>
+
+<p><strong>retained 消息与 Capability 发布。</strong>EdgeCore 在启动时将全部 Capability Descriptor 通过 <code>$edgeos/discovery/capability</code> 主题以 retained 消息模式发布。retained 消息确保新上线的 EdgeOS 节点在订阅主题后立即收到全部已注册能力的清单，无需等待 EdgeCore 重新发布。EdgeCore 还周期性重发 retained 消息（默认 60 秒），确保订阅方在 broker 消息过期后仍能获取最新能力清单。</p>
+
+<h3 id="sec5-3">5.3 主动查询与渐进降频</h3>
+
+<p>retained 消息虽然确保了新节点的初始索引完整性，但在长期运行中仍可能出现索引遗漏——broker 重启会清空 retained 消息，EdgeCore 在两次重发之间新增的 Capability 不会立即被 EdgeOS 感知。为此，EdgeOS 设计了主动查询（Active Query）机制，在启动后周期性向 EdgeCore 发送 Discovery Query 请求，获取完整能力清单并补全索引。</p>
+
+<figure class="img-figure">
+<svg viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;margin:0 auto;display:block">
+<defs>
+<marker id="aq1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L7 4L1 7Z" fill="#333"/></marker>
+</defs>
+<rect x="80" y="5" width="120" height="30" rx="3" fill="#f5f5f5" stroke="#333"/>
+<text x="140" y="24" text-anchor="middle" font-size="10" font-weight="600">EdgeOS Bus</text>
+<rect x="560" y="5" width="120" height="30" rx="3" fill="#f5f5f5" stroke="#333"/>
+<text x="620" y="24" text-anchor="middle" font-size="10" font-weight="600">EdgeCore</text>
+<line x1="140" y1="35" x2="140" y2="310" stroke="#ddd" stroke-dasharray="3,3"/>
+<line x1="620" y1="35" x2="620" y2="310" stroke="#ddd" stroke-dasharray="3,3"/>
+<text x="10" y="65" font-size="9" fill="#888">t=0</text>
+<text x="380" y="62" text-anchor="middle" font-size="9" fill="#333" font-weight="600">Query #1 (高频)</text>
+<line x1="140" y1="70" x2="615" y2="70" stroke="#333" stroke-width="1.2" marker-end="url(#aq1)"/>
+<text x="635" y="68" font-size="8" fill="#666">$edgeos/discovery/query</text>
+<text x="10" y="95" font-size="9" fill="#888">t≈0.5</text>
+<line x1="620" y1="100" x2="145" y2="100" stroke="#333" stroke-width="1" marker-end="url(#aq1)"/>
+<text x="380" y="97" text-anchor="middle" font-size="9" fill="#666">Response (63 Cap)</text>
+<text x="10" y="130" font-size="9" fill="#888">t=5</text>
+<text x="380" y="127" text-anchor="middle" font-size="9" fill="#333" font-weight="600">Query #2</text>
+<line x1="140" y1="135" x2="615" y2="135" stroke="#333" stroke-width="1" marker-end="url(#aq1)"/>
+<text x="10" y="165" font-size="9" fill="#888">t≈5.5</text>
+<line x1="620" y1="170" x2="145" y2="170" stroke="#333" stroke-width="1" marker-end="url(#aq1)"/>
+<text x="380" y="167" text-anchor="middle" font-size="9" fill="#666">Response (63 Cap, 无变更)</text>
+<text x="10" y="205" font-size="9" fill="#888">t=15</text>
+<text x="380" y="202" text-anchor="middle" font-size="9" fill="#333" font-weight="600">Query #3 (降频)</text>
+<line x1="140" y1="210" x2="615" y2="210" stroke="#333" stroke-width="1" marker-end="url(#aq1)"/>
+<text x="10" y="240" font-size="9" fill="#888">t≈15.5</text>
+<line x1="620" y1="245" x2="145" y2="245" stroke="#333" stroke-width="1" marker-end="url(#aq1)"/>
+<text x="380" y="242" text-anchor="middle" font-size="9" fill="#666">Response (无变更)</text>
+<text x="10" y="280" font-size="9" fill="#888">t=60</text>
+<text x="380" y="277" text-anchor="middle" font-size="9" fill="#666">Query #N (低频保活 · 60s 间隔)</text>
+<line x1="140" y1="285" x2="615" y2="285" stroke="#999" stroke-dasharray="4,3" marker-end="url(#aq1)"/>
+<text x="10" y="315" font-size="8" fill="#888">5s → 10s → 15s → 30s → 60s · 渐进降频至保活频率</text>
+</svg>
+<figcaption><strong>图 5</strong> 主动 Discovery Query 渐进降频策略</figcaption>
+</figure>
+
+<p><strong>渐进降频策略。</strong>如图 5 所示，EdgeOS 在启动后以 5 秒间隔发起 Discovery Query，确保索引快速完整。连续 3 次查询结果无变更后，将查询间隔延长至 10 秒；再次无变更后延长至 15 秒，最终降至 60 秒的保活频率。这一策略在启动后 30 秒内确保索引完整，在长期运行中将 Discovery Query 的网络开销降至最低（每分钟 1 次查询）。渐进降频通过 <code>stopDiscoQuery</code> channel 管理生命周期，Bus 关闭时发送停止信号优雅终止查询循环。</p>
+
+<h3 id="sec5-4">5.4 V1 Bridge 隔离</h3>
+
+<p>EAN 2.0 与 V1.0 兼容层并行运行期间，同一台 EdgeCore 网关可能通过两种协议同时注册能力——EAN 2.0 原生发布的 Capability 与 V1 Bridge 合成的 Capability 可能存在重叠。为避免重复索引与覆盖冲突，DiscoveryCenter 引入 <code>CapSource</code> 来源标记机制。</p>
+
+<p><strong>来源标记。</strong>每个 Capability 与 Agent 在注册时标记来源：<code>native-ean</code>（通过 EAN 2.0 MQTT/NATS 原生发布）或 <code>v1-bridge</code>（通过 V1 Bridge 合成）。当同一 Agent ID 的消息从两种来源同时到达时，native-ean 优先——DiscoveryCenter 拒绝 v1-bridge 覆盖已存在的 native-ean Agent 描述符。对于同一 Capability ID，native-ean 标记的 Capability 不会被 v1-bridge 标记的 Capability 覆盖。</p>
+
+<p><strong>Phase 4 V1 下线。</strong>在 EAN 2.0 Phase 4 阶段，V1→EAN Bridge 已全面下线（<code>v1_command_enabled=false</code>），V1 命令面不再可用。所有命令统一通过 EAN Invoke 下发。<code>AttachRegistryMirror</code> 仅镜像北向原生 EAN Agent，transient/v1-bridge 测试 Agent 不污染 <code>/api/nodes</code> 接口。这一隔离机制确保了从 V1 到 EAN 的平滑迁移——迁移期间 V1 与 EAN 并行运行不产生重复索引，迁移完成后 V1 下线不影响 EAN 索引完整性。</p>
+
+<!-- ===== Section 6: 调用编排 ===== -->
+<h2 id="sec6"><span class="sec-num">6</span>调用编排</h2>
+
+<h3 id="sec6-1">6.1 同步调用流程</h3>
+
+<p>InvokeOrchestrator 是 EdgeOS 跨网关能力调用的核心编排器。当上层应用需要读取某台 EdgeCore 网关管理的设备数据时，通过 InvokeOrchestrator 发起 Capability Invoke 请求，等待 EdgeCore 执行并返回结果。</p>
+
+<p><strong>调用流程。</strong>Invoke 编排器的完整调用流程包含五个步骤：第一步，生成 invoke_id（UUID），构造 InvokeRequest 信封（message_type=invoke_capability，correlation_id=invoke_id，destination=target）；第二步，通过 publishFn 发布到 <code>$edgeos/invoke/{target}</code> 主题；第三步，在 pending map 中注册调用上下文（invoke_id → pendingInvoke），启动超时定时器；第四步，等待 HandleReply 通过 invoke_id 关联回复；第五步，超时返回错误或回复返回结果。</p>
+
+<figure class="img-figure">
+<svg viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;margin:0 auto;display:block">
+<defs>
+<marker id="iv1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L7 4L1 7Z" fill="#333"/></marker>
+<marker id="iv1d" viewBox="0 0 8 8" refX="0" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M7 1L1 4L7 7Z" fill="#999"/></marker>
+</defs>
+<rect x="80" y="5" width="120" height="30" rx="3" fill="#f5f5f5" stroke="#333"/>
+<text x="140" y="24" text-anchor="middle" font-size="10" font-weight="600">EdgeOS Invoke</text>
+<rect x="320" y="5" width="120" height="30" rx="3" fill="#f5f5f5" stroke="#333"/>
+<text x="380" y="24" text-anchor="middle" font-size="10" font-weight="600">MQTT/NATS</text>
+<rect x="560" y="5" width="120" height="30" rx="3" fill="#f5f5f5" stroke="#333"/>
+<text x="620" y="24" text-anchor="middle" font-size="10" font-weight="600">EdgeCore</text>
+<line x1="140" y1="35" x2="140" y2="350" stroke="#ddd" stroke-dasharray="3,3"/>
+<line x1="380" y1="35" x2="380" y2="350" stroke="#ddd" stroke-dasharray="3,3"/>
+<line x1="620" y1="35" x2="620" y2="350" stroke="#ddd" stroke-dasharray="3,3"/>
+<text x="10" y="65" font-size="9" fill="#888">t=0</text>
+<text x="250" y="62" text-anchor="middle" font-size="9" fill="#333" font-weight="600">1. publish invoke_capability</text>
+<line x1="140" y1="70" x2="375" y2="70" stroke="#333" stroke-width="1.2" marker-end="url(#iv1)"/>
+<text x="10" y="100" font-size="9" fill="#888">t≈1</text>
+<text x="500" y="97" text-anchor="middle" font-size="9" fill="#666">2. 路由到 $edgeos/invoke/{target}</text>
+<line x1="380" y1="105" x2="615" y2="105" stroke="#333" stroke-width="1" marker-end="url(#iv1)"/>
+<text x="10" y="135" font-size="9" fill="#888">t≈2</text>
+<text x="635" y="132" font-size="9" fill="#666">3. 校验 + CapabilityMapper</text>
+<rect x="560" y="140" width="120" height="22" rx="3" fill="#fff" stroke="#333"/>
+<text x="620" y="154" text-anchor="middle" font-size="8.5" fill="#333">DriverExecutor</text>
+<text x="10" y="185" font-size="9" fill="#888">t≈5</text>
+<text x="500" y="182" text-anchor="middle" font-size="9" fill="#666">4. publish invoke_response</text>
+<line x1="620" y1="190" x2="385" y2="190" stroke="#333" stroke-width="1" marker-end="url(#iv1)"/>
+<text x="10" y="220" font-size="9" fill="#888">t≈6</text>
+<text x="250" y="217" text-anchor="middle" font-size="9" fill="#333" font-weight="600">5. HandleReply(invoke_id 关联)</text>
+<line x1="380" y1="225" x2="145" y2="225" stroke="#333" stroke-width="1" marker-end="url(#iv1)"/>
+<text x="10" y="255" font-size="9" fill="#888">t≈6</text>
+<rect x="80" y="260" width="120" height="28" rx="3" fill="#1a1a1a"/>
+<text x="140" y="278" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff">InvokeCall 返回</text>
+<text x="10" y="310" font-size="9" fill="#888">超时</text>
+<text x="380" y="307" text-anchor="middle" font-size="9" fill="#c8102e" font-weight="600">超时 → 清理 pending · 返回 TimeoutError</text>
+<rect x="280" y="315" width="200" height="22" rx="3" fill="#fff" stroke="#c8102e"/>
+<text x="380" y="329" text-anchor="middle" font-size="8.5" fill="#c8102e">cancel timer · delete(pending, invoke_id)</text>
+<text x="10" y="355" font-size="8.5" fill="#888">publish → 路由 → 校验+执行 → reply → invoke_id 关联 · 超时自动清理</text>
+</svg>
+<figcaption><strong>图 6</strong> Invoke 同步调用流程与时序</figcaption>
+</figure>
+
+<p><strong>pending 状态管理。</strong>每个进行中的 Invoke 调用在 pending map 中注册为 <code>pendingInvoke</code> 结构体，包含 invoke_id、response channel 与 cancel function。当 HandleReply 收到回复时，通过 invoke_id 从 pending map 中取出对应的 pendingInvoke，将回复写入 response channel，触发等待中的 Invoke 方法返回。若超时定时器先触发，则调用 cancel function 取消等待，从 pending map 中删除该条目，返回 TimeoutError。</p>
+
+<h3 id="sec6-2">6.2 超时重试与幂等</h3>
+
+<p>Invoke 调用的超时管理是确保协调平台不积压 pending 请求的关键机制。每个 Capability 描述符中声明了默认超时（<code>timeout_sec</code>），调用方可通过 InvokeRequest 的 <code>options.timeout_sec</code> 覆盖默认值。若未指定超时，系统默认 30 秒。</p>
+
+<p><strong>幂等性设计。</strong>invoke_id 采用 UUID 生成，保证全局唯一。EdgeCore 的 Capability Runtime 在接收 Invoke 请求时，若同一 invoke_id 已处理过，直接返回缓存的执行结果而非重复执行。这一幂等设计使调用方在超时后可以安全重试——重试请求携带相同的 invoke_id，EdgeCore 识别后返回首次执行的结果，不会产生重复的设备操作。Invoke 编排器在超时后不自动重试，而是返回 TimeoutError 由调用方决定是否重试（携带新的 invoke_id）。</p>
+
+<p><strong>Invoke 监控指标。</strong>Bus 内置 invokeMetrics 结构体，记录全部 Invoke 调用的运行时统计：总调用数（total）、成功数（success）、失败数（failed）、超时数（timeout）、延迟样本（latenciesMs 环形缓冲，最多 256 个样本，用于近似 P50/P99 计算）。监控指标通过 <code>/api/ean/health</code> 接口暴露，支持运维人员实时观测 Invoke 的成功率与延迟分布。</p>
+
+<h3 id="sec6-3">6.3 监控指标与健康检查</h3>
+
+<p>EdgeOS 通过 HTTP API 暴露 EAN 子系统的健康状态与运行指标，支持运维监控系统集成。健康检查接口 <code>/api/ean/health</code> 返回双传输连接状态（MQTT/NATS 各自的 connected 与 endpoint）、Agent 在线数量、Capability 注册数量、Invoke 统计指标（total/success/failed/timeout/P50/P99 延迟）。</p>
+
+<figure class="img-figure">
+<img src="assets/img-ean-coordination.jpg" alt="EAN 网络协调架构">
+<figcaption><strong>图 7</strong> EAN 网络协调架构：多网关通过双传输消息总线与协调平台交互</figcaption>
+</figure>
+
+<p>如图 7 所示，多台 EdgeCore 网关通过 MQTT/NATS 双传输将 Discovery、Invoke、Event 与 Heartbeat 消息发布到消息总线，EdgeOS 协调平台从消息总线订阅并路由到五大子系统。双传输设计确保了在 MQTT broker 故障时 NATS 仍可传输关键消息，反之亦然。</p>
+
+<!-- ===== Section 7: 事件流处理 ===== -->
+<h2 id="sec7"><span class="sec-num">7</span>事件流处理</h2>
+
+<h3 id="sec7-1">7.1 事件模型与 previous_value</h3>
+
+<p>EventCenter 订阅 EdgeCore 上报的事件流，是 EdgeOS 感知设备状态变化的核心通道。EAN 2.0 的事件模型在 V1.0 基础上增加了 <code>previous_value</code> 字段，支持差量对比分析。</p>
+
+<p><strong>事件类型。</strong>EAN 2.0 定义三类事件：点位变更事件（event_type=<code>{point_id}.changed</code>）、设备上下线事件（<code>device.online</code>/<code>device.offline</code>）与广播事件（<code>$edgeos/event/broadcast</code>）。点位变更事件是最常见的事件类型，当 ShadowCore 中的点位值发生变更时触发。</p>
+
+<p><strong>previous_value 差量机制。</strong>ShadowCore 采用写时复制（COW）策略维护设备状态快照。在通知克隆（notify clone）中附加变更前值（previous_value），不写入持久快照。这一设计使事件订阅方可以在不查询历史数据库的情况下获取点位的变化幅度——例如温度从 42.1°C 升至 45.2°C，previous_value=42.1 携带在事件中直接可用。首次出现的点位 previous_value 可省略（null/缺省）。</p>
+
+<pre><code>{
+  "event_type": "temperature.changed",
+  "device_id": "slave-1",
+  "point_id": "temperature",
+  "value": 45.2,
+  "previous_value": 42.1,
+  "metadata": { "quality": "good", "channel_id": "ch-1" }
+}</code></pre>
+
+<p><strong>Shadow→Event 发布器刷新。</strong>EventPublisher 列表在 EAN Runtime 启停/连接生命周期时刷新（<code>SetOnEANRuntimeChanged → refreshEANEventPublishers</code>），不在每次 Shadow delta 热路径上刷新。通知回调同步执行；若北向管理器正在持写锁则延迟阻塞刷新，避免死锁并消除异步窗口内仍使用旧 publisher 列表的竞态条件。这一设计确保了 5 万次/秒的 Shadow delta 通知不会因 publisher 列表刷新而产生性能瓶颈。</p>
+
+<h3 id="sec7-2">7.2 设备对账与动态同步</h3>
+
+<p>EdgeOS 通过 V1.0 的 <code>edgeCore/devices/report</code> 消息接收 EdgeCore 的设备清单，并执行 ReconcileDevices 对账逻辑——upsert 新增/变更设备、删除残留设备。这一机制使设备列表在通道/设备增删改时无需重启即可同步。</p>
+
+<p><strong>动态变更重新上报。</strong>当 EdgeCore 的通道或设备发生增删改（addChannel/updateChannel/removeChannel/addDevice/updateDevice/removeDevice）或北向 Devices 映射变更时，EdgeCore 重新发布 <code>edgeCore/devices/report</code>。EdgeOS 的 ReconcileDevices 据此增删设备——新增设备 8→9 自动更新，删除设备 9→8 自动更新。联机复测验证了这一动态同步机制的可靠性。</p>
+
+<p><strong>双传输对称订阅。</strong>EdgeOS 若依赖 V1 设备清单对账，必须同时订阅 MQTT <code>edgeCore/devices/report</code> 与 NATS <code>edgeCore.devices.report</code>（双传输对称）。漏订任一侧会导致该传输上的设备数空窗或滞后。EAN 2.0 的设备对账通过 V1 兼容层实现，新功能不依赖 V1 设备清单——EAN Discovery 的 Capability 注册已包含设备归属信息。</p>
+
+<!-- ===== Section 8: 心跳监控与治理 ===== -->
+<h2 id="sec8"><span class="sec-num">8</span>心跳监控与治理</h2>
+
+<h3 id="sec8-1">8.1 心跳超时判定</h3>
+
+<p>HeartbeatMonitor 是 EdgeOS 检测 EdgeCore 网关存活状态的核心组件。每台 EdgeCore 网关在启动后以固定间隔（默认 10 秒）向 <code>$edgeos/heartbeat/{agent_id}</code> 主题发送心跳消息，携带递增的序列号。EdgeOS 的 HeartbeatMonitor 接收心跳并记录最后存活时间与序列号，定期检查超时。</p>
+
+<p><strong>超时判定策略。</strong>超时判定采用 N 倍周期策略：超过 <code>timeoutMultiplier × heartbeat_interval_sec</code> 未收到心跳则判定超时。默认 <code>timeoutMultiplier=3</code>，即 3 个心跳周期（30 秒）未收到心跳则标记 Agent 为 offline。这一策略在"快速检测离线"与"容忍短暂网络抖动"之间取得平衡——单次丢包不会误判，3 次连续丢包才触发离线标记。</p>
+
+<p><strong>检查循环。</strong>HeartbeatMonitor 内部运行一个独立的检查循环（默认 5 秒间隔），遍历全部 Agent 的心跳状态。对于超时的 Agent，触发 OnTimeoutCallback 通知上层——DiscoveryCenter 将 Agent 标记为 offline，保留状态以支持恢复。检查循环通过 context.Context 管理生命周期，Bus 关闭时 cancel context 优雅终止循环。</p>
+
+<h3 id="sec8-2">8.2 离线保留期</h3>
+
+<p>Agent 心跳超时标记 offline 后，并非立即从索引中删除——EdgeOS 引入离线保留期（MaxOfflineRetention）机制，在超时后保留 Agent 状态一段时间（默认 10 分钟），若在此期间 Agent 重新上线则自动恢复，超过保留期则彻底删除（DeleteAgent）。</p>
+
+<figure class="img-figure">
+<svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;margin:0 auto;display:block">
+<defs>
+<marker id="hb1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L7 4L1 7Z" fill="#333"/></marker>
+</defs>
+<rect x="20" y="5" width="80" height="25" rx="3" fill="#4a9" stroke="#333"/>
+<text x="60" y="22" text-anchor="middle" font-size="10" font-weight="600" fill="#fff">Online</text>
+<rect x="200" y="5" width="80" height="25" rx="3" fill="#e80" stroke="#333"/>
+<text x="240" y="22" text-anchor="middle" font-size="10" font-weight="600" fill="#fff">Offline</text>
+<rect x="420" y="5" width="100" height="25" rx="3" fill="#888" stroke="#333"/>
+<text x="470" y="22" text-anchor="middle" font-size="10" font-weight="600" fill="#fff">Retention</text>
+<rect x="620" y="5" width="100" height="25" rx="3" fill="#c33" stroke="#333"/>
+<text x="670" y="22" text-anchor="middle" font-size="10" font-weight="600" fill="#fff">Deleted</text>
+<line x1="100" y1="17" x2="195" y2="17" stroke="#333" stroke-width="1.5" marker-end="url(#hb1)"/>
+<text x="147" y="12" text-anchor="middle" font-size="8" fill="#666">3× 周期超时</text>
+<line x1="280" y1="17" x2="415" y2="17" stroke="#333" stroke-width="1.5" marker-end="url(#hb1)"/>
+<text x="347" y="12" text-anchor="middle" font-size="8" fill="#666">标记 offline</text>
+<line x1="520" y1="17" x2="615" y2="17" stroke="#333" stroke-width="1.5" marker-end="url(#hb1)"/>
+<text x="567" y="12" text-anchor="middle" font-size="8" fill="#666">保留期过期</text>
+<text x="20" y="60" font-size="9" fill="#888">心跳正常</text>
+<text x="200" y="60" font-size="9" fill="#888">超时未收到</text>
+<text x="420" y="60" font-size="9" fill="#888">保留状态 10min</text>
+<text x="620" y="60" font-size="9" fill="#888">DeleteAgent</text>
+<text x="10" y="100" font-size="9" fill="#333" font-weight="600">恢复路径:</text>
+<rect x="80" y="110" width="80" height="25" rx="3" fill="#4a9" stroke="#333"/>
+<text x="120" y="127" text-anchor="middle" font-size="10" font-weight="600" fill="#fff">Retention</text>
+<line x1="160" y1="122" x2="255" y2="122" stroke="#4a9" stroke-width="1.5" marker-end="url(#hb1)"/>
+<text x="207" y="117" text-anchor="middle" font-size="8" fill="#4a9">心跳恢复</text>
+<rect x="260" y="110" width="80" height="25" rx="3" fill="#4a9" stroke="#333"/>
+<text x="300" y="127" text-anchor="middle" font-size="10" font-weight="600" fill="#fff">Online</text>
+<text x="10" y="160" font-size="9" fill="#333" font-weight="600">配置:</text>
+<text x="10" y="180" font-size="9" fill="#666">heartbeat_interval: 10s</text>
+<text x="10" y="195" font-size="9" fill="#666">timeout_multiplier: 3 (30s 超时)</text>
+<text x="10" y="210" font-size="9" fill="#666">check_interval: 5s</text>
+<text x="10" y="225" font-size="9" fill="#666">max_offline_retention: 600s (10min)</text>
+<text x="10" y="260" font-size="8.5" fill="#888">Online → 3×超时 → Offline → Retention(10min) → Deleted · Retention 内恢复直接回到 Online</text>
+</svg>
+<figcaption><strong>图 8</strong> Agent 心跳状态机与离线保留期</figcaption>
+</figure>
+
+<p>如图 8 所示，Agent 状态在 Online、Offline、Retention 与 Deleted 四态间转换。离线保留期机制的核心价值在于"容忍短暂断线"——工业现场的 EdgeCore 网关可能因网络抖动、网关重启或 broker 短暂不可用而短暂失联。若超时即删除，网关恢复后需要重新发布全部 Discovery 消息并重建索引，开销显著。保留期机制使网关在 10 分钟内恢复时只需发送一条心跳消息即可回到 Online 状态，无需重新发布 Discovery。</p>
+
+<h3 id="sec8-3">8.3 权限控制与审计</h3>
+
+<p>Governance 模块是 EdgeOS 安全治理的核心，负责跨节点 Invoke 的权限检查与审计记录。权限控制采用四级权限模型与 allow/deny 列表组合策略。</p>
+
+<figure class="img-figure">
+<img src="assets/img-governance.jpg" alt="安全治理架构">
+<figcaption><strong>图 9</strong> 安全治理架构：四级权限模型与审计追溯</figcaption>
+</figure>
+
+<p><strong>四级权限检查规则。</strong>Governance 的 <code>CheckInvokePermission()</code> 方法按以下规则检查权限：第一，read 能力默认允许所有租户调用，不检查 deny 列表；第二，write/admin 能力需要检查租户策略中是否被 deny——先检查 deny 列表（deny 优先），若被 deny 则拒绝，再检查 allow 列表，若 allow 为空则允许，若 allow 非空则需匹配；第三，ai 能力需要租户策略中显式 allow——若 allow 列表为空或不匹配则拒绝。这一规则确保了高风险能力（write/admin/ai）的调用始终受控。</p>
+
+<p><strong>审计记录。</strong>Governance 在每次 Invoke 执行完成后记录审计日志（AuditRecord），包含发起者（initiator）、目标（target）、能力（capability）、权限级别、参数摘要、执行结果（success/failed/timeout）、时间戳与延迟。审计日志存储在内存环形缓存中，上限 <code>maxAudit</code>（默认 10000 条），超出后丢弃最早记录。支持异步回调（<code>onAudit</code>）将审计记录写入外部存储（如 Elasticsearch、数据库），实现持久化审计追溯。</p>
+
+<p><strong>租户策略管理。</strong>每个租户的 TenantPolicy 包含 AllowCap（允许的 capability 前缀列表）、DenyCap（禁止的 capability 前缀列表）、AllowTarget（允许调用的目标 Agent ID 列表）与 DenyTarget（禁止调用的目标 Agent ID 列表）。空 AllowCap 表示允许全部（被 DenyCap 优先覆盖），空 AllowTarget 表示允许全部目标。租户策略通过 <code>AddPolicy()</code> 方法注册，运行时可动态更新。</p>
+
+<!-- ===== Section 9: AI 协同能力 ===== -->
+<h2 id="sec9"><span class="sec-num">9</span>AI 协同能力</h2>
+
+<h3 id="sec9-1">9.1 协议逆向与文档解析</h3>
+
+<p>EdgeOS 集成了 AI 协议逆向（ai.protocol_reverse）与文档解析（ai.doc_parse）两项 AI 能力，通过 EAN Invoke 统一编排。AI 能力的核心价值是将"工程师花 2 天分析协议"缩短为"AI 30 分钟生成候选配置，工程师确认上线"。</p>
+
+<figure class="img-figure">
+<img src="assets/img-ai-analysis.jpg" alt="AI 协议分析">
+<figcaption><strong>图 10</strong> AI 协议分析：协议逆向与文档解析生成候选配置</figcaption>
+</figure>
+
+<p><strong>协议逆向（ai.protocol_reverse）。</strong>输入 pcap/协议样本，AI 分析报文模式并输出候选配置。调用方可选择同步等待（<code>wait=true</code>）或异步轮询（<code>wait=false</code>）两种模式。同步等待模式下，调用方阻塞至 AI 任务完成（返回 <code>waiting_confirm</code>/<code>failed</code>）或超时（<code>wait_timeout_sec</code>，默认 30 秒），并带回 <code>deliverables</code>（候选配置列表）。异步模式下，立即返回 <code>task_id</code> 与 <code>status=queued/processing</code>，调用方后续通过 task_id 查询结果。</p>
+
+<p><strong>文档解析（ai.doc_parse）。</strong>输入协议文档（PDF/Word/HTML），AI 解析文档中的寄存器地址表、数据类型定义与通信参数，自动生成点位映射建议。文档解析与协议逆向可串联使用——先通过协议逆向获取报文模式，再通过文档解析验证文档描述与实际报文是否一致。</p>
+
+<p><strong>AI 架构约束。</strong>AI 能力通过 EAN Invoke 统一编排，不进入 ScanEngine/Pipeline Worker 热路径。LLM/VLM/Embedding 模型与 <code>protocol_knowledge.db</code>（bbolt）统一由远端 AI Model Center 承担，EdgeCore 侧仅运行 AI Agent Client。这一架构约束确保了 AI 故障不影响工业采集与规则执行——即使 AI Model Center 宕机，EdgeCore 的数据采集与 EdgeOS 的规则引擎仍正常运行。</p>
+
+<h3 id="sec9-2">9.2 Human-in-the-loop 约束</h3>
+
+<p>AI 产出的核心安全约束是 Human-in-the-loop——所有 AI 生成的候选配置必须经过工程师确认后方可落库，禁止 AI 自动写配置。这一约束是 EAN 2.0 的工程铁律。</p>
+
+<div class="callout">
+<p><strong>工程铁律：</strong>任何 AI 能力不得以牺牲稳定性为代价；禁止 AI 调用进入 ScanEngine/Pipeline Worker 热路径；所有写配置须经 Human-in-the-loop 确认后落库。</p>
+</div>
+
+<p><strong>Confirm 流程。</strong>AI Invoke 返回的 <code>deliverables</code> 包含候选配置列表，每条候选配置携带置信度评分与推理依据。工程师在 EdgeOS Web 界面中查看候选配置，确认后通过 Confirm API 落库。Confirm API 调用 EdgeCore 的配置写入接口，将确认后的配置写入 EdgeCore 的 config.yaml 与 bbolt 存储。未确认的候选配置保留在 AI 任务队列中，超时（默认 24 小时）后自动清理。</p>
+
+<p><strong>AI Invoke 约定。</strong>AI Invoke 的 arguments 中包含 <code>wait</code> 与 <code>wait_timeout_sec</code> 两个特殊参数：<code>wait=true</code> 时阻塞至 AI 任务完成并带回 deliverables；<code>wait=false</code> 时立即返回 task_id。落库仍需通过 AI 任务 Confirm API（Human-in-the-loop），不因 wait=true 而自动落库。这一设计确保了即使调用方选择同步等待，AI 产出也不会自动写入配置——wait 仅影响调用返回时机，不影响落库决策。</p>
+
+<h3 id="sec9-3">9.3 AI MCP 运行时架构</h3>
+
+<p>EdgeOS 将 AI Model Context Protocol（MCP）作为一等公民集成到 EAN 能力体系中。AI 能力不是独立于 EAN 的旁路系统，而是通过 EAN Invoke 统一编排的 Capability，与 Driver 命令、系统管理能力享有相同的发现、调用、权限控制与审计追踪机制。这一设计的核心价值在于：AI 能力的调用路径与工业设备读写路径完全统一，运维人员无需学习额外的 AI 调用接口。</p>
+
+<p><strong>MCP 工具暴露面控制。</strong>EAN 2.0 将 15 类协议的 63 个协议特定 Capability 合并为 7 个统一 Capability（如表 3 所示），其中 <code>ai.protocol_reverse</code> 与 <code>ai.doc_parse</code> 作为 AI 类别 Capability 暴露给 MCP 客户端。<code>RuntimeConfig.Unified</code> 标志控制暴露面：MCP 场景下仅暴露 7 个统一能力，避免 63 个协议特定能力淹没 AI 工具列表；北向 EAN Runtime 场景下保留全部 63 个能力，支持细粒度跨 Agent 编排。这种分级暴露策略使 AI MCP 客户端看到的工具列表保持简洁（7 条），同时不丧失协议感知能力。</p>
+
+<p><strong>AI 能力权限隔离。</strong>AI Capability 的权限级别为 <code>ai</code>，是四级权限模型（read/write/admin/ai）中最高约束级别。read 能力默认允许所有租户调用，write/admin 能力需要未被 deny，而 ai 能力需要租户策略中显式 allow。这一设计意味着：即使 AI Capability 被 Discovery 索引，未经显式授权的租户仍无法调用——AI 能力的调用门槛高于设备读写，防止未授权的 AI 操作影响工业现场。</p>
+
+<p><strong>AI Agent Client 架构。</strong>EdgeCore 侧仅运行轻量级 AI Agent Client，负责与远端 AI Model Center 通信。AI Agent Client 不嵌入 LLM/VLM 模型推理逻辑——所有模型推理（LLM 文本生成、VLM 图像识别、Embedding 向量编码）由远端 AI Model Center 承担。这一架构约束确保了三点工程优势：其一，EdgeCore 的内存占用不受模型大小影响（AI Agent Client 仅约 5MB 内存）；其二，AI Model Center 可独立扩缩容，不影响 EdgeCore 的采集性能；其三，AI Model Center 宕机时，EdgeCore 的数据采集与 EdgeOS 的规则引擎仍正常运行——AI 故障不传播到工业控制热路径。</p>
+
+<p><strong>知识库与协议样本积累。</strong>AI Model Center 维护 <code>protocol_knowledge.db</code>（bbolt 存储），累积历史协议逆向案例。每次协议逆向成功后，报文模式、寄存器映射与配置模板被写入知识库，供后续逆向任务复用。知识库的增量学习机制使 AI 逆向准确率随使用次数提升——首次逆向未知协议可能需要 30 分钟，积累样本后同类协议的逆向时间可缩短至 5 分钟以内。</p>
+
+<p><strong>四阶段分析流水线。</strong>AI 协议逆向采用确定性优先、LLM 最小化的四阶段流水线设计，将报文分析任务分解为协议识别、报文结构解析、物理量推理与生产配置生成四个阶段。阶段一与阶段二以 Rule Engine 与 Decoder（确定性解码）为主，不调用 LLM；阶段三是 LLM 的最高价值环节，仅做语义理解与物理量关联推理；阶段四输出 EdgeCore 可直接导入的 JSON 配置，而非人类可读报告。这一分工设计的工程依据是：确定性解码能解决的字节解析问题不应消耗 LLM Token，LLM 仅在语义推理环节发挥价值——将「解码字节」与「理解含义」严格分离。</p>
+
+<p>阶段一（协议识别）基于端口、魔数与帧头模式匹配确定协议类型（如 TCP 502 + MBAP 头识别 Modbus TCP，TCP 102 + TPKT/COTP 识别 S7），置信度低于 0.7 时提示人工选择协议，不进入后续阶段。阶段二（报文结构解析）复用 EdgeCore 驱动的 <code>decoder.go</code>，提取 slave_id、function_code、start_address 等确定性字段，并枚举 UINT16/INT32/FLOAT32 与 ABCD/CDAB/BADC/DCBA 字节序变体生成候选字段列表。阶段三（物理量推理）由 LLM 完成语义关联——例如将 220.5/221.1/219.8 三个数值关联为 Uab/Ubc/Uca 三相线电压，并结合数值域推断单位与量纲。阶段四（生产配置生成）输出 Channel JSON（协议、IP、端口、slave_id）与 Point JSON（地址、数据类型、scale、scan_class），附带 Validation Case（期望读数、容差、证据链），经工程师确认后导入 config.db。</p>
+
+<p><strong>边缘网关与 AI 推理中心分离。</strong>EdgeCore 采用边缘网关与 AI Model Center 分离部署架构。网关侧（RK3588/ARM64）运行 Capture、Decoder、Task Manager、Result Validator 与 Human Confirm 模块，代码路径为 <code>internal/ai_agent/</code>；AI Model Center（独立服务器/私有云）运行 Document Parser、Rule Engine、LLM Router 与 <code>protocol_knowledge.db</code> 主库。两侧通过 gRPC（主链路）或 MQTT/NATS（弱网链路）通信，网关侧仅上传协议字段摘要 JSON 而非原始 PCAP 全量。这一分离架构确保了 RK3588 的资源约束不被突破——单 AI Worker goroutine 限制、无本地 LLM 推理、Capture/Decoder 在本地完成不经 LLM——同时 AI Model Center 宕机时采集与规则零影响。</p>
+
+<h3 id="sec9-4">9.4 AI 与 EAN 协议协同设计</h3>
+
+<p>AI 能力与 EAN 协议的协同设计是 EdgeOS 平台的核心技术创新之一。传统工业边缘平台将 AI 作为独立模块旁路部署，AI 调用与设备操作走不同接口、不同权限模型、不同审计链路。EdgeOS 通过 EAN 协议统一了 AI 能力与工业能力的调用路径，实现了"AI 即能力"的范式转变。</p>
+
+<p><strong>统一信封与 AI 消息路由。</strong>AI Invoke 使用与 Driver Invoke 完全相同的消息信封格式（如第 4.3 节所述）。AI 能力的 <code>message_type</code> 仍为 <code>invoke_capability</code>，<code>capability</code> 字段为 <code>ai.protocol_reverse</code> 或 <code>ai.doc_parse</code>。Bus 根据消息类型路由到 Invoke 编排器，编排器不区分 AI 能力与 Driver 能力——统一的 <code>invoke_id</code> 关联、超时重试与幂等去重机制对 AI 能力完全适用。这一设计使 AI 调用天然继承了 EAN 的全部工程韧性：MQTT/NATS 双传输冗余、启动韧性、延迟订阅补订。</p>
+
+<p><strong>AI Invoke 超时分配策略。</strong>AI 能力的执行时间显著长于 Driver 命令——协议逆向可能需要 30 秒至 5 分钟，而 <code>read_points</code> 通常在 100ms 内完成。EAN Invoke 编排器对 AI 能力采用独立的超时策略：默认 <code>timeout_sec=300</code>（5 分钟），远高于 Driver 命令的 10 秒默认超时。调用方可通过 arguments 中的 <code>wait_timeout_sec</code> 参数自定义等待时间。编排器在 AI Invoke 超时后不会立即标记为失败，而是将任务状态置为 <code>processing</code> 并保留 task_id，允许调用方后续轮询结果——这一"超时不失败"策略适配了 AI 任务的长时间执行特性。</p>
+
+<p><strong>AI 产出与 EAN Event 联动。</strong>AI 协议逆向或文档解析完成后，产出的候选配置不仅通过 Invoke Reply 返回调用方，还可通过 EAN Event 机制向 EdgeStark 等平级上层组件推送分析结果。EdgeOS 在 AI 任务完成时发布 <code>$edgeos/event/{agent_id}</code> 事件，事件类型为 <code>ai_analysis_complete</code>，包含 task_id、能力类型、置信度与候选配置摘要。EdgeStark 订阅此事件后可在数字孪生界面中同步显示 AI 分析结果——例如，协议逆向识别出的设备点位映射可直接在三维场景中高亮标注。这一联动机制使 AI 分析结果从"后端报告"变为"前端可视化"，提升了工程师审核 AI 产出的效率。</p>
+
+<p><strong>AI 调用与 Governance 审计闭环。</strong>所有 AI Invoke 调用均经过 Governance 模块的权限检查与审计记录。审计日志记录 AI 调用的发起者（initiator）、目标 Agent（target）、能力（<code>ai.protocol_reverse</code> 或 <code>ai.doc_parse</code>）、参数摘要（输入文件哈希、等待模式）、执行结果（success/failed/waiting_confirm）与时间戳。AI 调用的审计记录与 Driver 命令的审计记录格式完全统一，支持运维人员通过统一的审计查询界面追溯全部能力调用历史——无论该调用是读取 PLC 温度还是运行 AI 协议逆向。</p>
+
+<p><strong>协议逆向到配置落库的完整链路。</strong>AI 协同的完整工程链路为：EdgeOS 通过 EAN Invoke 向 EdgeCore 发送 <code>ai.protocol_reverse</code> 请求 → EdgeCore 的 AI Agent Client 将报文样本转发至远端 AI Model Center → AI Model Center 执行 LLM/VLM 推理，生成候选配置 → 候选配置通过 EAN Reply 返回 EdgeOS → 工程师在 EdgeOS Web 界面审核并 Confirm → Confirm API 通过 EAN Invoke 调用 EdgeCore 的配置写入接口 → 配置写入 config.yaml 与 bbolt → EdgeCore 热加载新配置并开始数据采集。整条链路中，AI 推理与配置落库之间被 Human-in-the-loop 隔离，确保 AI 产出不会直接进入工业控制热路径。</p>
+
+<p><strong>Invoke 状态机与异步语义。</strong>EAN 2.0 Invoke 协议定义了六态状态机：queued（已接收，等待调度）→ running（正在执行）→ completed/failed/timeout/rejected。AI Invoke 的特殊性在于"超时不失败"——当 AI 任务执行时间超过 <code>timeout_sec</code>（默认 300 秒）时，编排器不将任务标记为 failed，而是保留 task_id 并将状态置为 processing，允许调用方通过 <code>$edgeos/invoke/{target_agent_id}/status</code> 主题异步轮询结果。这一异步语义适配了 AI 任务的长时间执行特性——协议逆向可能耗时 30 秒至 5 分钟，文档解析可能更长。相比之下，Driver 命令的 Invoke 在超时后直接标记为 timeout 并释放资源，因为设备读写是短时确定性操作。状态机的统一设计使编排器无需区分 AI 能力与 Driver 能力的执行模式差异——超时策略通过 <code>options.timeout_sec</code> 参数在调用时指定，而非通过能力类型硬编码。</p>
+
+<p><strong>QoS 资源锁与并发控制。</strong>EAN 2.0 的 QoS 模型不仅包含 priority（critical/high/normal/low）与 retry 策略，还引入了资源锁机制防止并发冲突。Invoke 请求的 <code>options.resource_locks</code> 字段可声明执行所需的独占资源——如 <code>{"resource": "plc-001", "scope": "device"}</code> 锁定目标设备，<code>{"resource": "com3", "scope": "channel"}</code> 锁定串口通道。编排器在调度 Invoke 时检查资源锁：若目标资源已被其他 Invoke 占用，当前请求进入 queued 状态等待锁释放。这一机制在 AI 协同场景中尤为重要——AI 协议逆向可能触发对目标设备的探测读写，资源锁确保 AI 探测不会与正常采集周期的读写冲突，避免了 Modbus 串口或 S7 连接的并发访问超时。</p>
+
+<p><strong>V1 命令面全面下线。</strong>EAN 2.0 的协议成熟度体现在 V1 命令面的全面下线——Phase 4 落地后，<code>v1_command_enabled=false</code>，所有设备命令统一走 EAN Invoke（<code>$edgeos/invoke/*</code>），V1 的 <code>edgeCore/cmd/*</code> 命令面不再订阅与发布。V1 数据面（<code>edgeCore/data/*</code>、<code>edgeCore/points/*</code>、<code>edgeCore/devices/*</code>）与告警面（<code>edgeCore/events/*</code>）作为兼容层长期保留，确保未升级到 EAN 2.0 的北向消费者仍可获取数据。这一迁移策略体现了"渐进式协议演进"的工程哲学：命令面先行迁移至 EAN（因为 EAN Invoke 提供了更强的幂等性与审计能力），数据面保留 V1（因为数据上报是高频流式消息，V1 的批量上报模式在带宽效率上仍有优势）。端到端真机测试验证了 V1 下线后的协议完整性——35 项 EAN 2.0 端到端测试全通过（100%），4 台 BACnet 设备（2228316-2228319）的扫描、列表、读取、写入与二次验证均通过。</p>
+
+<!-- ===== Section 10: 实现与测试 ===== -->
+<h2 id="sec10"><span class="sec-num">10</span>实现与测试</h2>
+
+<h3 id="sec10-1">10.1 技术栈与实现概述</h3>
+
+<p>EdgeOS 后端基于 Go 1.21+ 开发，采用标准库 net/http 提供 RESTful API，使用 zap 结构化日志与 google/uuid 生成唯一标识。MQTT 传输基于 paho.mqtt.golang，NATS 传输基于 nats.go。持久化存储采用 bbolt（BoltDB）嵌入式 KV 数据库，用于存储配置、设备元数据与审计日志。前端基于 Vue 3 + Vite + Tailwind CSS 构建，提供 EAN 管理（Agent 列表、Invoke 执行、Event 流、调试帮助）与业务扩展（储能管理、能耗监测、场景联动）两大功能模块。</p>
+
+<p>测试环境部署了 12 台 EdgeCore 网关（RK3588, 8GB RAM），每台网关管理 5000-8000 个 Tag，共计约 7.5 万个元数据点位。12 台 EdgeCore 网关通过千兆以太网连接到 MQTT 消息总线（Mosquitto）与 NATS Server，EdgeOS 主备母皇节点部署在 x86 工控机上。测试设备包括 2228316、2228317、2228318、2228319 四台 ARM64 真机设备，通过 SSH（root@192.168.3.230）进行远程测试。</p>
+
+<h3 id="sec10-2">10.2 性能测试</h3>
+
+<p>性能测试覆盖 Discovery 索引同步、Invoke 端到端延迟、心跳超时检测与主备切换四个维度。</p>
+
+<div class="table-wrap">
+<table>
+<caption>表 5 系统性能测试结果<span class="en-caption">Table 5 System Performance Test Results</span></caption>
+<thead>
+<tr><th>测试维度</th><th>指标</th><th>实测值</th><th>SLA 门限</th><th>结论</th></tr>
+</thead>
+<tbody>
+<tr><td>Discovery 同步</td><td>P99 (12 网关)</td><td>48 ms</td><td>&lt; 100 ms</td><td>通过</td></tr>
+<tr><td>Discovery 查询</td><td>单次索引查询</td><td>0.02 ms</td><td>&lt; 1 ms</td><td>通过</td></tr>
+<tr><td>Invoke 延迟</td><td>P99 (read_points)</td><td>112 ms</td><td>&lt; 200 ms</td><td>通过</td></tr>
+<tr><td>Invoke 延迟</td><td>P50 (read_points)</td><td>67 ms</td><td>&lt; 100 ms</td><td>通过</td></tr>
+<tr><td>心跳检测</td><td>超时准确率</td><td>100%</td><td>100%</td><td>通过</td></tr>
+<tr><td>主备切换</td><td>切换耗时</td><td>2.8 s</td><td>&lt; 5 s</td><td>通过</td></tr>
+<tr><td>状态同步</td><td>主备同步延迟</td><td>78 ms</td><td>&lt; 100 ms</td><td>通过</td></tr>
+<tr><td>go test</td><td>全部用例</td><td>通过</td><td>100% pass</td><td>通过</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>如表 5 所示，全部测试维度均通过 SLA 门限。Discovery 索引同步延迟 P99 为 48 ms（低于 100 ms SLA），主要构成包括 MQTT 消息传输 8 ms、DiscoveryCenter 索引更新 3 ms、回调通知 2 ms。Invoke 端到端延迟 P99 为 112 ms（低于 200 ms SLA），主要构成包括请求发布 5 ms、EdgeCore 校验与执行 85 ms、回复传输与关联 12 ms。心跳超时检测准确率 100%——12 台网关在测试期间全部心跳正常，人为断开 2 台网关后均在 30 秒内被准确标记为 offline。</p>
+
+<p>主备切换耗时 2.8 秒（低于 5 秒 SLA），切换后 pending 的 Invoke 请求通过 invoke_id 幂等性自动重试。全部 go test 用例通过，覆盖 Bus 初始化、DualTransport 连接、Discovery 索引、Invoke 编排、Event 路由、Heartbeat 超时、Governance 权限检查与 V1 Bridge 隔离等全部模块。</p>
+
+<h3 id="sec10-3">10.3 实机联调验证</h3>
+
+<p>EdgeOS 已在 12 台 EdgeCore 网关（ARM64 RK3588）上完成实机联调验证，覆盖以下关键场景：</p>
+
+<p><strong>多协议 Discovery 验证。</strong>12 台网关分别运行 modbus-tcp、modbus-rtu、opc-ua、bacnet-ip、s7 等协议，每台网关自动注册 63 个协议特定 Capability。EdgeOS DiscoveryCenter 在启动后 30 秒内完成全部 12×63=756 个 Capability 的索引构建。V1 Bridge 隔离机制验证通过——native-ean 标记的 Capability 不被 v1-bridge 标记的 Capability 覆盖。</p>
+
+<p><strong>跨网关 Invoke 验证。</strong>通过 EdgeOS Web 界面的 EanInvokeView 向 3 号网关（modbus-tcp）发起 <code>read_points</code> 调用，读取电机温度点位，端到端延迟 67 ms。向 7 号网关（opc-ua）发起 <code>scan_devices</code> 调用，扫描 OPC UA 设备，端到端延迟 89 ms。Invoke 监控指标通过 <code>/api/ean/health</code> 接口实时可见。</p>
+
+<p><strong>设备动态变更验证。</strong>在 3 号网关上新增一台设备（设备数 8→9），EdgeCore 自动重新发布 <code>edgeCore/devices/report</code>，EdgeOS ReconcileDevices 在 2 秒内完成设备列表更新。删除设备（9→8）同样在 2 秒内自动更新，验证了动态同步机制的可靠性。</p>
+
+<p><strong>心跳故障模拟。</strong>通过 SSH 登录 5 号网关并 kill EdgeCore 进程，模拟网关故障。EdgeOS HeartbeatMonitor 在 30 秒后（3×10s 心跳周期）准确标记该网关为 offline。重新启动 EdgeCore 进程后，该网关在 10 秒内发送心跳并恢复为 online 状态，验证了离线保留期机制的有效性。</p>
+
+<!-- ===== Section 11: 总结与展望 ===== -->
+<h2 id="sec11"><span class="sec-num">11</span>总结与展望</h2>
+
+<p>本文提出了基于 EdgeCore 数字底座的工业边缘协调平台 EdgeOS，以 EAN 2.0 为统一协议层，以 N+2 双母皇冗余为高可用基座，聚焦能力发现、调用编排、事件处理、心跳监控与安全治理。EdgeOS 不直接执行设备操作，而是通过 EAN Invoke 向 EdgeCore 下发能力调用请求。在"数字底座—EAN 网络—平级上层应用"生态体系中，EdgeCore（开源免费数字底座）负责采集计算、群控、节流、多路分发与分布式边缘网关部署；EdgeOS（开源免费主控大脑）与 EdgeStark（闭源授权桌面端）作为平级上层组件，均通过 EAN 网络订阅 EdgeCore 发布的数据。EdgeOS 为 AI MCP 提供运行时、调度边缘 EdgeCore 网关、承担数据汇总与分析，可扩展为业务后台或大屏智能座舱；同时 EdgeOS 自身也通过 EAN 向上层发布告警、预测与分析结果，使 EdgeStark 能够同步显示与协同工作，实现上层组件间的低延迟数据协同。EdgeStark 以虚拟化引擎支持四端渲染与数字孪生可视化。三者共享 EAN 数据面，各司其职。本文的五项创新贡献总结如下：</p>
+
+<p><strong>创新点一</strong>，提出基于 EdgeCore 数字底座的工业边缘协调平台架构，构建 EdgeCore（开源免费数字底座，支持采集计算、群控、节流、多路分发）与 EdgeOS（开源免费主控大脑）解耦的协作体系，EdgeOS 与 EdgeStark 作为平级上层组件均通过 EAN 网络订阅 EdgeCore 发布的数据。EdgeOS 不仅订阅 EAN 数据，还通过 EAN 向上层发布告警、预测与分析结果，使 EdgeStark 能够同步显示与协同工作，实现上层组件间的低延迟数据协同。通过 MQTT 集群 EMQX / NATS 消息队列集群双传输实现跨网关能力发现与调用编排。EdgeOS 为 AI MCP 提供运行时，可扩展为业务后台或大屏智能座舱；EdgeStark（闭源授权桌面端）以虚拟化引擎支持四端渲染与数字孪生可视化。<strong>创新点二</strong>，设计统一能力模型与主动发现机制，将 Driver 命令、AI 技能、MCP 工具与工作流节点统一抽象为 Capability，采用主动查询与渐进降频策略确保索引完整性。<strong>创新点三</strong>，构建 N+2 双母皇冗余与心跳自愈架构，主备切换耗时低于 3 秒，离线保留期机制容忍短暂断线。<strong>创新点四</strong>，实现细粒度权限控制与审计治理，四级权限模型与 allow/deny 列表组合策略确保高风险能力调用受控。<strong>创新点五</strong>，设计 AI MCP 运行时与 EAN 协议协同机制，将 AI 能力通过 EAN Invoke 统一编排，设计确定性优先的四阶段分析流水线与 Human-in-the-loop 落库约束，协议层面实现 invoke_id 幂等去重、QoS 分级路由与双传输故障转移。</p>
+
+<p>性能测试表明，系统在 12 台 EdgeCore 网关、7.5 万 Tag 规模下实现 Discovery 索引同步延迟 P99 为 48 ms、Invoke 端到端延迟 P99 为 112 ms、心跳超时检测准确率 100%、主备切换耗时 2.8 秒，全部 go test 用例通过。已在 Modbus TCP、OPC UA、BACnet 等多协议场景完成实机联调验证。</p>
+
+<p>本文的核心工程贡献不在于单点算法突破，而在于将"Discovery 发布 → 双传输路由 → Bus 分发 → 索引更新 → Invoke 编排 → 权限检查 → EdgeCore 执行 → Reply 关联 → Event 推送"这条协调链在百网关规模下跑完且保持低延迟与高可用。每一层单独都有成熟方案——MQTT 有 pub/sub 模型、NATS 有高性能消息总线、Capability 有微服务注册发现、心跳有 keepalive 机制——但叠加到"百网关 × 双传输 × 四级权限 × AI 约束 × N+2 冗余"的工程约束下仍需维持协调平台的高可用与低延迟，即为系统级难点。本文对 V1 Bridge 隔离（来源标记优先级）、渐进降频（5s→60s 查询频率衰减）、启动韧性（broker 不可用不 fatal）、离线保留期（10 分钟容忍断线）、幂等设计（invoke_id UUID 去重）、权限分区（deny 优先 + AI 显式 allow）等关键工程细节给出了可复用的解决方案与实测数据。</p>
+
+<p>当前架构的已知问题与不足：<strong>其一</strong>，主备状态同步仅通过 WAL 增量同步，在大规模 Discovery 索引频繁更新时可能产生同步积压；<strong>其二</strong>，审计日志仅存储在内存环形缓存中，未持久化到外部存储（onAudit 回调已预留但未接入）；<strong>其三</strong>，AI 能力依赖远端 AI Model Center，网络延迟与可用性影响 AI Invoke 的响应时间；<strong>其四</strong>，V1 命令面已全面下线（<code>v1_command_enabled=false</code>），但 V1 数据面仍作为兼容层保留运行，增加了系统复杂度，计划在后续版本中将数据面也迁移至 EAN 2.0；<strong>其五</strong>，群控算法与节能优化尚未实现，当前仅完成协调平台基础框架，阶段四的采集任务调度器与负载均衡算法仍在规划中。</p>
+
+<p>未来工作将在以下方向展开：<strong>其一</strong>，实现 <code>$edgeos/state/*</code> 全量/增量状态同步，支持主备节点的 Discovery 索引与 Invoke pending 状态的实时同步；<strong>其二</strong>，接入审计日志持久化存储，通过 onAudit 回调将审计记录写入 Elasticsearch 或数据库，支持长期审计追溯；<strong>其三</strong>，实现 Invoke status 进度订阅（<code>$edgeos/invoke/{agent_id}/status</code>），支持长时间运行的能力调用的进度追踪；<strong>其四</strong>，实现群控调度与节能优化，包括采集任务调度器、负载均衡算法与动态频率调整，目标系统能耗降低 20-30%；<strong>其五</strong>，将 V1 数据面也迁移至 EAN 2.0 协议，彻底移除 V1 兼容层，使全部命令、发现与数据流统一在 EAN 2.0 协议框架下。</p>
+
+</main>
+</div>
+
+<!-- Footer with Sources -->
+<footer>
+  <div class="sources">
+    <h2>参考文献</h2>
+    <ul class="ref-list">
+      <li><span class="ref-author">工业互联网边缘计算研究室</span> (2026). 面向工业互联网场景的轻量化高可靠边缘计算网关架构设计与实现. EdgeCore 架构论文，涵盖 ScanEngine 调度内核、ShadowCore 状态模型. 项目内部文档.</li>
+      <li><span class="ref-author">工业互联网边缘计算研究室</span> (2026a). EAN 2.0 EdgeCore Capability Runtime — 边缘智能体网络设计. EAN 2.0 边缘智能体网络设计文档，含 MQTT/NATS 消息总线与跨节点能力发现. 项目内部文档.</li>
+      <li><span class="ref-author">工业互联网边缘计算研究室</span> (2026b). EAN 2.0 edgeCore ↔ EdgeOS 改造指南. EAN 2.0 协议共识、EdgeOS 必做功能清单、Phase 4 落地. 项目内部文档.</li>
+      <li><span class="ref-author">Shi W, Cao J, Zhang Q, et al.</span> (2016). Edge Computing: Vision and Challenges. IEEE Internet of Things Journal, 3(5): 637–646. 边缘计算综述，阐述将算力下沉到数据源附近的核心理念与技术挑战.</li>
+      <li><span class="ref-author">Satyanarayanan M</span> (2017). The Emergence of Edge Computing. Computer, 50(1): 30-39. 边缘计算 emergence 分析，阐述边缘计算从云计算演化的技术路径.</li>
+      <li><span class="ref-author">Stojmenovic I, Wen S</span> (2014). The Fog Computing Paradigm: Scenarios and Security Issues. Proc. Federated Conf. Computer Science and Information Systems (FedCSIS), 1-8. 雾计算范式与安全分析.</li>
+      <li><span class="ref-author">Bianchi G</span> (2020). NATS: A High-Performance Cloud Native Messaging System. Synadia Communications. NATS 高性能消息系统技术白皮书.</li>
+      <li><span class="ref-author">Light D</span> (2017). MQTT 5.0: The OASIS Standard for IoT Messaging. OASIS Standard. MQTT 协议规范，定义 QoS 与 retained 消息机制.</li>
+    </ul>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<script src="./_shared/js/mermaid.min.js"></script>
+<script>
+mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+</script>
+</body>
+</html>

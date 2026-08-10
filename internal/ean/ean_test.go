@@ -64,11 +64,11 @@ func matchMQTTTopic(pattern, topic string) bool {
 	return false
 }
 
-func TestMqttTopicToNatsSubject_KeepsSlash(t *testing.T) {
-	require.Equal(t, "$edgeos/discovery/agent", mqttTopicToNatsSubject("$edgeos/discovery/agent"))
-	require.Equal(t, "$edgeos/event/*/status", mqttTopicToNatsSubject("$edgeos/event/+/status"))
-	require.Equal(t, "$edgeos/event/>", mqttTopicToNatsSubject("$edgeos/event/#"))
-	require.NotContains(t, mqttTopicToNatsSubject("$edgeos/discovery/agent"), ".")
+func TestMqttTopicToNatsSubject_DotForm(t *testing.T) {
+	require.Equal(t, "$edgeos.discovery.agent", mqttTopicToNatsSubject("$edgeos/discovery/agent"))
+	require.Equal(t, "$edgeos.event.*.status", mqttTopicToNatsSubject("$edgeos/event/+/status"))
+	require.Equal(t, "$edgeos.event.>", mqttTopicToNatsSubject("$edgeos/event/#"))
+	require.NotContains(t, mqttTopicToNatsSubject("$edgeos/discovery/agent"), "/")
 }
 
 func TestTransportList_UnmarshalStringOrArray(t *testing.T) {

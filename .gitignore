@@ -18,3 +18,5 @@ temp/edgeos.db
 .cursor/*
 vendor/
 dist/
+.trae-html-share-packages/
+temp/

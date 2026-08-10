@@ -56,7 +56,7 @@ export const eanFlowSteps: EanFlowStep[] = [
     id: 'transport-nats',
     title: 'NATS 传输对称启用',
     detail:
-      'ean.nats.enabled=true，url=nats://127.0.0.1:4222。Subject 必须保留斜杠（$edgeos/...），通配符仅 +→* / #→>。与 MQTT 并行注册，registered_transports=2。',
+      'ean.nats.enabled=true，url=nats://127.0.0.1:4222。Subject 使用 NATS 点分形式（$edgeos....，MQTT /→.，通配符 +→* / #→>）。与 MQTT 并行注册，registered_transports=2。',
     link: { label: '联调帮助', path: '/ean/debug' },
     check: 'transports 含 nats；transport_details 含 nats endpoint',
   },
@@ -169,13 +169,13 @@ export const eanGuideExamples: EanGuideExample[] = [
   },
   {
     id: 'discovery-nats-note',
-    title: 'NATS · Subject 斜杠约定',
-    description: '与 MQTT 使用同一字符串 $edgeos/...；勿改点分',
-    topic: '$edgeos/discovery/capability',
+    title: 'NATS · Subject 点分约定',
+    description: 'NATS 使用点分 Subject（$edgeos....）；勿用斜杠',
+    topic: '$edgeos.discovery.capability',
     payload: JSON.stringify(
       {
-        note: 'NATS subject = MQTT topic（仅通配符 +→* / #→>）',
-        publish: 'nats pub \'$edgeos/discovery/agent\' \'<json>\'',
+        note: 'NATS subject = MQTT topic 映射（/→.，通配符 +→* / #→>）',
+        publish: 'nats pub \'$edgeos.discovery.agent\' \'<json>\'',
         edgeos_config: {
           'ean.nats.enabled': true,
           'ean.nats.url': 'nats://127.0.0.1:4222',
@@ -293,9 +293,9 @@ export const eanTroubleshoot: EanTroubleshootItem[] = [
     fix: '打开 ean.enabled，启用 mqtt/nats 后重启；health 应返回 status=ok',
   },
   {
-    symptom: 'NATS 收不到 $edgeos/... 消息',
-    cause: '把斜杠改成了点分 subject（如 $edgeos.discovery.agent），或 ean.nats.enabled=false',
-    fix: 'EAN 2.0 NATS 必须保留斜杠；$edgeos/discovery/agent；配置启用 nats://127.0.0.1:4222',
+    symptom: 'NATS 收不到 $edgeos.... 消息',
+    cause: '在 NATS 上仍用斜杠 subject（如 $edgeos.discovery.agent 写成 $edgeos/discovery/agent），或 ean.nats.enabled=false',
+    fix: 'EAN 2.0 NATS 须用点分 subject：$edgeos.discovery.agent（MQTT /→.）；配置启用 nats://127.0.0.1:4222',
   },
   {
     symptom: 'health.transports 只有 mqtt 没有 nats',

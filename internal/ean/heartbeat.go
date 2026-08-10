@@ -119,9 +119,11 @@ func (hm *HeartbeatMonitor) HandleHeartbeat(topic string, payload []byte, transp
 		return
 	}
 	if hb.AgentID == "" {
-		// 兼容从 topic 提取: $edgeos/heartbeat/{agent_id}
+		// 兼容从 topic 提取: $edgeos/heartbeat/{agent_id}（MQTT）/ $edgeos.heartbeat.{agent_id}（NATS）
 		if strings.HasPrefix(topic, TopicHeartbeatPrefix) {
 			hb.AgentID = strings.TrimPrefix(topic, TopicHeartbeatPrefix)
+		} else if strings.HasPrefix(topic, NatsHeartbeatPrefix) {
+			hb.AgentID = strings.TrimPrefix(topic, NatsHeartbeatPrefix)
 		}
 	}
 	if hb.AgentID == "" {

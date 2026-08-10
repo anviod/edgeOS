@@ -24,7 +24,7 @@ EdgeOS 已落地完整 EAN 协调层：`internal/ean`（Discovery / Invoke+Reply
 | BACnet 4 设备读写验证 | **全通过（含二次验证）** |
 | Phase 4 + V1 命令面全面下线 | **完成（v8 落地 / v9 全面下线）**（见 §2.3） |
 
-硬约束：未实现 `$edgeos/state/*`；NATS 保留斜杠；不直接驱动南向；AI Invoke 无自动落库。
+硬约束：未实现 `$edgeos/state/*`；NATS 使用点分 Subject（`$edgeos....`，非保留斜杠）；不直接驱动南向；AI Invoke 无自动落库。
 
 ---
 
@@ -34,7 +34,7 @@ EdgeOS 已落地完整 EAN 协调层：`internal/ean`（Discovery / Invoke+Reply
 
 | 必做 | 状态 | 说明 |
 |------|------|------|
-| 双传输 `$edgeos/#`（MQTT + NATS，NATS 保留斜杠） | **代码完成 + 实机验证** | `DualTransport`；NATS 已启用 |
+| 双传输 `$edgeos/#`（MQTT 斜杠 + NATS 点分 Subject） | **代码完成 + 实机验证** | `DualTransport`；NATS 已启用 |
 | Discovery 索引（agent / capability / offline） | **代码完成** | 含原生/V1 source、purge、主动 Query |
 | Invoke + Reply 关联 | **代码完成** | correlation_id / invoke_id；原生 Cap 禁 V1 Fallback |
 | Event + `previous_value` | **代码完成** | 单测覆盖；实机 Event 流有数据 |

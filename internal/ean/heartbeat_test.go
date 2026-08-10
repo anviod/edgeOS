@@ -48,6 +48,30 @@ func TestHandleHeartbeat(t *testing.T) {
 	assert.False(t, state.LastSeen.IsZero())
 }
 
+func TestHandleHeartbeat_AgentIDFromTopicFallback(t *testing.T) {
+	// payload 缺失 agent_id，须从主题提取：
+	// MQTT 斜杠 Topic（$edgeos/heartbeat/{id}）与 NATS 点分 Subject（$edgeos.heartbeat.{id}）
+	payload := []byte(`{"status":"alive","timestamp":1,"sequence":1}`)
+
+	tests := []struct {
+		name    string
+		topic   string
+		agentID string
+	}{
+		{name: "mqtt slash topic", topic: "$edgeos/heartbeat/agent-001", agentID: "agent-001"},
+		{name: "nats dot subject", topic: "$edgeos.heartbeat.agent-001", agentID: "agent-001"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hm := newTestHeartbeatMonitor(t)
+			hm.HandleHeartbeat(tt.topic, payload, "nats")
+			state, ok := hm.GetAgentHeartbeat(tt.agentID)
+			require.True(t, ok, "agent should be tracked from topic %s", tt.topic)
+			assert.Equal(t, tt.agentID, state.AgentID)
+		})
+	}
+}
+
 func TestHandleHeartbeat_InvalidJSON(t *testing.T) {
 	hm := newTestHeartbeatMonitor(t)
 	hm.HandleHeartbeat("$edgeos/heartbeat/agent-001", []byte("invalid"), "mqtt")
