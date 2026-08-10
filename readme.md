@@ -47,7 +47,7 @@ npm run build
 - **edgeCore**：Capability Runtime（能力注册、发现发布、Invoke 执行、Event 上报）
 - **EdgeOS**：Coordination Platform（全局发现索引、跨节点编排、Invoke 发起、Event 订阅与规则）
 
-协议层统一为 `Agent / Capability / Discovery / Invoke / Event`，传输同时支持 **MQTT** 与 **NATS**，Topic 使用统一的 `$edgeos/...` 字符串形式。
+协议层统一为 `Agent / Capability / Discovery / Invoke / Event`，传输同时支持 **MQTT** 与 **NATS**，Topic 使用统一的 `$edgeos/...` 逻辑命名（MQTT 斜杠形式；NATS 映射为点分 Subject，`/`→`.`、`+`→`*`、`#`→`>`）。
 
 ### Discovery 发现中心
 
@@ -122,10 +122,12 @@ MQTT 与 NATS 对称传输，同一业务逻辑复用编解码，仅替换 trans
 
 | 能力 | MQTT | NATS |
 |------|------|------|
-| Discovery | `$edgeos/discovery/*` | 相同 Subject（保留斜杠） |
-| Invoke + Reply | `$edgeos/invoke/{id}` | 相同 |
-| Event | `$edgeos/event/{id}` | 相同 |
-| Heartbeat | `$edgeos/heartbeat/{id}` | 相同 |
+| Discovery | `$edgeos/discovery/*` | `$edgeos.discovery.*`（点分 Subject） |
+| Invoke + Reply | `$edgeos/invoke/{id}` | `$edgeos.invoke.{id}` |
+| Event | `$edgeos/event/{id}` | `$edgeos.event.{id}` |
+| Heartbeat | `$edgeos/heartbeat/{id}` | `$edgeos.heartbeat.{id}` |
+
+> NATS 使用标准点分 Subject，与 MQTT 斜杠 Topic 语义对称：`/`→`.`、`+`→`*`、`#`→`>`（如 `$edgeos/discovery/agent` → `$edgeos.discovery.agent`）。
 
 - **启动韧性**：EAN 启用但 broker 不可用时 Warn + 后台重连 + 延迟订阅，不 fatal
 - **V1 兼容并行**：EAN `$edgeos/*` 与 V1 `edgeCore/*`（MQTT）/`edgeCore.*`（NATS）同时可用，新功能只走 EAN
@@ -249,7 +251,7 @@ AI 协同组件通过 EAN 网络暴露为可调用的 Capability：
 
 | 配套措施 | 描述 | 实现方式 |
 |----------|------|----------|
-| 双传输对称 | MQTT + NATS 同 Topic 字符串 | `DualTransport` 统一编解码 |
+| 双传输对称 | MQTT 斜杠 Topic + NATS 点分 Subject（`/`→`.`）语义对称 | `DualTransport` 统一编解码 |
 | 消息序列化 | 高效数据编解码 | JSON 信封 + Protobuf |
 | QoS 保证 | Discovery/Invoke/Event QoS1 | 持久化 / ACK / 重试 |
 | 启动韧性 | Broker 不可用时后台重连 | Warn + 延迟订阅 |
@@ -307,4 +309,4 @@ AI 协同组件通过 EAN 网络暴露为可调用的 Capability：
 
 ## License
 
-MIT
+GPL-3.0
