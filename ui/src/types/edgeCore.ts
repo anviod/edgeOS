@@ -105,6 +105,52 @@ export interface edgeCoreDeviceInfo {
   properties: Record<string, unknown>
   last_sync: number
   node_id?: string
+  // 空间属性 | Spatial attributes
+  station_name?: string   // 局站名称 | Station name
+  station_code?: string   // 局站编码 | Station code
+  building_name?: string  // 机楼名称 | Building name
+  building_code?: string  // 机楼编码 | Building code
+  room_name?: string      // 机房名称 | Room name
+  room_code?: string      // 机房编码 | Room code
+}
+
+// ==================== 空间结构树 | Spatial tree ====================
+
+export interface SpatialRoom {
+  room_name: string
+  room_code: string
+  devices: edgeCoreDeviceInfo[]
+  device_count: number
+}
+
+export interface SpatialBuilding {
+  building_name: string
+  building_code: string
+  rooms: SpatialRoom[]
+  device_count: number
+}
+
+export interface SpatialStation {
+  station_name: string
+  station_code: string
+  buildings: SpatialBuilding[]
+  device_count: number
+}
+
+export interface SpatialNode {
+  node_id: string
+  node_name: string
+  status: string
+  stations: SpatialStation[]
+  device_count: number
+}
+
+// 局站根树类型（跨节点汇聚）| Station-rooted tree (cross-node aggregation)
+export interface SpatialStationRoot {
+  station_name: string
+  station_code: string
+  buildings: SpatialBuilding[]
+  device_count: number
 }
 
 // ==================== 点位 ====================

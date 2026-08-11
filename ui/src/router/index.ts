@@ -61,6 +61,12 @@ const router = createRouter({
           meta: { title: '节点管理', sectionTitle: '采集运行' },
         },
         {
+          path: 'topology',
+          name: 'SpatialTopology',
+          component: () => import('@/views/SpatialTreeView.vue'),
+          meta: { title: '空间拓扑', sectionTitle: '采集运行' },
+        },
+        {
           path: 'nodes/:nodeId/devices',
           name: 'DeviceList',
           component: () => import('@/views/DeviceListView.vue'),

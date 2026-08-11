@@ -328,6 +328,73 @@ func handleReconcileDevices(dataSvc *services.DataService, registrySvc *services
 }
 
 // ===========================
+// 空间结构树 | Spatial tree
+// ===========================
+
+// handleGetSpatialTree 返回全量空间结构树，支持根节点切换
+// GET /api/devices/spatial-tree?root=node   → Node → Station → Building → Room → Device（默认）
+// GET /api/devices/spatial-tree?root=station → Station → Building → Room → Device（跨节点汇聚）
+// | Returns full spatial tree with root mode switching.
+func handleGetSpatialTree(dataSvc *services.DataService, registrySvc *services.RegistryService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		rootMode := c.Query("root", "node")
+
+		if rootMode == "station" {
+			// 局站根树：跨节点汇聚 | station-rooted tree: cross-node aggregation
+			tree, err := dataSvc.DeviceSvc.BuildSpatialTreeByStation()
+			if err != nil {
+				return apiError(c, fiber.StatusInternalServerError, err.Error())
+			}
+			return apiSuccess(c, fiber.Map{"stations": tree})
+		}
+
+		// 节点根树（默认）| node-rooted tree (default)
+		regNodes, err := registrySvc.ListNodes()
+		if err != nil {
+			return apiError(c, fiber.StatusInternalServerError, err.Error())
+		}
+		// 转为 NodeBrief 列表 | convert to NodeBrief list
+		nodeBriefs := make([]services.NodeBrief, 0, len(regNodes))
+		for _, n := range regNodes {
+			if n == nil {
+				continue
+			}
+			nodeBriefs = append(nodeBriefs, services.NodeBrief{
+				NodeID:   n.NodeID,
+				NodeName: n.NodeName,
+				Status:   n.Status,
+			})
+		}
+		tree, err := dataSvc.DeviceSvc.BuildSpatialTree(nodeBriefs)
+		if err != nil {
+			return apiError(c, fiber.StatusInternalServerError, err.Error())
+		}
+		return apiSuccess(c, fiber.Map{"nodes": tree})
+	}
+}
+
+// handleListDevicesByStation 按局站编码检索设备
+// GET /api/devices/by-station/:stationCode
+// | Query devices by station code (cross-node)
+func handleListDevicesByStation(dataSvc *services.DataService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		stationCode := c.Params("stationCode")
+		if stationCode == "" {
+			return apiError(c, fiber.StatusBadRequest, "stationCode is required")
+		}
+		results, err := dataSvc.DeviceSvc.ListByStationCode(stationCode)
+		if err != nil {
+			return apiError(c, fiber.StatusInternalServerError, err.Error())
+		}
+		return apiSuccess(c, fiber.Map{
+			"station_code": stationCode,
+			"count":        len(results),
+			"devices":      results,
+		})
+	}
+}
+
+// ===========================
 // 点位管理
 // ===========================
 

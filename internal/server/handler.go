@@ -103,6 +103,10 @@ func RegisterAllRoutes(
 	nodes.Post("/:nodeId/devices/reconcile", handleReconcileDevices(dataSvc, registrySvc))
 	nodes.Get("/:nodeId/devices/:deviceId", handleGetDevice(dataSvc))
 
+	// 空间结构树（跨节点全局视图）| Spatial tree (cross-node global view)
+	protected.Get("/devices/spatial-tree", handleGetSpatialTree(dataSvc, registrySvc))
+	protected.Get("/devices/by-station/:stationCode", handleListDevicesByStation(dataSvc))
+
 	// 点位管理
 	nodes.Get("/:nodeId/devices/:deviceId/points", handleListPoints(dataSvc))
 	nodes.Get("/:nodeId/devices/:deviceId/snapshot", handleGetSnapshot(dataSvc))

@@ -46,6 +46,67 @@ type EdgeCoreDeviceInfo struct {
 	OperatingState string                 `json:"operating_state"`
 	Properties     map[string]interface{} `json:"properties"`
 	LastSync       int64                  `json:"last_sync"`
+	// 空间属性（device_report 顶级字段，omitempty 向后兼容）
+	// Spatial attributes (top-level fields in device_report, omitempty for backward compat)
+	StationName  string `json:"station_name,omitempty"`  // 局站名称 | Station name
+	StationCode  string `json:"station_code,omitempty"`  // 局站编码 | Station code
+	BuildingName string `json:"building_name,omitempty"` // 机楼名称 | Building name
+	BuildingCode string `json:"building_code,omitempty"` // 机楼编码 | Building code
+	RoomName     string `json:"room_name,omitempty"`     // 机房名称 | Room name
+	RoomCode     string `json:"room_code,omitempty"`     // 机房编码 | Room code
+	// NodeID 仅在局站根树视图下发填充（标记设备归属的 EdgeCore 节点），存储时不落库
+	// NodeID is populated only in station-rooted tree responses (marks the owning EdgeCore node); not persisted
+	NodeID string `json:"node_id,omitempty"`
+}
+
+// ==================== 空间结构树类型 | Spatial tree types ====================
+
+// SpatialRoom 机房层级——空间树最底层，包含设备列表
+// SpatialRoom: room level (leaf tier of spatial tree), contains device list
+type SpatialRoom struct {
+	RoomName    string                `json:"room_name"`
+	RoomCode    string                `json:"room_code"`
+	Devices     []EdgeCoreDeviceInfo  `json:"devices"`
+	DeviceCount int                   `json:"device_count"`
+}
+
+// SpatialBuilding 机楼层级——空间树中间层，包含机房列表
+// SpatialBuilding: building level (middle tier of spatial tree), contains room list
+type SpatialBuilding struct {
+	BuildingName string         `json:"building_name"`
+	BuildingCode string         `json:"building_code"`
+	Rooms        []SpatialRoom  `json:"rooms"`
+	DeviceCount  int            `json:"device_count"`
+}
+
+// SpatialStation 局站层级——空间树第二层，包含机楼列表
+// SpatialStation: station level (2nd tier of spatial tree), contains building list
+type SpatialStation struct {
+	StationName  string             `json:"station_name"`
+	StationCode  string             `json:"station_code"`
+	Buildings    []SpatialBuilding  `json:"buildings"`
+	DeviceCount  int                `json:"device_count"`
+}
+
+// SpatialNode 节点层级——空间树第一层（EdgeCore 节点），包含局站列表
+// SpatialNode: node level (1st tier, EdgeCore node), contains station list
+type SpatialNode struct {
+	NodeID      string           `json:"node_id"`
+	NodeName    string           `json:"node_name"`
+	Status      string           `json:"status"`
+	Stations    []SpatialStation `json:"stations"`
+	DeviceCount int              `json:"device_count"`
+}
+
+// SpatialStationRoot 局站根树——以局站为根的空间树（跨节点汇聚）
+// 设备的 NodeID 字段标记其归属的 EdgeCore 节点。
+// SpatialStationRoot: station-rooted spatial tree (aggregated across nodes).
+// Device.NodeID marks the owning EdgeCore node.
+type SpatialStationRoot struct {
+	StationName  string             `json:"station_name"`
+	StationCode  string             `json:"station_code"`
+	Buildings    []SpatialBuilding  `json:"buildings"`
+	DeviceCount  int                `json:"device_count"`
 }
 
 // EdgeCorePointInfo represents edgeCore point information

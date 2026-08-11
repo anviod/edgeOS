@@ -20,7 +20,12 @@ const filtered = computed(() => {
   if (!search.value) return devices.value
   const q = search.value.toLowerCase()
   return devices.value.filter(d =>
-    d.device_id.toLowerCase().includes(q) || d.device_name.toLowerCase().includes(q)
+    d.device_id.toLowerCase().includes(q) ||
+    d.device_name.toLowerCase().includes(q) ||
+    (d.station_name || '').toLowerCase().includes(q) ||
+    (d.station_code || '').toLowerCase().includes(q) ||
+    (d.room_name || '').toLowerCase().includes(q) ||
+    (d.room_code || '').toLowerCase().includes(q)
   )
 })
 
@@ -137,8 +142,9 @@ function formatTime(ts: number) {
           <tr class="table-header-row">
             <th class="text-left px-5 py-3 font-medium text-xs table-header-cell">设备 ID</th>
             <th class="text-left px-4 py-3 font-medium text-xs table-header-cell">名称</th>
+            <th class="text-left px-4 py-3 font-medium text-xs table-header-cell hidden lg:table-cell">位置信息</th>
             <th class="text-left px-4 py-3 font-medium text-xs table-header-cell hidden md:table-cell">服务</th>
-            <th class="text-left px-4 py-3 font-medium text-xs table-header-cell hidden lg:table-cell">Profile</th>
+            <th class="text-left px-4 py-3 font-medium text-xs table-header-cell hidden xl:table-cell">Profile</th>
             <th class="text-left px-4 py-3 font-medium text-xs table-header-cell">管理状态</th>
             <th class="text-left px-4 py-3 font-medium text-xs table-header-cell hidden xl:table-cell">最后同步</th>
             <th class="text-right px-5 py-3 font-medium text-xs table-header-cell">物模型</th>
@@ -156,6 +162,15 @@ function formatTime(ts: number) {
               <span class="font-mono text-xs" style="color: var(--accent-primary);">{{ device.device_id }}</span>
             </td>
             <td class="px-4 py-3.5 font-medium" style="color: var(--text-primary);">{{ device.device_name }}</td>
+            <td class="px-4 py-3.5 text-xs hidden lg:table-cell">
+              <div v-if="device.station_name || device.room_name" class="location-cell">
+                <span v-if="device.station_name" class="location-station">{{ device.station_name }}</span>
+                <span v-if="device.station_code" class="location-code font-mono">{{ device.station_code }}</span>
+                <span v-if="device.room_name" class="location-room">{{ device.room_name }}</span>
+                <span v-if="device.room_code" class="location-code font-mono">{{ device.room_code }}</span>
+              </div>
+              <span v-else style="color: var(--text-muted);">—</span>
+            </td>
             <td class="px-4 py-3.5 text-xs hidden md:table-cell" style="color: var(--text-secondary);">{{ device.service_name || '—' }}</td>
             <td class="px-4 py-3.5 text-xs font-mono hidden lg:table-cell" style="color: var(--text-muted);">{{ device.device_profile || '—' }}</td>
             <td class="px-4 py-3.5">
@@ -189,6 +204,27 @@ function formatTime(ts: number) {
   color: var(--text-primary);
 }
 .search-input::placeholder { color: var(--text-muted); }
+
+.location-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+.location-station {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.location-room {
+  color: var(--text-muted);
+}
+.location-code {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  padding: 0.0625rem 0.3rem;
+  border-radius: 0.25rem;
+  background: rgba(99, 102, 241, 0.08);
+}
 .empty-state {
   background: var(--bg-secondary);
   border: 1px dashed var(--border-color);

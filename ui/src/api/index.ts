@@ -9,6 +9,8 @@ import type {
   AlertInfo,
   CommandRecord,
   WritePointRequest,
+  SpatialNode,
+  SpatialStationRoot,
 } from '@/types/edgeCore'
 import type {
   EANAgentDescriptor,
@@ -179,6 +181,22 @@ export const nodeApi = {
 export const deviceApi = {
   listByNode(nodeId: string) {
     return request<{ devices: edgeCoreDeviceInfo[] }>(`/nodes/${nodeId}/devices`).then(res => res?.devices ?? [])
+  },
+  // 空间结构树：支持根节点切换 | Spatial tree with root mode switching
+  // root=node（默认）: Node → Station → Building → Room → Device
+  // root=station: Station → Building → Room → Device（跨节点汇聚）
+  getSpatialTree(root: 'node' | 'station' = 'node') {
+    const url = root === 'station'
+      ? '/devices/spatial-tree?root=station'
+      : '/devices/spatial-tree'
+    if (root === 'station') {
+      return request<{ stations: SpatialStationRoot[] }>(url).then(res => res?.stations ?? [])
+    }
+    return request<{ nodes: SpatialNode[] }>(url).then(res => res?.nodes ?? [])
+  },
+  // 按局站编码检索设备 | Query devices by station code
+  listByStation(stationCode: string) {
+    return request<{ devices: edgeCoreDeviceInfo[]; count: number }>(`/devices/by-station/${encodeURIComponent(stationCode)}`).then(res => res?.devices ?? [])
   },
 }
 
