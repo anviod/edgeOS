@@ -6,6 +6,12 @@
   <img src="./docs/img/edge_brain.svg" width="100%" />
 </div>
 
+## 学术论文
+
+[**基于 EdgeCore 数字底座的工业边缘协调平台——EdgeOS 的设计与实现**](./docs/paper-edgeos/index.html) · [PDF 下载](./docs/paper-edgeos/基于EdgeCore数字底座的工业边缘协调平台EdgeOS的设计与实现-20260810.pdf)
+
+> 系统阐述 EdgeOS 架构设计、EAN 2.0 协议、AI 协同与 N+2 冗余，含 11 章节架构图与性能测试数据。
+
 ## 快速开始
 
 ### 环境要求
@@ -221,6 +227,7 @@ AI 协同组件通过 EAN 网络暴露为可调用的 Capability：
 
 ### 相关文档
 
+- **学术论文**：[基于 EdgeCore 数字底座的工业边缘协调平台 EdgeOS 的设计与实现](./docs/paper-edgeos/index.html)
 - EAN 2.0 改造指南：[docs/edgeos/EAN2.0-edgeCore-EdgeOS改造指南.md](./docs/edgeos/EAN2.0-edgeCore-EdgeOS改造指南.md)
 - EAN 2.0 升级报告：[docs/edgeos/EdgeOS-EAN2.0改造升级报告.md](./docs/edgeos/EdgeOS-EAN2.0改造升级报告.md)
 - P3 规划文档：[docs/EdgeOS-2026-P3-TODO.md](./docs/EdgeOS-2026-P3-TODO.md)
