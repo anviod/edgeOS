@@ -1858,12 +1858,10 @@ internal/
     ├── point_api.go
     └── control_api.go     # 控制命令接口
 
-config/
-├── config.yaml            # 主配置（含中间件默认值）
-└── config.dev.yaml
+config/                      # 已废弃：配置全部迁移至 data/config.db（bboltDB），不再使用 YAML 配置文件
 
 cmd/
-└── main.go                # 启动入口，加载配置，初始化连接管理器
+└── main.go                # 启动入口，从 data/config.db 加载配置，初始化连接管理器
 ```
 
 ---

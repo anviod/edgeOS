@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { AlertTriangle, RefreshCw, CheckCircle2, Filter } from 'lucide-vue-next'
+import { RefreshCw, CheckCircle2, Filter } from 'lucide-vue-next'
 import { useAlertStore } from '@/stores/alert'
 import StatusBadge from '@/components/edge/StatusBadge.vue'
 

@@ -28,7 +28,7 @@
 - ✅ 数据库桶初始化
 
 ### 5. 配置文件
-- ✅ MQTT/NATS 配置 (`config/edgeCore_mqtt_nats.yaml`)
+- ✅ MQTT/NATS 配置已迁移至 bboltDB（`data/config.db`），通过 Web UI / API 读写，不再使用 YAML 配置文件
 - ✅ 配置结构体 (`internal/config/edgeCore_mqtt_nats.go`)
 
 ### 6. 测试脚本
@@ -195,7 +195,7 @@ func main() {
 
 检查:
 - 数据库目录权限: `d:\code\edgeOS\data\`
-- 配置文件是否存在: `d:\code\edgeOS\config.yaml`
+- 配置数据库是否存在且完整: `d:\code\edgeOS\data\config.db`
 - 端口是否被占用: 8000
 
 ### 2. MQTT 连接失败
@@ -259,4 +259,4 @@ main.go
 
 - MQTT/NATS 实现指南: `docs/EdgeOS端MQTT-NATS实现指南.md`
 - edgeCore 上报协议规范: `TODO/edgeCore上报到EdgeOS通信协议规范(MQTT-NATS).md`
-- 配置文件: `config/edgeCore_mqtt_nats.yaml`
+- 配置文件: 已迁移至 bboltDB（`data/config.db`），无 YAML 配置文件

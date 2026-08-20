@@ -172,7 +172,6 @@ const sha256Encrypt = async (text) => {
 const config = configStore()
 const users = userStore()
 
-const loginFormRef = ref(null)
 const isShaking = ref(false)
 const isLoginSuccess = ref(false)
 

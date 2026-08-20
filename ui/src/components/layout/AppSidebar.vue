@@ -15,6 +15,7 @@ const expandedGroups = reactive<Record<string, boolean>>({
   business: true,
   'group-control': true,
   ean: true,
+  visual: true,
 })
 
 function toggleSidebar() {

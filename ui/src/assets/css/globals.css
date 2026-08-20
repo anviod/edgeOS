@@ -46,6 +46,10 @@
     --sidebar-bg:    #FFFFFF;
     --header-bg:     #FFFFFF;
 
+    /* 2.5D 场景标注文字 - 亮色 */
+    --scene-label:        #334155;
+    --scene-label-glow:   rgba(248, 250, 252, 0.85);
+
     /* functional colors */
     --color-success: 160 84% 39%;
     --color-warning: 38 92% 50%;
@@ -100,6 +104,10 @@
     --accent-border: rgba(14,165,233,0.2);
     --sidebar-bg:    #0B1220;
     --header-bg:     #0B1220;
+
+    /* 2.5D 场景标注文字 - 暗色 */
+    --scene-label:        #E2E8F0;
+    --scene-label-glow:   rgba(15, 23, 42, 0.9);
   }
 }
 

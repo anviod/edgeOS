@@ -91,16 +91,13 @@ import LoginApi from 'api/login.js'
 import router from '@/router'
 import { userStore } from 'stores/user.js'
 import { configStore } from '@/stores/app.js'
-import { useI18n } from 'vue-i18n'
 import sha256 from 'crypto-js/sha256'
 import encHex from 'crypto-js/enc-hex'
 import { showMessage } from '@/composables/useGlobalState'
 
-const { t } = useI18n()
 const config = configStore()
 const users = userStore()
 
-const loginFormRef = ref(null)
 const isShaking = ref(false)
 const isLoginSuccess = ref(false)
 

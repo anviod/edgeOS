@@ -84,7 +84,7 @@ func main() {
 		}
 
 		zapLogger.Info("Loading configuration from database...")
-		cfgManager, err = config.NewConfigManagerWithDB(dataDir, store.GetConfigDB())
+		cfgManager, err = config.NewConfigManagerWithDB(store.GetConfigDB())
 		if err != nil {
 			zapLogger.Fatal("Failed to load config with DB", zap.Error(err))
 		}
@@ -108,7 +108,7 @@ func main() {
 		runtimeReady = false
 
 		// 从数据库加载配置（无数据时返回默认配置，供安装向导预填）| Load config from DB (defaults when empty)
-		cfgManager, err = config.NewConfigManagerWithDB(dataDir, store.GetConfigDB())
+		cfgManager, err = config.NewConfigManagerWithDB(store.GetConfigDB())
 		if err != nil {
 			zapLogger.Fatal("Failed to load config with DB", zap.Error(err))
 		}

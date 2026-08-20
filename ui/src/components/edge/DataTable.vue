@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { cn } from '@/lib/utils'
 import StatusIndicator from './StatusIndicator.vue'
 import ProtocolBadge from './ProtocolBadge.vue'
 import EdgeDeviceCell from './EdgeDeviceCell.vue'
 import { formatRelativeTime } from '@/lib/helpers'
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-vue-next'
+import { Pencil, Trash2 } from 'lucide-vue-next'
 
 type Column = {
   key: string

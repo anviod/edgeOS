@@ -1,138 +1,123 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Cpu, AlertTriangle, Timer, Activity, Gauge } from 'lucide-vue-next'
+import { AlertTriangle } from 'lucide-vue-next'
 
 const props = defineProps<{
-  systemStatus?: string
-  onlineDevices?: number
   alarmCount?: number
-  avgLatency?: number
-  packetLoss?: number
-  qualityScore?: number
 }>()
 
-const statusColor = computed(() => {
-  const s = (props.systemStatus || '').toLowerCase()
-  if (s === 'running' || s === 'online' || s === 'ok') return '#10B981'
-  if (s === 'degraded' || s === 'warning') return '#F59E0B'
-  return '#EF4444'
-})
-
-const statusPulse = computed(() => statusColor.value === '#10B981')
-
-const latencyColor = computed(() => {
-  const v = props.avgLatency ?? 0
-  if (v < 30) return '#10B981'
-  if (v < 60) return '#F59E0B'
-  return '#EF4444'
-})
-
-const lossColor = computed(() => {
-  const v = props.packetLoss ?? 0
-  if (v < 0.3) return '#10B981'
-  if (v < 1) return '#F59E0B'
-  return '#EF4444'
-})
-
-const alarmDanger = computed(() => (props.alarmCount ?? 0) > 0)
-
-const qualityColor = computed(() => {
-  const v = props.qualityScore ?? 0
-  if (v >= 95) return '#10B981'
-  if (v >= 90) return '#F59E0B'
-  return '#EF4444'
-})
+const active = computed(() => (props.alarmCount ?? 0) > 0)
+const display = computed(() => Math.min(props.alarmCount ?? 0, 99))
 </script>
 
 <template>
-  <div class="hidden items-center gap-1.5 xl:flex">
-
-    <!-- Alarms -->
-    <div class="hm-pill" title="活跃告警">
-      <AlertTriangle class="hm-icon" :style="{ color: alarmDanger ? '#EF4444' : '#9CA3AF' }" />
-      <span class="hm-value" :style="{ color: alarmDanger ? '#EF4444' : 'var(--text-primary)' }">{{ alarmCount }}</span>
-      <span class="hm-label">告警</span>
+  <div
+    class="hm-alarm"
+    :class="{ 'hm-alarm--active': active }"
+    :title="active ? `${alarmCount} 条活跃告警` : '暂无告警'"
+  >
+    <div class="hm-alarm-icon">
+      <AlertTriangle class="h-[15px] w-[15px]" />
+      <span v-if="active" class="hm-alarm-ring" />
     </div>
-
-    <div class="hm-divider" />
-
-
-    <!-- Quality -->
-    <div class="hm-pill hm-quality" title="链路质量">
-      <Gauge class="hm-icon" :style="{ color: qualityColor }" />
-      <span class="hm-value" :style="{ color: qualityColor }">{{ qualityScore }}</span>
-      <span class="hm-label">质量</span>
-      <div class="hm-quality-bar">
-        <div class="hm-quality-fill" :style="{ width: `${qualityScore}%`, background: qualityColor }" />
-      </div>
+    <div class="hm-alarm-body">
+      <span class="hm-alarm-value">{{ display }}</span>
+      <span class="hm-alarm-label">告警</span>
     </div>
   </div>
 </template>
 
 <style scoped>
-.hm-pill {
+.hm-alarm {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  height: 30px;
-  padding: 0 10px;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px 0 9px;
+  border-radius: 999px;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
   background: var(--bg-tertiary);
   white-space: nowrap;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.hm-divider {
-  width: 1px;
-  height: 18px;
-  background: var(--border-color);
+.hm-alarm--active {
+  border-color: rgba(239, 68, 68, 0.38);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.03));
+  animation: hm-breathe 2.4s ease-in-out infinite;
 }
 
-.hm-icon {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
+.hm-alarm-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  background: var(--border-subtle);
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
-.hm-status {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+.hm-alarm--active .hm-alarm-icon {
+  color: #EF4444;
+  background: rgba(239, 68, 68, 0.14);
 }
 
-.hm-value {
+.hm-alarm-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(239, 68, 68, 0.5);
+  animation: hm-ring 1.6s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes hm-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@keyframes hm-breathe {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.18);
+  }
+}
+
+.hm-alarm-body {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.hm-alarm-value {
   font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
   font-variant-numeric: tabular-nums;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
 }
 
-.hm-label {
-  margin-left: 2px;
+.hm-alarm--active .hm-alarm-value {
+  color: #EF4444;
+}
+
+.hm-alarm-label {
   font-size: 10px;
+  letter-spacing: 0.16em;
   color: var(--text-muted);
-}
-
-.hm-quality {
-  position: relative;
-  padding-bottom: 8px;
-  padding-top: 2px;
-  height: 34px;
-}
-
-.hm-quality-bar {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 4px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--border-color);
-  overflow: hidden;
-}
-
-.hm-quality-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.4s ease;
 }
 </style>

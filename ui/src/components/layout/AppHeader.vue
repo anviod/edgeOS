@@ -19,13 +19,6 @@ const { connected } = useWebSocket()
 const showUserMenu = ref(false)
 const searchRef = ref<InstanceType<typeof GlobalSearch> | null>(null)
 
-const systemStatus = ref('RUNNING')
-const onlineDevices = ref(128)
-const alarmCount = ref(3)
-const avgLatency = ref(32)
-const packetLoss = ref(0.2)
-const qualityScore = ref(98)
-
 interface BreadcrumbItem {
   label: string
   path?: string
@@ -114,14 +107,7 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
       </template>
     </nav>
 
-    <HeaderMetrics
-      :system-status="systemStatus"
-      :online-devices="onlineDevices"
-      :alarm-count="alarmCount"
-      :avg-latency="avgLatency"
-      :packet-loss="packetLoss"
-      :quality-score="qualityScore"
-    />
+    <HeaderMetrics :alarm-count="alertStore.unacknowledgedCount" />
 
     <div class="flex items-center gap-2">
       <GlobalSearch ref="searchRef" />

@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/anviod/edgeOS/internal/storage"
 	"go.etcd.io/bbolt"
@@ -10,101 +9,84 @@ import (
 
 // MiddlewareMiddlewareConfig 单个中间件配置 | Single middleware configuration
 type MiddlewareMiddlewareConfig struct {
-	ID                string   `yaml:"id" json:"id"`
-	Name              string   `yaml:"name" json:"name"`
-	Type              string   `yaml:"type" json:"type"` // "mqtt" or "nats"
-	Enabled           bool     `yaml:"enabled" json:"enabled"`
-	Broker            string   `yaml:"broker" json:"broker"`
-	ClientID          string   `yaml:"client_id" json:"client_id"`
-	Username          string   `yaml:"username" json:"username"`
-	Password          string   `yaml:"password" json:"password"`
-	QoS               byte     `yaml:"qos" json:"qos"`
-	CleanSession      bool     `yaml:"clean_session" json:"clean_session"`
-	KeepAlive         int      `yaml:"keep_alive" json:"keep_alive"`
-	ConnectTimeout    int      `yaml:"connect_timeout" json:"connect_timeout"`
-	AutoReconnect     bool     `yaml:"auto_reconnect" json:"auto_reconnect"`
-	Subscriptions     []string `yaml:"subscriptions" json:"subscriptions"`
-	MQTTVersion       int      `yaml:"mqtt_version" json:"mqtt_version"`           // 4 = 3.1.1, 5 = 5.0
-	SSL               bool     `yaml:"ssl" json:"ssl"`                           // 启用 SSL/TLS | Enable SSL/TLS
-	CAFile            string   `yaml:"ca_file" json:"ca_file"`                   // CA 证书文件路径 | CA certificate file path
-	ClientCertFile    string   `yaml:"client_cert_file" json:"client_cert_file"` // 客户端证书文件路径 | Client cert file path
-	ClientKeyFile     string   `yaml:"client_key_file" json:"client_key_file"`   // 客户端私钥文件路径 | Client key file path
-	ReconnectInterval int      `yaml:"reconnect_interval" json:"reconnect_interval"` // 重连间隔（秒）| Reconnect interval (seconds)
+	ID                string   `json:"id"`
+	Name              string   `json:"name"`
+	Type              string   `json:"type"` // "mqtt" or "nats"
+	Enabled           bool     `json:"enabled"`
+	Broker            string   `json:"broker"`
+	ClientID          string   `json:"client_id"`
+	Username          string   `json:"username"`
+	Password          string   `json:"password"`
+	QoS               byte     `json:"qos"`
+	CleanSession      bool     `json:"clean_session"`
+	KeepAlive         int      `json:"keep_alive"`
+	ConnectTimeout    int      `json:"connect_timeout"`
+	AutoReconnect     bool     `json:"auto_reconnect"`
+	Subscriptions     []string `json:"subscriptions"`
+	MQTTVersion       int      `json:"mqtt_version"`       // 4 = 3.1.1, 5 = 5.0
+	SSL               bool     `json:"ssl"`                // 启用 SSL/TLS | Enable SSL/TLS
+	CAFile            string   `json:"ca_file"`            // CA 证书文件路径 | CA certificate file path
+	ClientCertFile    string   `json:"client_cert_file"`   // 客户端证书文件路径 | Client cert file path
+	ClientKeyFile     string   `json:"client_key_file"`    // 客户端私钥文件路径 | Client key file path
+	ReconnectInterval int      `json:"reconnect_interval"` // 重连间隔（秒）| Reconnect interval (seconds)
 }
 
 // Config 配置结构 | Configuration structure
 type Config struct {
 	// 用户配置 | User configuration
 	User struct {
-		Username string `yaml:"username" json:"username"`
-		Password string `yaml:"password" json:"password"`
-		Role     string `yaml:"role" json:"role"`
-	} `yaml:"user" json:"user"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Role     string `json:"role"`
+	} `json:"user"`
 
 	// 节点配置 | Node configuration
 	Node struct {
-		NodeID        string `yaml:"node_id" json:"node_id"`               // 节点ID | Node ID
-		NodeType      string `yaml:"node_type" json:"node_type"`           // primary, secondary, collector
-		PrimaryNodeID string `yaml:"primary_node_id" json:"primary_node_id"` // 备用节点需要配置主节点ID | Backup node needs primary node ID
-		Listen        string `yaml:"listen" json:"listen"`                 // 监听地址 | Listen address
-	} `yaml:"node" json:"node"`
+		NodeID        string `json:"node_id"`         // 节点ID | Node ID
+		NodeType      string `json:"node_type"`       // primary, secondary, collector
+		PrimaryNodeID string `json:"primary_node_id"` // 备用节点需要配置主节点ID | Backup node needs primary node ID
+		Listen        string `json:"listen"`          // 监听地址 | Listen address
+	} `json:"node"`
 
 	// 数据库配置 | Database configuration
 	Database struct {
-		Type     string `yaml:"type" json:"type"`         // bolt, etcd
-		Path     string `yaml:"path" json:"path"`         // 数据库路径 | Database path
-		Endpoint string `yaml:"endpoint" json:"endpoint"` // etcd 端点 | etcd endpoint
-	} `yaml:"database" json:"database"`
+		Type     string `json:"type"`     // bolt, etcd
+		Path     string `json:"path"`     // 数据库路径 | Database path
+		Endpoint string `json:"endpoint"` // etcd 端点 | etcd endpoint
+	} `json:"database"`
 
 	// 安全配置 | Security configuration
 	Security struct {
-		JWTSecret  string `yaml:"jwt_secret" json:"jwt_secret"`   // JWT 密钥 | JWT secret
-		TLSEnabled bool   `yaml:"tls_enabled" json:"tls_enabled"` // 是否启用 TLS | Enable TLS
-		CertFile   string `yaml:"cert_file" json:"cert_file"`     // 证书文件 | Certificate file
-		KeyFile    string `yaml:"key_file" json:"key_file"`       // 密钥文件 | Key file
-	} `yaml:"security" json:"security"`
+		JWTSecret  string `json:"jwt_secret"`  // JWT 密钥 | JWT secret
+		TLSEnabled bool   `json:"tls_enabled"` // 是否启用 TLS | Enable TLS
+		CertFile   string `json:"cert_file"`   // 证书文件 | Certificate file
+		KeyFile    string `json:"key_file"`    // 密钥文件 | Key file
+	} `json:"security"`
 
 	// 监控配置 | Monitoring configuration
 	Monitoring struct {
-		Enabled    bool   `yaml:"enabled" json:"enabled"`           // 是否启用监控 | Enable monitoring
-		Prometheus string `yaml:"prometheus" json:"prometheus"`     // Prometheus 端口 | Prometheus port
-	} `yaml:"monitoring" json:"monitoring"`
+		Enabled    bool   `json:"enabled"`    // 是否启用监控 | Enable monitoring
+		Prometheus string `json:"prometheus"` // Prometheus 端口 | Prometheus port
+	} `json:"monitoring"`
 
 	// 中间件配置 | Middleware configuration
-	Middlewares []MiddlewareMiddlewareConfig `yaml:"middlewares" json:"middlewares"`
+	Middlewares []MiddlewareMiddlewareConfig `json:"middlewares"`
 
 	// EAN 2.0 配置 | EAN 2.0 configuration
-	EAN EANConfig `yaml:"ean" json:"ean"`
+	EAN EANConfig `json:"ean"`
 }
 
 // ── ConfigManager 配置管理器 | Config Manager ───────────────────────────────
 
-var saveMu sync.Mutex
-
 // ConfigManager 管理配置的加载与持久化（运行时以数据库为唯一数据源）
 // ConfigManager manages config loading and persistence (DB is the single source of truth at runtime)
 type ConfigManager struct {
-	Config  *Config
-	dataDir string
-	db      *bbolt.DB
-	useDB   bool
-}
-
-// NewConfigManagerWithEmptyConfig 创建使用默认空配置的配置管理器（用于安装前）
-// NewConfigManagerWithEmptyConfig creates a ConfigManager with default empty config (pre-install)
-func NewConfigManagerWithEmptyConfig(dataDir string) *ConfigManager {
-	cfg := DefaultConfig()
-	return &ConfigManager{
-		Config:  cfg,
-		dataDir: dataDir,
-		db:      nil,
-		useDB:   false,
-	}
+	Config *Config
 }
 
 // NewConfigManagerWithDB 创建使用数据库存储配置的配置管理器
 // NewConfigManagerWithDB creates a ConfigManager backed by the config database
-func NewConfigManagerWithDB(dataDir string, db *bbolt.DB) (*ConfigManager, error) {
+func NewConfigManagerWithDB(db *bbolt.DB) (*ConfigManager, error) {
 	configStore, err := storage.NewConfigStore(db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create config store: %w", err)
@@ -126,48 +108,13 @@ func NewConfigManagerWithDB(dataDir string, db *bbolt.DB) (*ConfigManager, error
 	}
 
 	return &ConfigManager{
-		Config:  cfg,
-		dataDir: dataDir,
-		db:      db,
-		useDB:   true,
+		Config: cfg,
 	}, nil
 }
 
 // GetConfig 获取当前配置 | Get current configuration
 func (cm *ConfigManager) GetConfig() *Config {
 	return cm.Config
-}
-
-// AttachDB 将运行时数据库绑定到配置管理器（安装完成后使用）
-// AttachDB binds the runtime database to the config manager (after install)
-func (cm *ConfigManager) AttachDB(db *bbolt.DB) {
-	cm.db = db
-	cm.useDB = true
-}
-
-// Reload 从数据库重新加载配置 | Reload configuration from database
-func (cm *ConfigManager) Reload() error {
-	if !cm.useDB || cm.db == nil {
-		return fmt.Errorf("configuration reload requires database attachment")
-	}
-	newCfg, err := LoadConfigFromDB(cm.db)
-	if err != nil {
-		return err
-	}
-	cm.Config = newCfg
-	return nil
-}
-
-// SaveConfig 保存配置到数据库 | Save configuration to database
-func (cm *ConfigManager) SaveConfig(cfg *Config) error {
-	saveMu.Lock()
-	defer saveMu.Unlock()
-
-	if cm.useDB && cm.db != nil {
-		return SaveConfigToDB(cm.db, cfg)
-	}
-
-	return fmt.Errorf("configuration persistence requires database attachment")
 }
 
 // ── DefaultConfig 默认配置 | Default configuration ──────────────────────────

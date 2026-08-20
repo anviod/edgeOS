@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { Zap, Eye, EyeOff, LogIn } from 'lucide-vue-next'
+import { Eye, EyeOff, LogIn } from 'lucide-vue-next'
 import { authApi } from '@/api/index'
 import { userStore } from '@/stores/user'
 
@@ -50,7 +50,7 @@ async function handleLogin() {
 
         <!-- Title -->
         <div class="panel-title">
-          <div class="title-main">边缘计算主控网关</div>
+          <div class="title-main">边缘计算核心中枢</div>
           <div class="title-sub">Edge Brain Open System</div>
         </div>
 
