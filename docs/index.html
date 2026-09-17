@@ -4,164 +4,359 @@ title: EdgeOS
 description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点的发现、调度、事件监听与运行治理。
 ---
 
-<section class="hero-section" id="overview">
-  <div class="hero-inner">
-    <div class="hero-copy">
-      <span class="hero-badge"><span class="hero-badge__dot"></span>EAN 2.0 · 63 原生 Capability 已索引</span>
-      <h1>EdgeOS</h1>
-      <h2>edgeCore 节点集群的 AI 中枢 群控大脑</h2>
-      <div class="hero-typewriter">
-        <span class="typewriter-text"></span><span class="typewriter-cursor">|</span>
+<div id="portal-home">
+
+  <!-- ============================================================
+       HERO · 居中文案 + 横跨版宽的集群遥测台
+       ============================================================ -->
+  <section class="hero-section" id="overview">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <span class="hero-badge">
+          <span class="hero-badge__dot"></span>
+          <span>工业边缘集群协调平面</span>
+          <span class="hero-badge__sep">|</span>
+          <span class="hero-badge__accent">EAN 2.0</span>
+        </span>
+
+        <h1>
+          离散边缘节点 edgeCore<br />
+          协作如一台工业整机。
+        </h1>
+
+        <p class="hero-desc">
+          EdgeOS 统一度量与调度分布式工控节点  edgeCore。内建自主拓扑发现、双总线指令编排与微秒级事件监听，
+          提供确定性的生产集群协同能力，并保留严苛的「工程师终审」人机回环。
+        </p>
+
+        <div class="hero-values">
+          <span class="value-tag">63 项 Capability 自动注册</span>
+          <span class="value-tag">MQTT ↔ NATS 对称寻址</span>
+          <span class="value-tag">Shadow previous_value 事件流</span>
+        </div>
+
+        <div class="hero-actions">
+          <a class="btn btn--primary" href="#workbench">
+            <span>探索六大控制平面</span>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </a>
+          <a class="btn btn--ghost" href="#panel-bus">
+            <span class="btn__dot"></span>
+            <span>调测双协议总线</span>
+          </a>
+        </div>
       </div>
-      <p class="hero-desc">
-        统一管理 edgeCore 边缘节点，自动发现设备、调度指令、监听事件，让边缘集群协作如一台整机。
+
+      <!-- 集群遥测台 -->
+      <div class="hero-visual">
+        <div class="telemetry glass">
+          <div class="telemetry__head">
+            <span class="telemetry__title">CLUSTER_TELEMETRY</span>
+            <span class="telemetry__poll">POLL: 30s HEARTBEAT</span>
+          </div>
+
+          <!-- 亚毫秒遥测时钟 -->
+          <div class="telemetry__clock">
+            <div class="telemetry__clock-row">
+              <div>
+                <div class="telemetry__clock-label">Monotonic Telemetry Clock</div>
+                <div class="telemetry__clock-value" id="telemetry-clock">--:--:--.------</div>
+              </div>
+              <div>
+                <div class="telemetry__clock-label">Cluster Uptime</div>
+                <div class="telemetry__uptime" id="telemetry-uptime">T+ 000:00:00:00</div>
+              </div>
+            </div>
+            <div class="telemetry__clock-foot">
+              <span>采样源 <b>performance.now()</b></span>
+              <span>抖动 JITTER <span class="is-amber" id="telemetry-jitter">0.00µs</span></span>
+              <span>精度 <span class="is-emerald">µs 级</span></span>
+            </div>
+          </div>
+
+          <!-- 指标格 -->
+          <div class="telemetry__grid">
+            <div class="metric metric--emerald">
+              <div class="metric__label">Capabilities</div>
+              <div class="metric__value">63 / 63</div>
+            </div>
+            <div class="metric metric--cobalt">
+              <div class="metric__label">Router Latency</div>
+              <div class="metric__value"><span id="metric-latency">0.84</span><span class="metric__unit">ms</span></div>
+            </div>
+            <div class="metric metric--amber">
+              <div class="metric__label">Discovery</div>
+              <div class="metric__value">Registry<span class="metric__unit">READY</span></div>
+            </div>
+            <div class="metric metric--emerald">
+              <div class="metric__label">Human Sign-off</div>
+              <div class="metric__value"><b>ENFORCED</b></div>
+            </div>
+          </div>
+
+          <!-- 事件流 -->
+          <div class="console">
+            <div class="console__head">
+              <span>EVENT_BUS_LIVE_STREAM</span>
+              <span class="console__live">● BROADCASTING</span>
+            </div>
+            <div class="console__body console__body--short" id="telemetry-log">
+              <div><span class="ts">[--:--:--]</span> <span class="c-emerald">READY</span> 双通道对称总线已就绪，等待 edgeCore 上线</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       工作台分段控制器（中部胶囊 · 与顶部导航联动）
+       ============================================================ -->
+  <section class="landing-section" id="workbench">
+    <div class="section-heading">
+      <div>
+        <div class="section-heading__eyebrow" id="view-eyebrow">CORE SYSTEM ARCHITECTURE</div>
+        <h2 id="view-title">六大核心控制平面</h2>
+      </div>
+      <p class="section-heading__note" id="view-note">
+        底层控制引擎构建工业级确定性协同网络，点击任一子系统即可展开对应的 EAN 2.0 真实报文。
       </p>
-      <div class="hero-values">
-        <span class="value-tag">分布式架构</span>
-        <span class="value-tag">动态发现</span>
-        <span class="value-tag">实时响应</span>
-        <span class="value-tag">边缘计算</span>
+    </div>
+
+    <div class="nav-segment" role="group" aria-label="工作台分区切换">
+      <button type="button" class="nav-segment__btn is-active" data-nav-tab="explorer">控制子系统</button>
+      <button type="button" class="nav-segment__btn" data-nav-tab="bus">双通道总线</button>
+      <button type="button" class="nav-segment__btn" data-nav-tab="pipeline">流水线</button>
+      <button type="button" class="nav-segment__btn" data-nav-tab="specs">点位规范</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TAB 1 · 控制子系统（交互检查器）
+       ============================================================ -->
+  <section class="landing-section portal-panel is-visible" id="panel-explorer">
+    <div class="feature-grid feature-grid--three" id="subsystem-grid"></div>
+
+    <!-- 架构检查器抽屉 -->
+    <div class="drawer glass" id="inspector">
+      <div class="drawer__head">
+        <div class="drawer__identity">
+          <span class="drawer__code" id="inspector-code">01 / DISCOVERY</span>
+          <h3 class="drawer__title" id="inspector-title">自动发现节点 (Discovery Center)</h3>
+        </div>
+        <div class="drawer__tools">
+          <span class="drawer__schema">SCHEMA: EAN-2.0-STRICT</span>
+          <button type="button" class="drawer__toggle" id="inspector-toggle" aria-expanded="true" aria-controls="inspector-body">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+            </svg>
+            <span id="inspector-toggle-label">收起抽屉</span>
+          </button>
+          <button type="button" class="btn btn--ghost btn--sm" id="inspector-copy">复制 Payload</button>
+        </div>
       </div>
-      <div class="hero-actions">
-        <a class="button-link button-link--primary" href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a class="button-link button-link--secondary" href="./EdgeOS 后端实现指南.html">快速开始</a>
-        <a class="button-link button-link--secondary" href="./edgeCore通信协议规范(MQTT-NATS).html">通信协议</a>
+
+      <div class="drawer__body" id="inspector-body">
+        <div class="drawer__grid">
+          <div>
+            <p class="drawer__desc" id="inspector-desc"></p>
+            <div class="slo">
+              <div class="slo__title">关键运行指标 (SLO)</div>
+              <div id="inspector-slo"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="console">
+              <div class="console__head">
+                <span class="console__dots"><i></i><i></i><i></i></span>
+                <span class="console__file">ean2_frame_inspect.json</span>
+                <span class="console__status">JSON (Validated)</span>
+              </div>
+              <pre id="inspector-json"></pre>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="hero-visual" aria-hidden="true" data-hero-visual></div>
-  </div>
-</section>
+  </section>
 
-<section class="landing-section" id="subsystems">
-  <div class="section-heading">
-    <h2>核心子系统</h2>
-  </div>
+  <!-- ============================================================
+       TAB 2 · 双通道总线模拟器
+       ============================================================ -->
+  <section class="landing-section portal-panel" id="panel-bus" hidden>
+    <div class="bus-panel glass">
+      <div class="bus-panel__grid">
+        <div class="bus-stack">
+          <div class="panel-head">
+            <span class="panel-head__label">指令报文调测台 · Command Injector</span>
+            <span class="panel-head__status is-mqtt" id="bus-carrier-status">CARRIER: MQTT 3.1.1 · 斜杠 Topic · QoS 1</span>
+          </div>
 
-  <div class="feature-grid">
-    <article class="capability-card">
-      <h3>自动发现节点</h3>
-      <p>自动扫描并识别网络中的 edgeCore 节点，收集各节点提供的能力清单，建立统一的管理目录。</p>
-    </article>
+          <div class="proto-switch" role="group" aria-label="选择载波">
+            <button type="button" class="proto-switch__btn is-active" data-proto="mqtt">MQTT 3.1.1 · 斜杠 Topic</button>
+            <button type="button" class="proto-switch__btn" data-proto="nats">NATS JetStream · 点分 Subject</button>
+          </div>
 
-    <article class="capability-card">
-      <h3>指令编排调度</h3>
-      <p>向各节点发送控制指令并跟踪执行结果。新协议无响应时，自动改用旧协议重试。</p>
-    </article>
+          <div>
+            <label class="field-label" for="bus-input-topic">统一寻址 Topic / Subject（切换载波时自动改写分隔符）</label>
+            <input class="field-input" type="text" id="bus-input-topic" value="$edgeos/invoke/edgeCore-node-001" spellcheck="false" />
+          </div>
 
-    <article class="capability-card">
-      <h3>设备事件监听</h3>
-      <p>实时接收设备上报的状态变化和告警信息，记录历史数据用于追溯分析。</p>
-    </article>
+          <div>
+            <label class="field-label" for="bus-input-payload">控制载荷 · invoke_capability 信封（非合法 JSON 将被严格模式阻断）</label>
+            <textarea class="field-textarea" id="bus-input-payload" rows="11" spellcheck="false">{
+  "header": {
+    "message_id": "msg-invoke-001",
+    "source": "edgeos-planner-001",
+    "destination": "edgeCore-node-001",
+    "message_type": "invoke_capability",
+    "version": "2.0"
+  },
+  "body": {
+    "invoke_id": "invoke-001",
+    "target": "edgeCore-node-001",
+    "capability": "modbus_tcp.write_point",
+    "arguments": { "device_id": "slave-1", "address": "40001", "value": 25.5 },
+    "options": { "timeout_sec": 10, "priority": "normal", "retry": 2 }
+  }
+}</textarea>
+          </div>
 
-    <article class="capability-card">
-      <h3>运行治理</h3>
-      <p>监控节点健康状态，超时自动判定离线。记录所有操作日志，优先使用官方原生能力。</p>
-    </article>
+          <div class="bus-actions">
+            <button type="button" class="btn btn--primary btn--sm" id="btn-dispatch">下发 invoke_capability (DISPATCH)</button>
+            <button type="button" class="btn btn--amber btn--sm" id="btn-failover">模拟链路超时降级</button>
+          </div>
+        </div>
 
-    <article class="capability-card">
-      <h3>双通道传输</h3>
-      <p>同时支持 MQTT 和 NATS 两种消息通道，两端使用相同地址格式，确保消息可靠送达。</p>
-    </article>
+        <div class="bus-stack">
+          <div class="panel-head">
+            <span class="panel-head__label">总线物理收发回环监控</span>
+            <span class="panel-head__label">QoS 1 · AT LEAST ONCE</span>
+          </div>
 
-    <article class="capability-card">
-      <h3>旧版兼容</h3>
-      <p>为仅支持旧协议的节点自动生成兼容接口，新节点则直接使用原生能力，互不干扰。</p>
-    </article>
-  </div>
-</section>
-
-<section class="landing-section" id="ai-capabilities">
-  <div class="section-heading">
-    <h2>AI 能力</h2>
-  </div>
-
-  <div class="feature-grid">
-    <article class="capability-card">
-      <h3>协议逆向</h3>
-      <p>AI 分析设备通信报文，自动生成协议配置草案，工程师确认后生效。</p>
-    </article>
-
-    <article class="capability-card">
-      <h3>文档解析</h3>
-      <p>AI 读取设备手册和点位表，自动提取寄存器信息，生成设备模型草稿。</p>
-    </article>
-
-    <article class="capability-card">
-      <h3>人工确认</h3>
-      <p>AI 生成的所有配置须经工程师审核确认后才可写入系统，确保安全可靠。</p>
-    </article>
-  </div>
-</section>
-
-<section class="landing-section" id="pipeline">
-  <div class="section-heading">
-    <h2>流水线架构</h2>
-  </div>
-
-  <div class="arch-flow" data-arch-flow>
-    <canvas class="arch-particles" data-arch-canvas></canvas>
-    <div class="arch-step">
-      <span class="arch-step__status"></span>
-      <span class="arch-step__num">01</span>
-      <span class="arch-step__label">发现节点</span>
+          <div class="console">
+            <div class="console__head">
+              <span class="console__dots"><i></i><i></i><i></i></span>
+              <span class="console__file">wire_trace.log</span>
+              <span class="console__live">● LIVE</span>
+            </div>
+            <div class="console__body console__body--tall" id="bus-wire">
+              <div id="bus-wire-stream">
+                <div><span class="ts">[SYS]</span> <span class="c-dim">--- 双通道统一总线就绪 ---</span></div>
+                <div><span class="c-emerald">✓</span> NATS JetStream / MQTT 3.1.1 双向镜像网关已锚定</div>
+                <div><span class="c-blue">ℹ</span> 统一寻址：$edgeos/{domain}/{agent_id} ↔ $edgeos.{domain}.{agent_id}</div>
+              </div>
+            </div>
+            <div class="console__foot">
+              <span>ACK: <b id="bus-stat-ack">SYNCHRONOUS</b></span>
+              <span id="bus-stat-transit">ROUND_TRIP: —</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <span class="arch-arrow">&#8594;</span>
-    <div class="arch-step">
-      <span class="arch-step__status"></span>
-      <span class="arch-step__num">02</span>
-      <span class="arch-step__label">调度指令</span>
-    </div>
-    <span class="arch-arrow">&#8594;</span>
-    <div class="arch-step">
-      <span class="arch-step__status"></span>
-      <span class="arch-step__num">03</span>
-      <span class="arch-step__label">监听事件</span>
-    </div>
-    <span class="arch-arrow">&#8594;</span>
-    <div class="arch-step">
-      <span class="arch-step__status"></span>
-      <span class="arch-step__num">04</span>
-      <span class="arch-step__label">治理监控</span>
-    </div>
-    <span class="arch-arrow">&#8594;</span>
-    <div class="arch-step">
-      <span class="arch-step__status"></span>
-      <span class="arch-step__num">05</span>
-      <span class="arch-step__label">兼容旧版</span>
-    </div>
-    <span class="arch-arrow">&#8594;</span>
-    <div class="arch-step">
-      <span class="arch-step__status"></span>
-      <span class="arch-step__num">06</span>
-      <span class="arch-step__label">AI 辅助</span>
-    </div>
-  </div>
-</section>
+  </section>
 
-<section class="landing-section" id="documents">
-  <div class="section-heading">
-    <h2>文档导航</h2>
-  </div>
+  <!-- ============================================================
+       TAB 3 · 流水线工步
+       ============================================================ -->
+  <section class="landing-section portal-panel" id="panel-pipeline" hidden>
+    <div class="pipeline-grid" id="pipeline-grid"></div>
 
-  <div class="card-grid">
-    <a class="doc-card" href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">
-      <h3>项目总览</h3>
-      <span class="doc-card__meta">查看 &rarr;</span>
-    </a>
+    <div class="pipeline-detail glass">
+      <div class="pipeline-detail__grid">
+        <div>
+          <div class="pipeline-detail__head">
+            <span class="pipeline-detail__badge" id="pipe-badge">STEP 01</span>
+            <h3 id="pipe-title">自动发现节点 (Discovery)</h3>
+          </div>
 
-    <a class="doc-card" href="./edgeCore通信协议规范(MQTT-NATS).html">
-      <h3>通信协议规范</h3>
-      <span class="doc-card__meta">查看 &rarr;</span>
-    </a>
+          <p class="pipeline-detail__text" id="pipe-text"></p>
 
-    <a class="doc-card" href="./EdgeOS 后端实现指南.html">
-      <h3>后端实现指南</h3>
-      <span class="doc-card__meta">查看 &rarr;</span>
-    </a>
+          <div class="gate-list">
+            <div class="gate-list__title">工业现场物理合规准则</div>
+            <ul>
+              <li>Agent / Capability Descriptor 必须携带 <code>version: "2.0"</code> 与硬件元数据，防范重放伪造</li>
+              <li>Invoke 前必须校验 target / Capability / permission，越权请求回 <code>rejected</code></li>
+              <li>并发写入必须申请 <code>resource_locks</code>（device / channel 作用域），避免同点位冲突</li>
+              <li>AI 逆向与文档解析产出的一切配置均为草案，须经 AI 任务 Confirm API 签字后方可落库</li>
+            </ul>
+          </div>
 
-    <a class="doc-card" href="./edgeos/AI协同组件规划.html">
-      <h3>AI 协同组件规划</h3>
-      <span class="doc-card__meta">查看 &rarr;</span>
-    </a>
-  </div>
-</section>
+          <div class="hero-actions">
+            <button type="button" class="btn btn--primary btn--sm" id="btn-advance">下一步单步验证 →</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="console" style="height:100%">
+            <div class="console__head">
+              <span class="console__dots"><i></i><i></i><i></i></span>
+              <span class="console__file">stage_verification.json</span>
+              <span class="console__status">CHECKSUM_VALID</span>
+            </div>
+            <pre id="pipe-code"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TAB 4 · 点位规范库
+       ============================================================ -->
+  <section class="landing-section portal-panel" id="panel-specs" hidden>
+    <div class="bus-panel glass">
+      <div class="spec-toolbar">
+        <div class="search-field">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input type="text" id="point-filter" placeholder="过滤寄存器地址 / 语义 / 权限（如 40001、温度、CRITICAL_WRITE）" aria-label="过滤点位表" />
+        </div>
+
+        <div class="spec-stats">
+          <span class="badge-signoff">已通过工程师签名确认</span>
+          <span class="spec-count" id="point-count">总点位: 63</span>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="spec-table" id="point-table">
+          <thead>
+            <tr>
+              <th>Register 地址</th>
+              <th>数据类型</th>
+              <th>点位语义标识 (Symbolic Name)</th>
+              <th>单位</th>
+              <th>访问权限</th>
+              <th class="col-right">EAN 2.0 Capability 映射</th>
+            </tr>
+          </thead>
+          <tbody id="point-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       文档导航
+       ============================================================ -->
+  <section class="landing-section" id="documents">
+    <div class="section-heading">
+      <div>
+        <div class="section-heading__eyebrow">DOCUMENTATION</div>
+        <h2>系统文档与规范导航</h2>
+      </div>
+      <p class="section-heading__note">
+        随时检阅 EdgeOS 与 edgeCore 的全套技术白皮书与通信规范。
+      </p>
+    </div>
+
+    <div class="card-grid" id="doc-grid"></div>
+  </section>
+
+</div>

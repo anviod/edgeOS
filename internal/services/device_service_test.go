@@ -145,6 +145,78 @@ func TestDeviceService_ReconcileDevices_EmptyClearsNode(t *testing.T) {
 	assert.Empty(t, devs)
 }
 
+// ReconcileDevices 上报的元数据快照通常不携带 operating_state，
+// 不应覆盖 UpdateDeviceStatus 写入的运行时在线/离线状态。
+func TestDeviceService_ReconcileDevices_PreservesOperatingState(t *testing.T) {
+	db, cleanup := openTestDB(t)
+	defer cleanup()
+
+	svc := NewDeviceService(db)
+
+	// 首次上报：元数据快照，无 operating_state
+	_, _, err := svc.ReconcileDevices("n1", []model.EdgeCoreDeviceInfo{
+		{DeviceID: "dev-1", DeviceName: "传感器A"},
+	})
+	require.NoError(t, err)
+
+	// 运行时事件将设备标记为 online
+	require.NoError(t, svc.UpdateDeviceStatus("n1", "dev-1", "online"))
+	got, err := svc.GetDevice("n1", "dev-1")
+	require.NoError(t, err)
+	assert.Equal(t, "online", got.OperatingState)
+
+	// 再次上报元数据快照（仍不携带 operating_state）——状态不应被抹掉
+	_, _, err = svc.ReconcileDevices("n1", []model.EdgeCoreDeviceInfo{
+		{DeviceID: "dev-1", DeviceName: "传感器A 改名"},
+	})
+	require.NoError(t, err)
+
+	got, err = svc.GetDevice("n1", "dev-1")
+	require.NoError(t, err)
+	assert.Equal(t, "online", got.OperatingState, "report 快照不应覆盖运行时在线状态")
+	assert.Equal(t, "传感器A 改名", got.DeviceName, "元数据仍应更新")
+
+	// 离线事件后再次上报，状态应保持 offline
+	require.NoError(t, svc.UpdateDeviceStatus("n1", "dev-1", "offline"))
+	_, _, err = svc.ReconcileDevices("n1", []model.EdgeCoreDeviceInfo{
+		{DeviceID: "dev-1", DeviceName: "传感器A 再次改名"},
+	})
+	require.NoError(t, err)
+	got, err = svc.GetDevice("n1", "dev-1")
+	require.NoError(t, err)
+	assert.Equal(t, "offline", got.OperatingState, "report 快照不应覆盖运行时离线状态")
+}
+
+// UpsertDevice 直接调用时，operating_state 为空也应保留已有运行时状态。
+func TestDeviceService_UpsertDevice_PreservesOperatingStateWhenEmpty(t *testing.T) {
+	db, cleanup := openTestDB(t)
+	defer cleanup()
+
+	svc := NewDeviceService(db)
+
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{
+		DeviceID: "dev-2", DeviceName: "PLC",
+	}))
+	require.NoError(t, svc.UpdateDeviceStatus("n1", "dev-2", "online"))
+
+	// 直接 upsert 元数据（无 operating_state）——应保留 online
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{
+		DeviceID: "dev-2", DeviceName: "PLC 改名",
+	}))
+	got, err := svc.GetDevice("n1", "dev-2")
+	require.NoError(t, err)
+	assert.Equal(t, "online", got.OperatingState)
+	assert.Equal(t, "PLC 改名", got.DeviceName)
+
+	// 显式携带 operating_state 时应尊重上报值（如 edgeCore 主动上报状态）
+	require.NoError(t, svc.UpsertDevice("n1", &model.EdgeCoreDeviceInfo{
+		DeviceID: "dev-2", DeviceName: "PLC", OperatingState: "offline",
+	}))
+	got, err = svc.GetDevice("n1", "dev-2")
+	require.NoError(t, err)
+	assert.Equal(t, "offline", got.OperatingState, "显式上报的 operating_state 应被尊重")
+}
+
 // ======================== 空间属性 | Spatial attributes ========================
 
 func TestDeviceService_SpatialAttributes_PersistAndRetrieve(t *testing.T) {

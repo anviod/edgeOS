@@ -3,102 +3,104 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#F1F5F9" />
     <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
     <meta
       name="description"
       content="{{ page.description | default: site.description | strip_html | strip_newlines | escape }}"
     />
+    <!-- 主题引导：首屏渲染前落地，避免刷新闪白/闪黑；首次访问跟随系统 -->
     <script>
       (function () {
-        var storedTheme = localStorage.getItem('edgeos-docs-theme');
-        var theme = storedTheme === 'light' ? 'light' : 'dark';
+        var theme = 'light';
+        var source = 'system';
+        try {
+          var saved = localStorage.getItem('edgeos-docs-theme');
+          if (saved === 'dark' || saved === 'light') {
+            theme = saved;
+            source = 'manual';
+          } else if (typeof window.matchMedia === 'function' &&
+                     window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            theme = 'dark';
+          }
+        } catch (e) {}
         document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.dataset.themeSource = source;
       })();
     </script>
-    <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}?v=3" />
+    <link rel="stylesheet" href="{{ '/assets/portal.css' | relative_url }}?v=5" />
   </head>
   <body class="page-body">
     <div class="site-shell">
       <header class="site-header">
         <div class="site-header__inner">
           <a class="site-brand" href="{{ '/' | relative_url }}">
-            <span class="site-brand__eyebrow">Industrial Edge</span>
-            <span class="site-brand__title">EdgeOS</span>
+            <span class="site-brand__mark">E</span>
+            <span class="site-brand__text">
+              <span class="site-brand__row">
+                <span class="site-brand__title">EdgeOS</span>
+                <span class="site-brand__eyebrow">DOCS</span>
+              </span>
+              <span class="site-brand__meta">
+                <span>EAN 2.0 协调平面</span>
+              </span>
+            </span>
           </a>
-          <nav class="site-nav" aria-label="主导航">
-            <a href="{{ '/' | relative_url }}">文档</a>
+
+          <nav class="site-nav site-nav--docs" aria-label="主导航">
+            <a href="{{ '/' | relative_url }}">首页</a>
             <a href="{{ '/EdgeOS 后端实现指南.html' | relative_url }}">架构</a>
             <a href="{{ '/edgeCore通信协议规范(MQTT-NATS).html' | relative_url }}">协议</a>
-            <a href="{{ '/#ai-capabilities' | relative_url }}">AI 能力</a>
+            <a href="{{ '/edgeos/AI协同组件规划.html' | relative_url }}">AI 能力</a>
             <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <button
-              class="theme-toggle"
-              type="button"
-              data-theme-toggle
-              aria-label="切换主题"
-              aria-pressed="false"
-            >
-              <span data-theme-icon>暗黑</span>
-            </button>
           </nav>
+
+          <div class="header-actions">
+            <button type="button" class="search-trigger" id="palette-trigger">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <kbd class="kbd">⌘K</kbd>
+            </button>
+
+            <button type="button" class="theme-toggle" data-theme-toggle aria-label="切换亮色 / 深色模式">
+              <svg class="icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9h1m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+              <svg class="icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+              </svg>
+            </button>
+
+            <a class="github-link" href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">
+              <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+              </svg>
+              <span>源码</span>
+            </a>
+          </div>
         </div>
       </header>
 
       <main class="doc-shell">
-        <div class="doc-shell__inner">
-          <div class="doc-intro">
-            <p class="doc-intro__eyebrow">Documentation</p>
-            <h1>{{ page.title | default: site.title }}</h1>
-            {% if page.description %}
-              <p class="doc-intro__summary">{{ page.description }}</p>
-            {% endif %}
-          </div>
-
-          <article class="doc-content">
-            {{ content }}
-          </article>
+        <div class="doc-intro glass">
+          <p class="doc-intro__eyebrow">Documentation</p>
+          <h1>{{ page.title | default: site.title }}</h1>
+          {% if page.description %}
+            <p class="doc-intro__summary">{{ page.description }}</p>
+          {% endif %}
         </div>
+
+        <article class="doc-content glass">
+          {{ content }}
+        </article>
       </main>
 
-      <footer class="site-footer">
-        <div class="site-footer__row">
-          <span class="site-footer__brand">EdgeOS</span>
-          <span class="site-footer__divider">|</span>
-          <span class="site-footer__tagline">EAN 2.0 协调平面</span>
-          <span class="site-footer__divider">|</span>
-          <a href="https://github.com/anviod/EdgeOS" target="_blank" rel="noopener noreferrer">GitHub</a>
-          <span class="site-footer__divider">|</span>
-          
-          <a href="{{ '/样式规范.html' | relative_url }}">样式指南</a>
-          <span class="site-footer__divider">|</span>
-          <span class="site-footer__copy">开源 · MIT 许可证</span>
-        </div>
-      </footer>
+      {% include portal-footer.html %}
     </div>
 
-    <script>
-      (function () {
-        var storageKey = 'edgeos-docs-theme';
-        var root = document.documentElement;
-        var button = document.querySelector('[data-theme-toggle]');
-        var icon = document.querySelector('[data-theme-icon]');
-        if (!button) return;
+    {% include portal-chrome.html %}
 
-        function syncTheme(theme) {
-          root.setAttribute('data-theme', theme);
-          if (icon) icon.textContent = theme === 'light' ? '暗黑' : '明亮';
-          button.setAttribute('aria-pressed', String(theme === 'light'));
-        }
-
-        syncTheme(root.getAttribute('data-theme') || 'dark');
-
-        button.addEventListener('click', function () {
-          var currentTheme = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-          var nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-          syncTheme(nextTheme);
-          localStorage.setItem(storageKey, nextTheme);
-        });
-      })();
-    </script>
+    <script src="{{ '/assets/portal.js' | relative_url }}?v=4"></script>
   </body>
 </html>

@@ -8,8 +8,7 @@ chmod +x /opt/edgeOS/edgeOS
 cat > /etc/systemd/system/edgeOS.service << 'UNIT'
 [Unit]
 Description=EdgeOS - Industrial Edge Agent Network Platform
-After=network-online.target
-Wants=network-online.target
+After=network.target
 
 [Service]
 Type=simple
@@ -23,7 +22,19 @@ LimitNOFILE=65536
 WantedBy=multi-user.target
 UNIT
 
-systemctl daemon-reload
-systemctl enable edgeOS
-echo "EdgeOS service created. Run 'systemctl start edgeOS' to start."
+# 仅在 systemctl 存在时执行 systemd 操作
+if command -v systemctl >/dev/null 2>&1; then
+    echo "[postinstall] Reloading systemd..."
+    systemctl daemon-reload || true
+
+    echo "[postinstall] Enabling service..."
+    systemctl enable edgeOS || true
+
+    echo "[postinstall] Starting service..."
+    systemctl restart edgeOS || true
+else
+    echo "[postinstall] systemctl not found, skipping systemd service operations."
+fi
+
+echo "[postinstall] Completed."
 exit 0

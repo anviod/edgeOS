@@ -20,7 +20,7 @@ const form = reactive({
   node_type: 'primary' as 'primary' | 'secondary' | 'collector',
   node_id: 'node-001',
   primary_node_id: 'node-primary',
-  listen: ':8000',
+  listen: ':80',
   username: 'admin',
   password: '',
   confirm_password: '',

@@ -1,7 +1,6 @@
 [Unit]
 Description=EdgeOS - Industrial Edge Agent Network Platform
-After=network-online.target
-Wants=network-online.target
+After=network.target
 
 [Service]
 Type=simple

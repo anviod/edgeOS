@@ -139,7 +139,7 @@ func TestHandleInstall_RejectWhenAlreadyInstalled(t *testing.T) {
 	require.NoError(t, cs.SaveNodeConfig(storage.NodeConfigData{
 		NodeID:   "node-001",
 		NodeType: "primary",
-		Listen:   ":8000",
+		Listen:   ":80",
 	}))
 
 	app.Post("/api/install", handleInstall(db, func() {}))

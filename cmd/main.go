@@ -244,7 +244,7 @@ func main() {
 	// 启动 HTTP 服务器 | Start HTTP server
 	serverAddr := cfg.Node.Listen
 	if serverAddr == "" {
-		serverAddr = ":8000"
+		serverAddr = ":80"
 	}
 
 	// 优雅关闭 | Graceful shutdown

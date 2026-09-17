@@ -177,7 +177,7 @@ func mergeInstallConfig(in *config.Config) *config.Config {
 
 	// 兜底默认值 | Fallback defaults
 	if cfg.Node.Listen == "" {
-		cfg.Node.Listen = ":8000"
+		cfg.Node.Listen = ":80"
 	}
 	if cfg.User.Role == "" {
 		cfg.User.Role = "admin"

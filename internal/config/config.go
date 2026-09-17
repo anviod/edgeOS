@@ -130,7 +130,7 @@ func DefaultConfig() *Config {
 	cfg.Node.NodeID = "node-001"
 	cfg.Node.NodeType = "primary"
 	cfg.Node.PrimaryNodeID = "node-primary"
-	cfg.Node.Listen = ":8000"
+	cfg.Node.Listen = ":80"
 
 	cfg.Database.Type = "bolt"
 	cfg.Database.Path = "./data"

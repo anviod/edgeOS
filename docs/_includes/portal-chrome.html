@@ -1,0 +1,35 @@
+<!-- 背景层：纯浅灰基底（已按 Apple Pro Monochrome 移除极光光斑与蓝图点阵） -->
+<div class="bg-layer" aria-hidden="true"></div>
+
+<!-- 全局命令面板（⌘K / Ctrl+K · 也可按 / 唤起） -->
+<div class="palette-root" id="palette" role="dialog" aria-modal="true" aria-label="全局命令面板">
+  <div class="palette glass">
+    <div class="palette__search">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input type="text" id="palette-input" autocomplete="off" spellcheck="false"
+             placeholder="搜索子系统、工步、Capability、寄存器点位、文档…" aria-label="搜索">
+      <kbd class="kbd">ESC</kbd>
+    </div>
+
+    <div class="palette__results" id="palette-results" role="listbox"></div>
+
+    <div class="palette__foot">
+      <div class="palette__foot-group">
+        <span><kbd class="kbd">↑</kbd><kbd class="kbd">↓</kbd> 移动</span>
+        <span><kbd class="kbd">↵</kbd> 执行</span>
+        <span><kbd class="kbd">ESC</kbd> 关闭</span>
+      </div>
+      <span id="palette-count">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- 吐司通知 -->
+<div class="toast" id="toast" data-variant="success" role="status" aria-live="polite">
+  <div class="toast__shell glass">
+    <span class="toast__dot"></span>
+    <span class="toast__text">就绪</span>
+  </div>
+</div>

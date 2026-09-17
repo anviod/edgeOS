@@ -43,19 +43,32 @@ func deviceKey(nodeID, deviceID string) string {
 	return fmt.Sprintf("%s:%s", nodeID, deviceID)
 }
 
-// UpsertDevice 幂等更新设备
+// UpsertDevice 幂等更新设备。
+// edgeCore `devices/report` 是元数据快照，通常不携带 operating_state；若盲写整条记录，
+// 会把 UpdateDeviceStatus（online/offline 事件、实时数据、EAN 事件）写入的运行时状态抹成空串。
+// 因此当上报 payload 的 OperatingState 为空时，保留库中已有的 OperatingState。
 func (s *DeviceService) UpsertDevice(nodeID string, device *model.EdgeCoreDeviceInfo) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(bucketDevices))
 		if err != nil {
 			return err
 		}
+		key := []byte(deviceKey(nodeID, device.DeviceID))
+		// 运行时状态保护：上报为空时沿用库中已有值，避免元数据快照覆盖在线/离线状态
+		if device.OperatingState == "" {
+			if existing := b.Get(key); existing != nil {
+				var old model.EdgeCoreDeviceInfo
+				if err := json.Unmarshal(existing, &old); err == nil && old.OperatingState != "" {
+					device.OperatingState = old.OperatingState
+				}
+			}
+		}
 		device.LastSync = time.Now().Unix()
 		data, err := json.Marshal(device)
 		if err != nil {
 			return err
 		}
-		return b.Put([]byte(deviceKey(nodeID, device.DeviceID)), data)
+		return b.Put(key, data)
 	})
 }
 
