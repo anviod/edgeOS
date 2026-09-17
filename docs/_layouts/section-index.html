@@ -83,13 +83,31 @@
       </header>
 
       <main class="doc-shell">
-        <div class="doc-intro glass">
-          <p class="doc-intro__eyebrow">Documentation</p>
-          <h1>{{ page.title | default: site.title }}</h1>
-          {% if page.description %}
-            <p class="doc-intro__summary">{{ page.description }}</p>
-          {% endif %}
-        </div>
+        <section class="hero-section">
+          <div class="hero-inner">
+            <div class="hero-copy">
+              {% if page.hero_eyebrow %}
+                <p class="doc-intro__eyebrow">{{ page.hero_eyebrow }}</p>
+              {% endif %}
+              <h1>{{ page.title | default: site.title }}</h1>
+              {% if page.hero_lead %}
+                <p class="hero-desc">{{ page.hero_lead }}</p>
+              {% elsif page.description %}
+                <p class="hero-desc">{{ page.description }}</p>
+              {% endif %}
+              {% if page.hero_buttons %}
+                <div class="hero-actions">
+                  {% for item in page.hero_buttons %}
+                    <a
+                      class="btn {% if item.style == 'primary' %}btn--primary{% else %}btn--ghost{% endif %}"
+                      href="{{ item.url | relative_url }}"
+                    >{{ item.text }}</a>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </section>
 
         <article class="doc-content glass">
           {{ content }}

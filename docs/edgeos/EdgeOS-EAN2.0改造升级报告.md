@@ -1,7 +1,7 @@
 # EdgeOS EAN 2.0 改造升级报告
 
 > **日期**: 2026-08-03（v9 V1 命令面全面下线 + 联机复测）  
-> **对照基线**: [EAN2.0-edgeCore-EdgeOS改造指南.md](./EAN2.0-edgeCore-EdgeOS改造指南.md) §3 / §5 / §7.2  
+> **对照基线**: [EAN2.0-edgeCore-EdgeOS改造指南.md](./EAN2.0-EdgeCore-EdgeOS改造指南.md) §3 / §5 / §7.2  
 > **共识文档**: `D:\code\edgeCore\docs\TODO\V1-to-EAN-Migration-Assessment.md`（v2.23）  
 > **结论**: **Phase 1/2 代码完成并实机复验通过（MQTT + NATS）**；**全量 `go test ./...` 通过**；**EAN 2.0 端到端复测 34/34 通过（100%，单链路 MQTT；另 1 项 info=NATS 未启用=单链路预期）**；**4 台 BACnet 设备（2228316-2228319）扫描/列表/读取/写入/二次验证全通过**；**Phase 4 全量落地 + V1 命令面全面下线（`v1_command_enabled=false`，命令统一 EAN Invoke）**。
 

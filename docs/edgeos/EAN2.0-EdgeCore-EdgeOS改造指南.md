@@ -3,9 +3,9 @@
 > **文档版本**: 1.12  
 > **日期**: 2026-08-04  
 > **适用范围**: edgeCore Capability Runtime（本仓库）与 EdgeOS Coordination Platform（对端必须实现）  
-> **协议基线**: [edgeCore通信协议规范(MQTT-NATS).md](./edgeCore通信协议规范(MQTT-NATS).md)
+> **协议基线**: [edgeCore通信协议规范(MQTT-NATS).md](./EdgeCore通信协议规范(MQTT-NATS).md)
 > **规划基线**: [AI协同组件规划.md](./AI协同组件规划.md)
-> **迁移评估**: [V1-to-EAN-Migration-Assessment.md](../TODO/V1-to-EAN-Migration-Assessment.md)
+> **迁移评估**: V1-to-EAN-Migration-Assessment.md
 
 ---
 
@@ -493,7 +493,7 @@ MQTT 手工步骤相同，仅把 NATS Publish/Subscribe 换成 MQTT，Broker `12
 - [x] 与 V1 并存时无 Topic 冲突 / 双处理重复副作用
 - [x] V1 设备清单：MQTT 订 `edgeCore/devices/report`，NATS 订 `edgeCore.devices.report`（双传输对称）
 
-> 以上 EdgeOS 验收项已于 **2026-08-03 两端联合联调** 在本机（192.168.3.104，MQTT 18083 + NATS 4222）全部验证通过，详见 [V1-to-EAN-Migration-Assessment §7.0](../TODO/V1-to-EAN-Migration-Assessment.md)。
+> 以上 EdgeOS 验收项已于 **2026-08-03 两端联合联调** 在本机（192.168.3.104，MQTT 18083 + NATS 4222）全部验证通过，详见 V1-to-EAN-Migration-Assessment §7.0。
 
 ---
 
@@ -537,4 +537,4 @@ MQTT 手工步骤相同，仅把 NATS Publish/Subscribe 换成 MQTT，Broker `12
 
 **维护者**: edgeCore / edgeOS 团队  
 **下一步**: V1 命令面已全面下线（`v1_command_enabled=false`，v1.9）；命令路径完全由 EAN Invoke 承载，联机复测通过。V1 数据面与告警长期保留。  
-**关联文档**: [AI协同组件规划.md](./AI协同组件规划.md) · [V1-to-EAN-Migration-Assessment.md](../TODO/V1-to-EAN-Migration-Assessment.md) · [edgeCore通信协议规范(MQTT-NATS).md](./edgeCore通信协议规范(MQTT-NATS).md)
+**关联文档**: [AI协同组件规划.md](./AI协同组件规划.md) · V1-to-EAN-Migration-Assessment.md · [edgeCore通信协议规范(MQTT-NATS).md](./EdgeCore通信协议规范(MQTT-NATS).md)

@@ -654,7 +654,7 @@
       tone: 'amber',
       title: '通信协议规范 (MQTT/NATS)',
       desc: '基于统一寻址模型的对称通道封装与丢包重放控制。',
-      href: './edgeCore通信协议规范(MQTT-NATS).html'
+      href: './edgeos/EdgeCore通信协议规范(MQTT-NATS).html'
     },
     {
       code: 'AI_PLANNING',

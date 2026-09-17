@@ -2462,6 +2462,27 @@ canvas {
   padding: 56px 0 var(--section-gap);
 }
 
+/* —— 分区索引页（section-index 布局）：复用首页 Hero 语汇，字号下调一档 —— */
+.doc-shell .hero-section {
+  padding: 0;
+}
+
+.doc-shell .hero-copy h1 {
+  font-size: clamp(28px, 3.6vw, 42px);
+}
+
+.doc-shell .hero-copy .doc-intro__eyebrow {
+  margin-bottom: 14px;
+}
+
+.doc-shell .hero-actions {
+  margin-top: 32px;
+}
+
+.doc-shell .doc-content {
+  margin-top: 56px;
+}
+
 .doc-intro {
   padding: 0 0 28px;
   margin-bottom: 32px;
@@ -2815,6 +2836,11 @@ canvas {
   padding: 10px 14px;
   border-bottom: 1px solid var(--line-hair);
   color: var(--text-2);
+}
+
+/* 首列多为「版本 / 状态 / 架构基线」这类短标签，给一个下限避免被逐字折行 */
+.doc-content tbody td:first-child {
+  min-width: 7em;
 }
 
 .doc-content tbody tr:last-child td {

@@ -10,21 +10,21 @@
 | ------- | ------------------------------------------------------------------------------------------------------------- |
 | 版本      | **V2.0**                                                                                                      |
 | 更新      | 2026-08-04                                                                                                    |
-| 状态      | **EAN-MVP 已落地**（Capability Runtime + MQTT/NATS Bridge + DriverExecutor + AI Adapter + MCP Adapter + Shadow→Event/`previous_value`；MCP 工具合并优化 94→32，含 7 个 `ean_*` 统一跨协议工具；**Phase 4 全量落地 + V1 命令面全面下线，EAN 2.0 为命令/发现/Capability 唯一协议**；详见 [EAN2.0-edgeCore-EdgeOS改造指南](./EAN2.0-edgeCore-EdgeOS改造指南.md)；迁移评估见 [V1-to-EAN-Migration-Assessment](../TODO/V1-to-EAN-Migration-Assessment.md)） |
+| 状态      | **EAN-MVP 已落地**（Capability Runtime + MQTT/NATS Bridge + DriverExecutor + AI Adapter + MCP Adapter + Shadow→Event/`previous_value`；MCP 工具合并优化 94→32，含 7 个 `ean_*` 统一跨协议工具；**Phase 4 全量落地 + V1 命令面全面下线，EAN 2.0 为命令/发现/Capability 唯一协议**；详见 [EAN2.0-edgeCore-EdgeOS改造指南](./EAN2.0-EdgeCore-EdgeOS改造指南.md)；迁移评估见 V1-to-EAN-Migration-Assessment） |
 | 产品名     | **edgeCore Industrial Protocol Copilot + EAN 2.0 Capability Runtime**（代码路径 `internal/ai_agent/` · `internal/capability/`） |
-| 架构基线    | [TODO 索引 §1 新架构约束](./index.md) · [边缘网关架构设计总览](../edge/边缘网关架构设计总览.md) · [EAN 2.0 通信协议规范](./edgeCore通信协议规范(MQTT-NATS).md) |
-| 关联 TODO | [设备点位读写系统升级改造计划](../设备点位读写系统升级改造计划.md) · [边缘计算优化升级 2.0](../TODO/边缘计算优化升级2.0.md)                                      |
-| 用户文档    | [边缘计算场景手册](../edge/EDGE_COMPUTING_SCENARIO_MANUAL.md) · [边缘计算最佳实践](../guide/EDGE_COMPUTING_BEST_PRACTICES.md) |
+| 架构基线    | [TODO 索引 §1 新架构约束](./index.md) · 边缘网关架构设计总览 · [EAN 2.0 通信协议规范](./EdgeCore通信协议规范(MQTT-NATS).md) |
+| 关联 TODO | 设备点位读写系统升级改造计划 · 边缘计算优化升级 2.0                                      |
+| 用户文档    | 边缘计算场景手册 · 边缘计算最佳实践 |
 
 
 ---
 <div align="center">
-  <img src="../img/AI助手.png" width="100%" />
+  <img src="../img/AI助手.png" width="100%" alt="图 1：边缘 AI 助手（该配图未随本仓库发布）" />
   <p><small>图 1: 边缘AI 助手</small></p>
 </div>
 ---
 <div align="center">
-  <img src="../img/AI助手配置.png" width="100%" />
+  <img src="../img/AI助手配置.png" width="100%" alt="图 2：支持本地模型和在线接口（该配图未随本仓库发布）" />
   <p><small>图 2: 支持本地模型和在线接口</small></p>
 </div>
 
@@ -391,7 +391,7 @@ Execution 优先读取 Shadow，减少 Driver 调用。
 | `$edgeos/state/{agent_id}/delta` | edgeCore → EdgeOS | 1 | Shadow 增量更新 |
 | `$edgeos/heartbeat/{agent_id}` | edgeCore → EdgeOS | 0 | 心跳 |
 
-详细协议规范参见 [edgeCore通信协议规范(MQTT-NATS) V2.0](./edgeCore通信协议规范(MQTT-NATS).md)。
+详细协议规范参见 [edgeCore通信协议规范(MQTT-NATS) V2.0](./EdgeCore通信协议规范(MQTT-NATS).md)。
 
 ### §E1.10 Capability SDK（新增）
 
@@ -1630,14 +1630,14 @@ MVP ──► 增强 ──► 企业级
 ## 附录：交叉引用
 
 - 架构数据面：[TODO 索引 §1](./index.md)
-- bbolt 双库架构：[edgeCore-db-runtime-architecture.md](../operations/edgeCore-db-runtime-architecture.md)
+- bbolt 双库架构：edgeCore-db-runtime-architecture.md
 - RK3588 约束：本文 §4.3 · §5.5
 - 点位模型：`internal/model/types.go`
 - Modbus 解码：`internal/driver/modbus/decoder.go`
 - BACnet：`internal/driver/bacnet/encoding/whois.go`
-- **EAN 2.0 通信协议规范**：[edgeCore通信协议规范(MQTT-NATS) V2.0](./edgeCore通信协议规范(MQTT-NATS).md)
-- **EAN 2.0 改造指南**：[EAN2.0-edgeCore-EdgeOS改造指南](./EAN2.0-edgeCore-EdgeOS改造指南.md)
-- **V1→EAN 迁移评估**：[V1-to-EAN-Migration-Assessment](../TODO/V1-to-EAN-Migration-Assessment.md)
+- **EAN 2.0 通信协议规范**：[edgeCore通信协议规范(MQTT-NATS) V2.0](./EdgeCore通信协议规范(MQTT-NATS).md)
+- **EAN 2.0 改造指南**：[EAN2.0-edgeCore-EdgeOS改造指南](./EAN2.0-EdgeCore-EdgeOS改造指南.md)
+- **V1→EAN 迁移评估**：V1-to-EAN-Migration-Assessment
 
 ---
 
