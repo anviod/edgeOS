@@ -49,6 +49,79 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
         </div>
       </div>
 
+      <!-- ============================================================
+           2.5D 可视化能力（置于集群遥测台之前 · 首屏即展示车间场景）
+           ============================================================ -->
+      <section class="landing-section" id="visualization">
+        <div class="section-heading">
+          <div>
+            <div class="section-heading__eyebrow">2.5D VISUALIZATION</div>
+            <h2>2.5D 工业场景可视化</h2>
+          </div>
+          <p class="section-heading__note">
+            纯 CSS 3D 变换实现的等轴场景，零 WebGL 依赖；同一套等轴组件拼装出八个工业现场视图。
+          </p>
+        </div>
+
+        <div class="viz-panel">
+          <div class="viz-panel__head">
+            <div>
+              <div class="viz-panel__eyebrow">产线展示 · 2.5D 车间视图</div>
+              <h3>车间 A · 总装</h3>
+            </div>
+            <div class="viz-panel__meta">
+              <span>2 条产线 · 5 台主机</span>
+              <span class="is-live"><i></i>生产运行</span>
+            </div>
+          </div>
+
+          <div class="viz-metrics">
+            <div class="viz-metric">
+              <span class="viz-metric__label">产线节拍</span>
+              <span class="viz-metric__value">82<i>%</i></span>
+            </div>
+            <div class="viz-metric">
+              <span class="viz-metric__label">一次良率</span>
+              <span class="viz-metric__value">98.2<i>%</i></span>
+            </div>
+            <div class="viz-metric">
+              <span class="viz-metric__label">平均 OEE</span>
+              <span class="viz-metric__value">87.6<i>%</i></span>
+            </div>
+            <div class="viz-metric">
+              <span class="viz-metric__label">在制品 WIP</span>
+              <span class="viz-metric__value">36<i>件</i></span>
+            </div>
+            <div class="viz-metric">
+              <span class="viz-metric__label">累计产出</span>
+              <span class="viz-metric__value">12 680<i>件</i></span>
+            </div>
+          </div>
+
+          <div class="iso-stage" id="iso-stage">
+            <div class="iso-world" id="iso-world"></div>
+            <div class="iso-hud" id="iso-hud" role="tooltip"></div>
+            <span class="iso-corner iso-corner--tl"></span>
+            <span class="iso-corner iso-corner--tr"></span>
+            <span class="iso-corner iso-corner--bl"></span>
+            <span class="iso-corner iso-corner--br"></span>
+            <span class="iso-scan"></span>
+          </div>
+
+          <div class="viz-foot">
+            <div class="viz-legend">
+              <span><i style="background:#10B981"></i>运行</span>
+              <span><i style="background:#F59E0B"></i>关注</span>
+              <span><i style="background:#94A3B8"></i>待机</span>
+              <span><i style="background:#EF4444"></i>故障</span>
+            </div>
+            <span class="viz-foot__tech">rotateX(60°) · rotateZ(-45°) · CSS 3D · 无 WebGL</span>
+          </div>
+        </div>
+
+        <div class="viz-grid" id="viz-grid"></div>
+      </section>
+
       <!-- 集群遥测台 -->
       <div class="hero-visual">
         <div class="telemetry glass">
@@ -384,79 +457,6 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
     </div>
 
     <div class="scenario-grid" id="scenario-grid"></div>
-  </section>
-
-  <!-- ============================================================
-       2.5D 可视化能力
-       ============================================================ -->
-  <section class="landing-section" id="visualization">
-    <div class="section-heading">
-      <div>
-        <div class="section-heading__eyebrow">2.5D VISUALIZATION</div>
-        <h2>2.5D 工业场景可视化</h2>
-      </div>
-      <p class="section-heading__note">
-        纯 CSS 3D 变换实现的等轴场景，零 WebGL 依赖；同一套等轴组件拼装出八个工业现场视图。
-      </p>
-    </div>
-
-    <div class="viz-panel">
-      <div class="viz-panel__head">
-        <div>
-          <div class="viz-panel__eyebrow">产线展示 · 2.5D 车间视图</div>
-          <h3>车间 A · 总装</h3>
-        </div>
-        <div class="viz-panel__meta">
-          <span>2 条产线 · 5 台主机</span>
-          <span class="is-live"><i></i>生产运行</span>
-        </div>
-      </div>
-
-      <div class="viz-metrics">
-        <div class="viz-metric">
-          <span class="viz-metric__label">产线节拍</span>
-          <span class="viz-metric__value">82<i>%</i></span>
-        </div>
-        <div class="viz-metric">
-          <span class="viz-metric__label">一次良率</span>
-          <span class="viz-metric__value">98.2<i>%</i></span>
-        </div>
-        <div class="viz-metric">
-          <span class="viz-metric__label">平均 OEE</span>
-          <span class="viz-metric__value">87.6<i>%</i></span>
-        </div>
-        <div class="viz-metric">
-          <span class="viz-metric__label">在制品 WIP</span>
-          <span class="viz-metric__value">36<i>件</i></span>
-        </div>
-        <div class="viz-metric">
-          <span class="viz-metric__label">累计产出</span>
-          <span class="viz-metric__value">12 680<i>件</i></span>
-        </div>
-      </div>
-
-      <div class="iso-stage" id="iso-stage">
-        <div class="iso-world" id="iso-world"></div>
-        <div class="iso-hud" id="iso-hud" role="tooltip"></div>
-        <span class="iso-corner iso-corner--tl"></span>
-        <span class="iso-corner iso-corner--tr"></span>
-        <span class="iso-corner iso-corner--bl"></span>
-        <span class="iso-corner iso-corner--br"></span>
-        <span class="iso-scan"></span>
-      </div>
-
-      <div class="viz-foot">
-        <div class="viz-legend">
-          <span><i style="background:#10B981"></i>运行</span>
-          <span><i style="background:#F59E0B"></i>关注</span>
-          <span><i style="background:#94A3B8"></i>待机</span>
-          <span><i style="background:#EF4444"></i>故障</span>
-        </div>
-        <span class="viz-foot__tech">rotateX(60°) · rotateZ(-45°) · CSS 3D · 无 WebGL</span>
-      </div>
-    </div>
-
-    <div class="viz-grid" id="viz-grid"></div>
   </section>
 
   <!-- ============================================================

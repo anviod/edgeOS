@@ -899,6 +899,30 @@ canvas {
   width: 100%;
 }
 
+/* 2.5D 场景已上移到 Hero 内（排在遥测台之前）。
+   .hero-inner 是 align-items:center 的纵向 flex，子 section 默认会被收缩成
+   内容宽度，必须显式撑满；间距交给 .hero-inner 的 gap，避免叠加 section 外边距。
+   标题跟随 Hero 文案一并居中，并去掉分隔线，衔接更顺。 */
+.hero-inner > .landing-section {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.hero-inner > .landing-section .section-heading {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-bottom: 0;
+  margin-bottom: 26px;
+  border-bottom: 0;
+  text-align: center;
+}
+
+.hero-inner > .landing-section .section-heading__note {
+  max-width: 680px;
+}
+
 .telemetry {
   padding: 28px;
   border-radius: var(--r-xl);
