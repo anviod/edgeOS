@@ -13,7 +13,10 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        // 与 internal/config/config.go 的 cfg.Node.Listen 默认值保持一致（":80"）
+        // 如后端改到其它端口，用 EDGEOS_API 环境变量覆盖，例如：
+        //   EDGEOS_API=http://localhost:8000 npm run dev
+        target: process.env.EDGEOS_API || 'http://localhost:80',
         changeOrigin: true,
         configure: (proxy, options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
