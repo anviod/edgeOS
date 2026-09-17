@@ -558,6 +558,22 @@ canvas {
   box-shadow: none;
 }
 
+/* —— 首页分段导航 ——
+   八段胶囊在 1024~1280px 会顶到边界，这里允许它在自身内部横向滚动，
+   宁可让最右侧一段需要滑动，也不要撑破顶栏或折行。 */
+.site-nav--tabs {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.site-nav--tabs::-webkit-scrollbar {
+  display: none;
+}
+
 /* —— 文档内页导航 —— */
 .site-nav--docs {
   display: flex;
@@ -837,7 +853,7 @@ canvas {
 }
 
 .hero-desc code,
-.gate-list code,
+.gate-card code,
 .pipeline-detail__text code,
 .section-heading__note code {
   padding: 1px 5px;
@@ -1342,6 +1358,36 @@ canvas {
   flex-shrink: 0;
 }
 
+/* 图标 + 标题同行：为单色线性图标，不引入任何额外色彩 */
+.capability-card__body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.capability-card__glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  background: var(--surface-sunken);
+  color: var(--text-2);
+  transition: color var(--t-fast), background-color var(--t-fast);
+}
+
+.capability-card__glyph svg {
+  width: 18px;
+  height: 18px;
+}
+
+.capability-card:hover .capability-card__glyph,
+.capability-card.is-active .capability-card__glyph {
+  color: var(--blue);
+}
+
 .capability-card h3 {
   font-size: 15px;
   font-weight: 600;
@@ -1687,7 +1733,56 @@ canvas {
 
 .field-textarea {
   resize: vertical;
-  min-height: 180px;
+  min-height: 168px;
+}
+
+/* 载荷预设：把「手改报文」的重复劳动收敛为四个一键胶囊，
+   同时替掉原先压在输入框上方的大段说明文字 */
+.preset-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.preset-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-sub);
+  border: 1px solid var(--line);
+  text-align: left;
+  transition: border-color var(--t-fast), background-color var(--t-fast),
+    box-shadow var(--t-fast);
+}
+
+.preset-chip:hover {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+.preset-chip.is-active {
+  border-color: var(--blue);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--blue-soft);
+}
+
+.preset-chip__label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.preset-chip.is-active .preset-chip__label {
+  color: var(--blue);
+}
+
+.preset-chip__hint {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
 }
 
 .bus-actions {
@@ -1820,51 +1915,72 @@ canvas {
   color: var(--text-2);
 }
 
-.gate-list {
-  padding: 18px;
-  margin-bottom: 22px;
-  border-radius: var(--r-md);
+/* 合规门禁：原先塞在工步详情正文里，四条约束挤成一列；
+   现外移为整行，四条并列铺开，正文只留一句话与代码窗口。 */
+.gate-strip {
+  margin-top: 20px;
+  padding: 26px 28px;
+  border-radius: var(--r-xl);
   background: var(--surface-sub);
-  border: 1px solid var(--line-hair);
+  border: 1px solid var(--line);
 }
 
-.gate-list__title {
-  margin-bottom: 12px;
+.gate-strip__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.gate-strip__title {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
   color: var(--text-3);
 }
 
-.gate-list ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.gate-strip__note {
+  font-size: 12px;
+  color: var(--text-3);
 }
 
-.gate-list li {
-  position: relative;
-  padding-left: 16px;
-  margin-bottom: 9px;
+.gate-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.gate-card {
+  padding: 18px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--line-hair);
+}
+
+.gate-card__no {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+}
+
+.gate-card h4 {
+  margin-bottom: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.gate-card p {
   font-size: 12.5px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--text-2);
-}
-
-.gate-list li:last-child {
-  margin-bottom: 0;
-}
-
-.gate-list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 8px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--text-3);
 }
 
 /* ==========================================================================
@@ -2183,6 +2299,654 @@ canvas {
   font-size: 12.5px;
   line-height: 1.65;
   color: var(--text-2);
+}
+
+/* ==========================================================================
+   16.1 典型场景用例
+   ========================================================================== */
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.scenario-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+  padding: 26px 28px;
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-sm);
+  transition: transform var(--t), box-shadow var(--t), border-color var(--t);
+}
+
+.scenario-card:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--sh-md);
+  transform: translateY(-1px);
+}
+
+.scenario-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scenario-card__no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+.scenario-card h3 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.scenario-card__desc {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+
+.scenario-card__points {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scenario-card__points li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+/* 对勾用纯 CSS 绘制，不引入第二个强调色 */
+.scenario-card__points li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 6px;
+  width: 9px;
+  height: 5px;
+  border-left: 1.6px solid var(--blue);
+  border-bottom: 1.6px solid var(--blue);
+  transform: rotate(-45deg);
+}
+
+.scenario-card__caps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 14px;
+  margin-top: auto;
+  border-top: 1px solid var(--line-hair);
+}
+
+.scenario-card__cap {
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+/* ==========================================================================
+   16.2 2.5D 可视化（等轴场景）
+   几何与产品内 ui/src/components/visual 完全同源：世界平面统一施加
+   transform: rotateX(60deg) rotateZ(-45deg)（正交投影，无 perspective），
+   每个立体物由「顶面 translateZ(h) + 前面 rotateX(90deg) + 侧面 rotateY(-90deg)」
+   三片拼合。全部走 CSS 3D，不引入 WebGL 或任何第三方库。
+   ========================================================================== */
+
+.viz-panel {
+  padding: 26px 28px;
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-md);
+}
+
+.viz-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.viz-panel__eyebrow {
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--blue);
+}
+
+.viz-panel__head h3 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.viz-panel__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+.viz-panel__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+}
+
+.viz-panel__meta .is-live {
+  color: var(--green);
+}
+
+.viz-panel__meta .is-live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: viz-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes viz-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* —— 指标条 —— */
+.viz-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0 16px;
+}
+
+.viz-metric {
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface-sub);
+  border: 1px solid var(--line-hair);
+}
+
+.viz-metric__label {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.viz-metric__value {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.viz-metric__value i {
+  margin-left: 3px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+/* —— 场景舞台 ——
+   深色底是刻意的：这代表产品屏幕上的画面，与页面里已有的 macOS 终端窗口
+   同属一类「设备画面」，因此画面内部沿用产品自身的状态配色。 */
+.iso-stage {
+  position: relative;
+  height: 424px;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at 50% 42%, rgba(56, 189, 248, 0.10), transparent 62%),
+    #0B1220;
+}
+
+.iso-world {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50%;
+  transform: rotateX(60deg) rotateZ(-45deg) scale(var(--iso-scale, 0.94));
+}
+
+.iso-grid-sheet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0.9;
+  background-image:
+    linear-gradient(rgba(14, 165, 233, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 233, 0.16) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.iso-floor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(14, 165, 233, 0.10),
+    rgba(14, 165, 233, 0.03) 60%,
+    transparent 75%);
+}
+
+/* —— 等轴长方体 —— */
+.iso-cube {
+  position: absolute;
+  transform-style: preserve-3d;
+  transform-origin: center center;
+}
+
+.iso-face {
+  position: absolute;
+}
+
+.iso-face--roof {
+  inset: 0;
+  transform: translateZ(var(--h));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.06);
+}
+
+.iso-face--front {
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: var(--h);
+  transform-origin: center top;
+  transform: rotateX(90deg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.iso-face--side {
+  left: 0;
+  top: 0;
+  width: var(--h);
+  height: 100%;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.iso-cube__label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateZ(calc(var(--h) + 3px));
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  color: rgba(226, 232, 240, 0.92);
+  text-shadow: 0 1px 4px rgba(2, 6, 23, 0.9);
+  pointer-events: none;
+}
+
+.iso-cube__beacon {
+  position: absolute;
+  right: -5px;
+  top: -5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translateZ(calc(var(--h) + 1px));
+  animation: iso-beacon 1s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes iso-beacon {
+  0%, 100% { opacity: 1; transform: translateZ(calc(var(--h) + 1px)) scale(1); }
+  50% { opacity: 0.35; transform: translateZ(calc(var(--h) + 1px)) scale(0.7); }
+}
+
+/* —— 输送带：带面 + 沿 X 轴循环的工件 —— */
+.iso-belt {
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.iso-belt .iso-face--roof {
+  box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.05);
+}
+
+.iso-belt__item {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  transform-style: preserve-3d;
+  animation: iso-belt-run var(--dur) linear infinite;
+  animation-delay: var(--idly);
+}
+
+.iso-belt__item-roof {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.iso-belt__item-front {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: 10px;
+  transform-origin: center top;
+  transform: rotateX(90deg);
+}
+
+.iso-belt__item-side {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+}
+
+@keyframes iso-belt-run {
+  from { left: 6px; }
+  to { left: var(--belt); }
+}
+
+/* —— AGV 路径流光 —— */
+.iso-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  transform-style: preserve-3d;
+  animation: iso-dot-move var(--dd) linear infinite;
+  animation-delay: var(--dly);
+  pointer-events: none;
+}
+
+.iso-dot__face {
+  position: absolute;
+}
+
+.iso-dot__face--roof {
+  inset: 0;
+  transform: translateZ(var(--dh));
+  box-shadow: 0 0 12px var(--dc);
+}
+
+.iso-dot__face--front {
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: var(--dh);
+  transform-origin: center top;
+  transform: rotateX(90deg);
+  box-shadow: 0 0 10px var(--dc);
+}
+
+.iso-dot__face--side {
+  left: 0;
+  top: 0;
+  width: var(--dh);
+  height: 100%;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+  box-shadow: 0 0 8px var(--dc);
+}
+
+@keyframes iso-dot-move {
+  from { left: 0; }
+  to { left: var(--dr); }
+}
+
+/* —— 悬停 HUD —— */
+.iso-hud {
+  position: absolute;
+  z-index: 3;
+  min-width: 178px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: rgba(9, 16, 28, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  color: #E2E8F0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-fast);
+}
+
+.iso-hud.is-visible {
+  opacity: 1;
+}
+
+.iso-hud__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.iso-hud__title {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.iso-hud__badge {
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.iso-hud__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 3px 0;
+  font-size: 11px;
+  color: rgba(226, 232, 240, 0.62);
+}
+
+.iso-hud__row b {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: #E2E8F0;
+}
+
+.iso-hud__foot {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 10.5px;
+  color: rgba(226, 232, 240, 0.5);
+}
+
+/* —— 四角装饰 + 扫描线 —— */
+.iso-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.iso-corner::before,
+.iso-corner::after {
+  content: "";
+  position: absolute;
+  background: #0EA5E9;
+}
+
+.iso-corner::before { width: 14px; height: 2px; }
+.iso-corner::after { width: 2px; height: 14px; }
+
+.iso-corner--tl { left: 8px; top: 8px; }
+.iso-corner--tl::before { top: 0; left: 0; }
+.iso-corner--tl::after { top: 0; left: 0; }
+
+.iso-corner--tr { right: 8px; top: 8px; }
+.iso-corner--tr::before { top: 0; right: 0; }
+.iso-corner--tr::after { top: 0; right: 0; }
+
+.iso-corner--bl { left: 8px; bottom: 8px; }
+.iso-corner--bl::before { bottom: 0; left: 0; }
+.iso-corner--bl::after { bottom: 0; left: 0; }
+
+.iso-corner--br { right: 8px; bottom: 8px; }
+.iso-corner--br::before { bottom: 0; right: 0; }
+.iso-corner--br::after { bottom: 0; right: 0; }
+
+.iso-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.5), transparent);
+  box-shadow: 0 0 14px rgba(14, 165, 233, 0.35);
+  animation: iso-scan-move 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes iso-scan-move {
+  0%, 10% { top: 0; opacity: 0; }
+  20%, 88% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* —— 图例与注脚 —— */
+.viz-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.viz-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+.viz-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.viz-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.viz-foot__tech {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+/* —— 场景视图卡片 —— */
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+  align-items: stretch;
+}
+
+.viz-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: 20px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-sm);
+  transition: transform var(--t), box-shadow var(--t), border-color var(--t);
+}
+
+.viz-card:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--sh-md);
+  transform: translateY(-1px);
+}
+
+.viz-card.is-current {
+  border-color: var(--blue);
+}
+
+.viz-card__route {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--blue);
+  word-break: break-all;
+}
+
+.viz-card h4 {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.viz-card p {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+
+.viz-card__flag {
+  margin-top: auto;
+  padding-top: 10px;
+  font-size: 11px;
+  color: var(--text-3);
 }
 
 /* ==========================================================================
@@ -2863,6 +3627,22 @@ canvas {
    21. 响应式
    ========================================================================== */
 
+/* 1024–1280px 区间：品牌副行与检索文案先让位，
+   保证顶部七段胶囊（含新增「场景用例」）不被挤到折行 */
+@media (max-width: 1280px) {
+  .site-brand__meta {
+    display: none;
+  }
+
+  .search-trigger__label {
+    display: none;
+  }
+
+  .nav-segment__btn {
+    padding: 6px 10px;
+  }
+}
+
 @media (max-width: 1080px) {
   .feature-grid--three {
     grid-template-columns: repeat(2, 1fr);
@@ -2870,6 +3650,18 @@ canvas {
 
   .pipeline-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .gate-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .viz-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .viz-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -2916,6 +3708,15 @@ canvas {
     gap: 24px;
   }
 
+  .scenario-grid,
+  .gate-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .iso-stage {
+    height: 360px;
+  }
+
   .telemetry__grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -2959,6 +3760,22 @@ canvas {
   .feature-grid--three,
   .card-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .viz-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .viz-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .viz-panel {
+    padding: 20px 18px;
+  }
+
+  .iso-stage {
+    height: 300px;
   }
 
   .pipeline-grid {

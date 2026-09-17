@@ -252,34 +252,45 @@
 
   var TAB_KEYS = ['explorer', 'bus', 'pipeline', 'specs'];
 
+  /* 滚动型分区：不切换工作台面板，只负责定位与高亮（顶部胶囊与中部胶囊共用） */
+  var SCROLL_TABS = {
+    overview: '#overview',
+    scenarios: '#scenarios',
+    visualization: '#visualization',
+    docs: '#documents'
+  };
+
   /* 中部工作台标题随分段器联动 */
   var VIEW_META = {
     explorer: {
       eyebrow: 'CORE SYSTEM ARCHITECTURE',
       title: '六大核心控制平面',
-      note: '底层控制引擎构建工业级确定性协同网络，点击任一子系统即可展开对应的 EAN 2.0 真实报文。'
+      note: '点击任一平面，即可展开对应的 EAN 2.0 真实报文与关键指标。'
     },
     bus: {
       eyebrow: 'SYMMETRIC DUAL PROTOCOL BUS',
-      title: '双通道对称传输模拟器',
-      note: 'MQTT 3.1.1 与 NATS JetStream 采用完全同构的寻址规范，切换载波时 Topic 分隔符自动改写。'
+      title: '双通道对称传输',
+      note: 'MQTT 与 NATS 采用完全同构的寻址规范，切换载波时分隔符自动改写。'
     },
     pipeline: {
       eyebrow: 'DETERMINISTIC WORKFLOW',
-      title: '流水线工步交互执行器',
-      note: '从端侧接入、能力注册、指令分发到工程终审，全链路受确定性安全状态机约束。'
+      title: '流水线工步执行器',
+      note: '从端侧接入到工程终审，全链路受确定性安全状态机约束。'
     },
     specs: {
       eyebrow: 'ENGINEERING SPECIFICATION',
-      title: '寄存器点位与 Capability 映射规范',
-      note: 'Modbus 保持寄存器占用 40001+ 编号，在线报文中的 address 为 PDU 偏移（0 基）。'
+      title: '寄存器点位与 Capability 映射',
+      note: 'Modbus 保持寄存器占用 40001+ 编号；报文中的 address 为 PDU 偏移（0 基）。'
     }
   };
 
-  /* 统一刷新分段控制器高亮（桌面胶囊 + 移动端导航条） */
+  /* 统一刷新分段控制器高亮（桌面胶囊 + 移动端导航条 + 滚动型按钮） */
   function setActiveNav(key) {
     $$('[data-nav-tab]').forEach(function (btn) {
       btn.classList.toggle('is-active', btn.dataset.navTab === key);
+    });
+    $$('[data-nav-scroll]').forEach(function (btn) {
+      btn.classList.toggle('is-active', SCROLL_TABS[key] === btn.dataset.navScroll);
     });
   }
 
@@ -293,10 +304,10 @@
   function switchTab(key, options) {
     var opts = options || {};
 
-    /* 滚动型分段（系统总览 / 文档）：只做导航定位，不改变工作台面板 */
-    if (key === 'overview' || key === 'docs') {
+    /* 滚动型分段（系统总览 / 场景用例 / 文档）：只做导航定位，不改变工作台面板 */
+    if (SCROLL_TABS[key]) {
       setActiveNav(key);
-      if (!opts.skipScroll) scrollToEl(key === 'docs' ? '#documents' : '#overview');
+      if (!opts.skipScroll) scrollToEl(SCROLL_TABS[key]);
       return;
     }
 
@@ -336,6 +347,13 @@
       title: '自动发现节点',
       sub: 'Discovery Center',
       latency: '< 30s 心跳窗口',
+      brief: '节点上线即自动注册，无需现场硬编码 IP 地址。',
+      glyph:
+        '<circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>' +
+        '<path d="M8.6 8.6a4.8 4.8 0 000 6.8"/>' +
+        '<path d="M15.4 8.6a4.8 4.8 0 010 6.8"/>' +
+        '<path d="M5.8 5.8a8.8 8.8 0 000 12.4"/>' +
+        '<path d="M18.2 5.8a8.8 8.8 0 010 12.4"/>',
       desc: 'edgeCore 启动后主动向 $edgeos/discovery/agent 发布 Agent Descriptor，并单独发布 Capability Descriptor。EdgeOS 汇聚为统一 Registry，无需现场硬编码 IP。',
       slo: [
         { k: '发现信道', v: '$edgeos/discovery/agent', amber: false },
@@ -370,6 +388,13 @@
       title: '指令编排调度',
       sub: 'Invoke Orchestrator',
       latency: '默认超时 10s / retry 0~5',
+      brief: '按 Capability 下发指令，全生命周期状态可追踪。',
+      glyph:
+        '<circle cx="6" cy="6" r="2.4"/>' +
+        '<circle cx="6" cy="18" r="2.4"/>' +
+        '<circle cx="18" cy="12" r="2.4"/>' +
+        '<path d="M8.4 6H13a2 2 0 012 2v1.6"/>' +
+        '<path d="M8.4 18H13a2 2 0 002-2v-1.6"/>',
       desc: 'EdgeOS 向 $edgeos/invoke/{agent_id} 下发 invoke_capability 信封，edgeCore 校验 target / Capability / 权限后执行，并回 $edgeos/reply/{source}。状态机 queued → running → completed / failed / timeout / rejected。',
       slo: [
         { k: '请求信道', v: '$edgeos/invoke/{agent_id}', amber: false },
@@ -401,6 +426,10 @@
       title: '设备事件监听',
       sub: 'Event Center',
       latency: 'Shadow COW 写入即发',
+      brief: '变更事件携带前值上报，支撑参数追溯回溯。',
+      glyph:
+        '<path d="M6 10a6 6 0 1112 0v4.2l1.6 2.6H4.4L6 14.2V10z"/>' +
+        '<path d="M10 20.4a2.2 2.2 0 004 0"/>',
       desc: 'ShadowCore 写入时在通知克隆中附加变更前值 previous_value，经 $edgeos/event/{agent_id}/{device_id} 上报。EdgeOS 打高精时标落库，支撑工业追溯与参数回溯。',
       slo: [
         { k: '事件信道', v: '$edgeos/event/{agent_id}/{device_id}', amber: false },
@@ -422,6 +451,10 @@
       title: '运行安全治理',
       sub: 'Registry & Governance',
       latency: 'heartbeat 30s / QoS 0',
+      brief: '心跳探活叠加资源锁，杜绝点位并发抢占。',
+      glyph:
+        '<path d="M12 3.2l7 2.6v5.4c0 4.4-2.9 8.2-7 9.2-4.1-1-7-4.8-7-9.2V5.8l7-2.6z"/>' +
+        '<path d="M9.2 12.2l2 2 3.6-3.8"/>',
       desc: '按 heartbeat_interval_sec 高频探活，节点超时即判定离线并重平衡控制拓扑。执行层强制资源锁，防止同设备 / 同通道并发冲突。',
       slo: [
         { k: '心跳信道', v: '$edgeos/heartbeat/{agent_id}', amber: false },
@@ -453,6 +486,12 @@
       title: '双通道对称传输',
       sub: 'MQTT 3.1.1 + NATS JetStream',
       latency: 'QoS 1 / 至少一次',
+      brief: '两套总线同构寻址，只差一个分隔符。',
+      glyph:
+        '<path d="M4 8.5h13"/>' +
+        '<path d="M14 4.8l3.7 3.7-3.7 3.7"/>' +
+        '<path d="M20 15.5H7"/>' +
+        '<path d="M10 11.8l-3.7 3.7 3.7 3.7"/>',
       desc: '两套总线并存互通，同一物理语义只差一个分隔符：MQTT 斜杠 Topic 与 NATS 点分 Subject 一一对应，业务层无需分支。通配符同步映射 + → * 、# → >。',
       slo: [
         { k: 'MQTT 面', v: '$edgeos/invoke/{agent_id} · 斜杠', amber: false },
@@ -472,7 +511,12 @@
       short: '旧版兼容',
       title: '旧版协议热兼容',
       sub: 'V1.0 Compatibility Shim',
-      latency: 'V1 通道并行保留',
+      latency: '并行双轨 · 零停机升级',
+      brief: 'V1 通道并行保留，升级可分批次推进。',
+      glyph:
+        '<path d="M12 3.4l8.4 4.3L12 12.4 3.6 7.7 12 3.4z"/>' +
+        '<path d="M3.6 12.2L12 16.5l8.4-4.3"/>' +
+        '<path d="M3.6 16.6L12 20.9l8.4-4.3"/>',
       desc: '未升级 EAN 2.0 的旧 EdgeOS 继续使用 V1 通道。新功能一律走 $edgeos/*，旧链路不改动、互不干涉，升级可分批推进。',
       slo: [
         { k: 'V1 发现 / 心跳', v: 'edgeCore/nodes/register · edgeCore/heartbeat/{node}', amber: true },
@@ -505,38 +549,228 @@
     {
       badge: 'STEP 01',
       title: '自动发现节点 (Discovery)',
-      text: '广播 $edgeos/discovery/query，在线 edgeCore 回 agent_descriptor 与 capability_descriptor，EdgeOS 汇入 Registry 并建立拓扑。',
-      code: '[INIT] publish $edgeos/discovery/query\n[RECV] agent_descriptor <- edgeCore-node-001 (arm64)\n[RECV] capability_descriptor: 63 capabilities\n[REGISTRY] node state -> online'
+      text: '广播 discovery/query，在线节点回 Agent 与 Capability 描述符，EdgeOS 汇入 Registry。',
+      code: '[INIT] publish $edgeos/discovery/query\n[RECV] agent_descriptor <- edgeCore-node-001 (arm64)\n[REGISTRY] capability_descriptor: 63 条已入册 · node -> online'
     },
     {
       badge: 'STEP 02',
       title: '指令编排调度 (Invoke)',
-      text: '按 Capability 打包 invoke_capability 信封，经对称双总线派发至目标 agent，并跟踪 invoke_id 全生命周期状态。',
-      code: '[DISPATCH] $edgeos/invoke/edgeCore-node-001\n[CAPABILITY] modbus_tcp.write_point\n[ARGS] device_id=slave-1 address=40001 value=25.5\n[REPLY] status=completed latency_ms=120'
+      text: '按 Capability 打包 invoke_capability 信封，经对称双总线派发并跟踪 invoke_id 全生命周期。',
+      code: '[DISPATCH] $edgeos/invoke/edgeCore-node-001\n[CAPABILITY] modbus_tcp.write_point (timeout=10s retry=2)\n[REPLY] status=completed · latency_ms=120'
     },
     {
       badge: 'STEP 03',
       title: '实时事件监听 (Event)',
-      text: '接收 Shadow 变更事件，保留 previous_value 前值语义，打高精时标后写入时序存储，供追溯与回溯。',
-      code: '[EVENT] $edgeos/event/edgeCore-node-001/slave-1\n[TYPE] temperature.changed\n[VALUE] 42.1 -> 45.2 (quality=good)\n[STORE] ts=1776787200000 committed'
+      text: '接收 Shadow 变更事件，保留 previous_value 前值语义，打高精时标写入时序存储。',
+      code: '[EVENT] $edgeos/event/edgeCore-node-001/slave-1\n[TYPE] temperature.changed · 42.1 -> 45.2 (quality=good)\n[STORE] ts=1776787200000 已落库，previous_value 保留'
     },
     {
       badge: 'STEP 04',
       title: '集群治理监控 (Governance)',
-      text: '按 heartbeat_interval_sec 探活，超时判定离线并重平衡拓扑；执行层按 priority / resource_locks 串行化冲突操作。',
-      code: '[HEALTH] $edgeos/heartbeat/edgeCore-node-001 (30s)\n[LOCK] resource=plc-001 scope=device granted\n[DRIFT] capability_digest unchanged\n[STATUS] governance OK'
+      text: '按心跳周期探活，超时判定离线并重平衡拓扑；按 priority / resource_locks 串行化冲突操作。',
+      code: '[HEALTH] $edgeos/heartbeat/edgeCore-node-001 (30s)\n[LOCK] resource=plc-001 scope=device granted\n[STATUS] capability_digest 未漂移 · governance OK'
     },
     {
       badge: 'STEP 05',
       title: '旧版协议兼容 (V1 Shim)',
-      text: '旧 EdgeOS 继续使用 V1 通道；新功能仅走 $edgeos/*。两套通道并行运行，升级可分批次推进。',
-      code: '[LEGACY] ingest $edgeCore/devices/report\n[SHIM] map -> $edgeos/event/{agent_id}/{device_id}\n[EMIT] forwarded, previous_value omitted (first sight)\n[STATUS] dual-track OK'
+      text: '旧 EdgeOS 继续走 V1 通道，新功能仅走 $edgeos/*，两套通道并行，升级可分批次推进。',
+      code: '[LEGACY] ingest $edgeCore/devices/report\n[SHIM] map -> $edgeos/event/{agent_id}/{device_id}\n[STATUS] dual-track OK (V1 与 EAN 2.0 并行)'
     },
     {
       badge: 'STEP 06',
       title: '工程辅助与终审 (Human-in-the-loop)',
-      text: 'AI 协议逆向 / 文档解析产出的一切配置均为草案，必须经工程师经 AI 任务 Confirm API 签字后方可落库生效。',
-      code: '[AI] capability=ai.protocol_reverse status=waiting_confirm\n[REVIEW] engineer sign-off required\n[SIGN] confirmed by controls engineer\n[APPLIED] config persisted, AI draft promoted'
+      text: 'AI 逆向与文档解析产出的一切配置均为草案，须经工程师签字后方可落库生效。',
+      code: '[AI] capability=ai.protocol_reverse status=waiting_confirm\n[REVIEW] engineer sign-off required\n[APPLIED] 签字通过 · AI 草案已提升为正式配置'
+    }
+  ];
+
+  /* ======================================================================
+     7.1 首页数据：总线载荷预设
+     把重复的报文手改工作收敛为四个一键预设，页面不再堆叠大段说明文字。
+     ====================================================================== */
+
+  function envelope(capability, args) {
+    return {
+      header: {
+        message_id: 'msg-1001',
+        source: 'edgeos-planner-001',
+        destination: 'edgeCore-node-001',
+        message_type: 'invoke_capability',
+        version: '2.0'
+      },
+      body: {
+        invoke_id: 'invoke-1001',
+        target: 'edgeCore-node-001',
+        capability: capability,
+        arguments: args,
+        options: { timeout_sec: 10, priority: 'normal', retry: 2 }
+      }
+    };
+  }
+
+  var BUS_PRESETS = [
+    {
+      key: 'write',
+      label: '单点写入',
+      hint: 'modbus_tcp.write_point',
+      body: envelope('modbus_tcp.write_point', { device_id: 'slave-1', address: '40001', value: 25.5 })
+    },
+    {
+      key: 'batch',
+      label: '批量读取',
+      hint: 'modbus_tcp.read_points',
+      body: envelope('modbus_tcp.read_points', { device_id: 'slave-1', registers: ['40001', '40002', '40013'] })
+    },
+    {
+      key: 'reverse',
+      label: '协议逆向',
+      hint: 'ai.protocol_reverse',
+      body: envelope('ai.protocol_reverse', { device_id: 'unknown-plc', sample_capture: 'hex://a3f1c0', confirm_required: true })
+    },
+    {
+      key: 'scan',
+      label: '设备扫描',
+      hint: 'device.scan',
+      body: envelope('device.scan', { channel_id: 'ch-1', network: '192.168.3.0/24' })
+    }
+  ];
+
+  /* ======================================================================
+     7.2 首页数据：典型场景用例
+     ====================================================================== */
+
+  var SCENARIOS = [
+    {
+      no: '01',
+      title: '多协议产线统一接入',
+      desc: '新旧混线设备由 edgeCore 端侧归一，EdgeOS 统一编目、寻址与权限。',
+      points: [
+        'Modbus / S7 / DLT645 / BACnet / OPC UA 异构协议并存',
+        '节点上线即自动注册 63 项 Capability，无需改动 PLC 程序'
+      ],
+      caps: ['Discovery', 'Capability Registry']
+    },
+    {
+      no: '02',
+      title: '跨工位节拍协同调度',
+      desc: '多台 edgeCore 按同一节拍编排，主轴、进给与夹具跨节点同步动作。',
+      points: [
+        '统一 invoke_capability 信封，critical 优先级抢占队列',
+        'resource_locks 串行化同设备写入，杜绝点位抢占'
+      ],
+      caps: ['Invoke Orchestrator', 'Resource Locks']
+    },
+    {
+      no: '03',
+      title: '无点表老设备 AI 逆向接入',
+      desc: '现场缺少通信点表的存量设备，由 AI 解析手册与抓包产出配置草案。',
+      points: [
+        '协议逆向与文档解析结果一律标记为草案',
+        '须经工程师在 Confirm API 签字后方可落库生效'
+      ],
+      caps: ['AI Co-pilot', 'Human Sign-off']
+    },
+    {
+      no: '04',
+      title: '链路抖动降级与断链补传',
+      desc: '主通道超时自动重试，必要时切 V1.0 兼容通道，断链期间数据本地缓冲。',
+      points: [
+        'timeout_sec / retry 预算逐级降级，业务侧无感',
+        'NVMe 溢出缓冲，链路恢复后按序补传前值事件'
+      ],
+      caps: ['Failover', 'Event Center']
+    }
+  ];
+
+  /* ======================================================================
+     7.3 首页数据：2.5D 可视化场景
+     与产品内 ui/src/components/visual 同源：世界平面统一施加
+     rotateX(60deg) rotateZ(-45deg)，每个立体物由「顶面 + 前面 + 侧面」三片
+     沿 Z 轴拼合。这里用同一套几何在文档站静态复刻「产线展示」画面，
+     坐标与 store/visual.ts 中的 M1~M5、AGV 完全一致。
+     ====================================================================== */
+
+  var ISO_STATUS = {
+    running: {
+      top: 'rgba(16,185,129,0.20)', front: 'rgba(16,185,129,0.40)',
+      side: 'rgba(5,150,105,0.55)', color: '#10B981', label: '运行中',
+      glow: false, foot: '设备运行正常'
+    },
+    standby: {
+      top: 'rgba(148,163,184,0.20)', front: 'rgba(148,163,184,0.38)',
+      side: 'rgba(100,116,139,0.52)', color: '#94A3B8', label: '待机',
+      glow: false, foot: '设备运行正常'
+    },
+    warn: {
+      top: 'rgba(245,158,11,0.22)', front: 'rgba(245,158,11,0.42)',
+      side: 'rgba(180,120,10,0.55)', color: '#F59E0B', label: '关注',
+      glow: true, foot: '设备状态需关注'
+    },
+    fault: {
+      top: 'rgba(239,68,68,0.24)', front: 'rgba(239,68,68,0.44)',
+      side: 'rgba(185,28,28,0.55)', color: '#EF4444', label: '故障',
+      glow: true, foot: '设备状态需关注'
+    }
+  };
+
+  var ISO_GRID = { cols: 10, rows: 7, cell: 48, scale: 0.94 };
+
+  var ISO_MACHINES = [
+    { id: 'M1', name: '1 号线 1 号机', col: 0, row: 2, status: 'running', oee: 92.4, rate: 46, temp: 58.2 },
+    { id: 'M2', name: '1 号线 2 号机', col: 1, row: 2, status: 'running', oee: 91.8, rate: 45, temp: 61.5 },
+    { id: 'M3', name: '1 号线 3 号机', col: 2, row: 2, status: 'warn', oee: 84.6, rate: 41, temp: 74.9 },
+    { id: 'M4', name: '2 号线 1 号机', col: 6, row: 4, status: 'running', oee: 93.1, rate: 47, temp: 56.8 },
+    { id: 'M5', name: '2 号线 2 号机', col: 7, row: 4, status: 'standby', oee: 78.2, rate: 33, temp: 42.1 }
+  ];
+
+  var ISO_AGVS = [
+    { id: 'AGV-01', x: 130, y: 200, tx: 200, ty: 240, load: true, color: '#0EA5E9' },
+    { id: 'AGV-02', x: 310, y: 140, tx: 360, ty: 120, load: false, color: '#8B5CF6' }
+  ];
+
+  /* 静态物：顶面 / 前面 / 侧面三档色阶 */
+  function box(top, front, side) {
+    return { top: top, front: front, side: side };
+  }
+
+  var ISO_STATIC = {
+    wall: box('rgba(100,116,139,0.16)', 'rgba(100,116,139,0.26)', 'rgba(71,85,105,0.36)'),
+    warehouse: box('rgba(139,92,246,0.14)', 'rgba(139,92,246,0.28)', 'rgba(109,66,215,0.40)'),
+    inspect: box('rgba(56,189,248,0.16)', 'rgba(56,189,248,0.32)', 'rgba(2,132,199,0.44)')
+  };
+
+  var VIZ_VIEWS = [
+    {
+      route: '/visual/production-line', title: '产线展示', current: true,
+      desc: '车间等距视图：主机、输送带与 AGV 转运实时状态。'
+    },
+    {
+      route: '/visual', title: '可视化中心总览',
+      desc: '八个场景的统一入口与整体运行概览。'
+    },
+    {
+      route: '/visual/industrial-screen', title: '工业大屏',
+      desc: '总览型大屏：负荷、能耗与质量趋势联动。'
+    },
+    {
+      route: '/visual/storage-station', title: '储能电站',
+      desc: '充放电功率、SOC / SOH 与电池温度监视。'
+    },
+    {
+      route: '/visual/data-center', title: '数据中心仿真',
+      desc: '机柜阵列、冷通道与制冷回路仿真。'
+    },
+    {
+      route: '/visual/power-distribution', title: '输配电',
+      desc: '杆塔线路、进线与馈线回路运行监视。'
+    },
+    {
+      route: '/visual/instruments', title: '仪表监控',
+      desc: '弧表盘、趋势曲线与实时告警联动。'
+    },
+    {
+      route: '/visual/port', title: '港口运输',
+      desc: '岸桥、堆场与集卡作业仿真。'
     }
   ];
 
@@ -713,6 +947,280 @@
     }).join('');
   }
 
+  function renderScenarios() {
+    var grid = $('#scenario-grid');
+    if (!grid) return;
+
+    grid.innerHTML = SCENARIOS.map(function (s) {
+      return '' +
+        '<article class="scenario-card glass">' +
+        '<div class="scenario-card__head">' +
+        '<span class="scenario-card__no">' + escapeHtml(s.no) + '</span>' +
+        '<h3>' + escapeHtml(s.title) + '</h3>' +
+        '</div>' +
+        '<p class="scenario-card__desc">' + escapeHtml(s.desc) + '</p>' +
+        '<ul class="scenario-card__points">' +
+        s.points.map(function (p) {
+          return '<li>' + escapeHtml(p) + '</li>';
+        }).join('') +
+        '</ul>' +
+        '<div class="scenario-card__caps">' +
+        s.caps.map(function (c) {
+          return '<span class="scenario-card__cap">' + escapeHtml(c) + '</span>';
+        }).join('') +
+        '</div>' +
+        '</article>';
+    }).join('');
+  }
+
+  /* —— 2.5D 等轴场景 —— */
+
+  var isoHudStore = [];
+
+  function registerHud(data) {
+    isoHudStore.push(isoHudHtml(data));
+    return isoHudStore.length - 1;
+  }
+
+  function isoHudHtml(d) {
+    return '' +
+      '<div class="iso-hud__top">' +
+      '<span class="iso-hud__title">' + escapeHtml(d.title) + '</span>' +
+      (d.badge
+        ? '<span class="iso-hud__badge" style="color:' + d.accent +
+          ';background:' + d.accent + '1f">' + escapeHtml(d.badge) + '</span>'
+        : '') +
+      '</div>' +
+      d.rows.map(function (r) {
+        return '<div class="iso-hud__row">' +
+          '<span>' + escapeHtml(r.label) + '</span>' +
+          '<b>' + escapeHtml(r.value) + '</b>' +
+          '</div>';
+      }).join('') +
+      (d.foot ? '<div class="iso-hud__foot">' + escapeHtml(d.foot) + '</div>' : '');
+  }
+
+  /**
+   * 一个等轴长方体：平铺面（width × depth）+ 抬升 height。
+   * 三片分别落在顶面 translateZ(h)、前面 rotateX(90deg)、侧面 rotateY(-90deg)。
+   */
+  function isoCube(x, y, w, d, h, style, opts) {
+    var o = opts || {};
+    var hudIdx = o.hud ? ' data-hud="' + registerHud(o.hud) + '"' : '';
+    return '' +
+      '<div class="iso-cube" style="left:' + x + 'px;top:' + y + 'px;width:' + w +
+      'px;height:' + d + 'px;--h:' + h + 'px"' + hudIdx + '>' +
+      '<span class="iso-face iso-face--roof" style="background:' + style.top + '"></span>' +
+      '<span class="iso-face iso-face--front" style="background:' + style.front + ';' +
+      (o.glow ? 'box-shadow:0 0 26px ' + style.front : '') + '"></span>' +
+      '<span class="iso-face iso-face--side" style="background:' + style.side + ';' +
+      (o.glow ? 'box-shadow:0 0 18px ' + style.side : '') + '"></span>' +
+      (o.beacon
+        ? '<span class="iso-cube__beacon" style="background:' + o.beaconColor +
+          ';box-shadow:0 0 10px ' + o.beaconColor + '"></span>'
+        : '') +
+      (o.label ? '<span class="iso-cube__label">' + escapeHtml(o.label) + '</span>' : '') +
+      '</div>';
+  }
+
+  var ISO_BELT_PALETTE = ['#38BDF8', '#34D399', '#FBBF24', '#A78BFA', '#F472B6', '#22D3EE'];
+
+  function isoBelt(x, y, w, d, h, color, speed, itemCount) {
+    var items = '';
+    for (var i = 0; i < itemCount; i++) {
+      var c = ISO_BELT_PALETTE[i % ISO_BELT_PALETTE.length];
+      items += '' +
+        '<span class="iso-belt__item" style="left:' + (w / itemCount) * i + 6 +
+        'px;--idly:' + (speed / itemCount) * i + 's">' +
+        '<span class="iso-belt__item-roof" style="background:' + c + '"></span>' +
+        '<span class="iso-belt__item-front" style="background:' + c + 'cc"></span>' +
+        '<span class="iso-belt__item-side" style="background:' + c + '99"></span>' +
+        '</span>';
+    }
+    var hudIdx = registerHud({
+      title: '输送带',
+      accent: color,
+      rows: [
+        { label: '长度', value: w + ' px' },
+        { label: '节拍', value: speed + ' s' },
+        { label: '在线工件', value: itemCount + ' 件' }
+      ],
+      foot: '输送带运行中'
+    });
+    return '' +
+      '<div class="iso-belt" data-hud="' + hudIdx + '" style="left:' + x + 'px;top:' + y +
+      'px;width:' + w + 'px;height:' + d + 'px;--bh:' + h + 'px;--belt:' + (w - 24) +
+      'px;--dur:' + speed + 's">' +
+      '<span class="iso-face iso-face--roof" style="background:' + color +
+      '26;border:1px solid ' + color + '55"></span>' +
+      '<span class="iso-face iso-face--front" style="background:' + color + '44"></span>' +
+      '<span class="iso-face iso-face--side" style="background:' + color + '33"></span>' +
+      items +
+      '</div>';
+  }
+
+  function isoFlowDot(y, left, range, dur, delay, color) {
+    return '' +
+      '<span class="iso-dot" style="top:' + y + 'px;left:' + left +
+      'px;--dh:8px;--dc:' + color + ';--dr:' + range + 'px;--dd:' + dur +
+      's;--dly:' + delay + 's">' +
+      '<span class="iso-dot__face iso-dot__face--roof" style="background:' + color +
+      '55;border:1px solid ' + color + '"></span>' +
+      '<span class="iso-dot__face iso-dot__face--front" style="background:' + color + '99"></span>' +
+      '<span class="iso-dot__face iso-dot__face--side" style="background:' + color + 'bb"></span>' +
+      '</span>';
+  }
+
+  function machineHud(m) {
+    var st = ISO_STATUS[m.status];
+    return {
+      title: m.name + ' · ' + m.id,
+      accent: st.color,
+      badge: st.label,
+      rows: [
+        { label: 'OEE', value: m.oee.toFixed(1) + '%' },
+        { label: '节拍', value: m.rate + ' 件/分' },
+        { label: '温度', value: m.temp.toFixed(1) + '℃' }
+      ],
+      foot: st.foot
+    };
+  }
+
+  function renderIsoScene() {
+    var world = $('#iso-world');
+    if (!world) return;
+
+    var cell = ISO_GRID.cell;
+    var w = ISO_GRID.cols * cell;
+    var h = ISO_GRID.rows * cell;
+
+    world.style.width = w + 'px';
+    world.style.height = h + 'px';
+    world.style.marginLeft = (-w / 2) + 'px';
+    world.style.marginTop = (-h / 2) + 'px';
+    world.style.setProperty('--iso-scale', ISO_GRID.scale);
+
+    isoHudStore = [];
+    var out = [
+      '<span class="iso-grid-sheet" style="width:' + w + 'px;height:' + h + 'px"></span>',
+      '<span class="iso-floor" style="width:' + w + 'px;height:' + h + 'px"></span>'
+    ];
+
+    // 车间墙体 + 立体库
+    out.push(isoCube(4, 24, 440, 10, 14, ISO_STATIC.wall, {}));
+    out.push(isoCube(264, 48, 180, 26, 86, ISO_STATIC.warehouse, { label: '立体库' }));
+
+    // 一号线主机（M1~M3）
+    ISO_MACHINES.forEach(function (m) {
+      if (m.id === 'M4' || m.id === 'M5') return;
+      var st = ISO_STATUS[m.status];
+      out.push(isoCube(m.col * cell + 8, m.row * cell, 44, 44, 54, st, {
+        glow: st.glow,
+        beacon: m.status === 'warn' || m.status === 'fault',
+        beaconColor: st.color,
+        label: m.id,
+        hud: machineHud(m)
+      }));
+    });
+
+    out.push(isoBelt(0, 168, 336, 18, 9, '#0EA5E9', 6, 5));
+
+    // 二号线主机（M4~M5）
+    ISO_MACHINES.forEach(function (m) {
+      if (m.id !== 'M4' && m.id !== 'M5') return;
+      var st = ISO_STATUS[m.status];
+      out.push(isoCube(m.col * cell + 8, m.row * cell, 44, 44, 54, st, {
+        glow: st.glow,
+        beacon: m.status === 'warn' || m.status === 'fault',
+        beaconColor: st.color,
+        label: m.id,
+        hud: machineHud(m)
+      }));
+    });
+
+    out.push(isoBelt(264, 216, 120, 18, 9, '#8B5CF6', 5, 3));
+
+    // AGV 转运车
+    ISO_AGVS.forEach(function (agv) {
+      out.push(isoCube(agv.x - 10, agv.y - 10, 20, 20, 16, {
+        top: agv.color + '44', front: agv.color + '88', side: agv.color + 'aa'
+      }, {
+        glow: true,
+        label: agv.id + (agv.load ? ' ●' : ''),
+        hud: {
+          title: agv.id,
+          accent: agv.color,
+          badge: agv.load ? '载货' : '空载',
+          rows: [
+            { label: '当前位置', value: '(' + agv.x + ', ' + agv.y + ')' },
+            { label: '目标', value: '(' + agv.tx + ', ' + agv.ty + ')' }
+          ],
+          foot: 'AGV 自动转运中'
+        }
+      }));
+    });
+
+    // 质检工位
+    out.push(isoCube(408, 240, 44, 44, 38, ISO_STATIC.inspect, { label: '质检台' }));
+
+    // AGV 路径流光
+    out.push(isoFlowDot(150, 10, 440, 7, 0, '#38BDF8'));
+    out.push(isoFlowDot(240, 10, 440, 8.5, 2, '#34D399'));
+
+    world.innerHTML = out.join('');
+  }
+
+  function initIsoHud() {
+    var stage = $('#iso-stage');
+    var hud = $('#iso-hud');
+    if (!stage || !hud) return;
+
+    function hide() {
+      hud.classList.remove('is-visible');
+      hud.removeAttribute('data-for');
+    }
+
+    stage.addEventListener('mouseover', function (e) {
+      var node = e.target.closest ? e.target.closest('[data-hud]') : null;
+      if (!node) return;
+
+      var idx = node.dataset.hud;
+      if (hud.dataset.for !== idx) {
+        hud.innerHTML = isoHudStore[Number(idx)] || '';
+        hud.dataset.for = idx;
+      }
+      hud.classList.add('is-visible');
+
+      var sr = stage.getBoundingClientRect();
+      var nr = node.getBoundingClientRect();
+      var hw = hud.offsetWidth;
+      var hh = hud.offsetHeight;
+      var left = nr.left - sr.left + nr.width / 2 - hw / 2;
+      var top = nr.top - sr.top - hh - 10;
+      left = Math.max(8, Math.min(left, sr.width - hw - 8));
+      if (top < 8) top = nr.bottom - sr.top + 10;
+      hud.style.left = left + 'px';
+      hud.style.top = top + 'px';
+    });
+
+    stage.addEventListener('mouseleave', hide);
+  }
+
+  function renderVisualViews() {
+    var grid = $('#viz-grid');
+    if (!grid) return;
+
+    grid.innerHTML = VIZ_VIEWS.map(function (v) {
+      return '' +
+        '<article class="viz-card' + (v.current ? ' is-current' : '') + '">' +
+        '<span class="viz-card__route">' + escapeHtml(v.route) + '</span>' +
+        '<h4>' + escapeHtml(v.title) + '</h4>' +
+        '<p>' + escapeHtml(v.desc) + '</p>' +
+        (v.current ? '<span class="viz-card__flag">本页已内嵌预览</span>' : '') +
+        '</article>';
+    }).join('');
+  }
+
   function renderSubsystems() {
     var grid = $('#subsystem-grid');
     if (!grid) return;
@@ -724,8 +1232,14 @@
         '<span class="capability-card__code">' + escapeHtml(s.code) + '</span>' +
         '<span class="capability-card__led"></span>' +
         '</div>' +
+        '<div class="capability-card__body">' +
+        '<span class="capability-card__glyph" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+        'stroke-linecap="round" stroke-linejoin="round">' + s.glyph + '</svg>' +
+        '</span>' +
         '<h3>' + escapeHtml(s.title) + '</h3>' +
-        '<p>' + escapeHtml(s.desc) + '</p>' +
+        '</div>' +
+        '<p>' + escapeHtml(s.brief) + '</p>' +
         '<div class="capability-card__foot">' +
         '<span>' + escapeHtml(s.latency) + '</span>' +
         '<span class="capability-card__go">查看规约 →</span>' +
@@ -805,6 +1319,44 @@
       : '$edgeos/invoke/edgeCore-node-001';
   }
 
+  function renderBusPresets() {
+    var box = $('#bus-presets');
+    if (!box) return;
+
+    box.innerHTML = BUS_PRESETS.map(function (p) {
+      return '' +
+        '<button type="button" class="preset-chip" data-preset="' + p.key + '">' +
+        '<span class="preset-chip__label">' + escapeHtml(p.label) + '</span>' +
+        '<span class="preset-chip__hint">' + escapeHtml(p.hint) + '</span>' +
+        '</button>';
+    }).join('');
+
+    box.addEventListener('click', function (e) {
+      var chip = e.target.closest('[data-preset]');
+      if (chip) applyBusPreset(chip.dataset.preset);
+    });
+  }
+
+  function applyBusPreset(key, silent) {
+    var preset = null;
+    BUS_PRESETS.forEach(function (p) { if (p.key === key) preset = p; });
+    if (!preset) return;
+
+    $$('.preset-chip').forEach(function (chip) {
+      chip.classList.toggle('is-active', chip.dataset.preset === key);
+    });
+
+    var payload = $('#bus-input-payload');
+    if (payload) payload.value = JSON.stringify(preset.body, null, 2);
+
+    if (silent) return;
+    pushWire(
+      '<span class="ts">[' + nowTime() + ']</span> <span class="c-blue">[PRESET]</span> ' +
+      '已载入『' + escapeHtml(preset.label) + '』载荷 · ' + escapeHtml(preset.hint)
+    );
+    showToast('已载入预设载荷：' + preset.label, 'info');
+  }
+
   function setBusProtocol(proto, silent) {
     busProtocol = proto;
 
@@ -817,8 +1369,8 @@
 
     if (status) {
       status.textContent = proto === 'nats'
-        ? 'CARRIER: NATS JetStream · 点分 Subject'
-        : 'CARRIER: MQTT 3.1.1 · 斜杠 Topic · QoS 1';
+        ? 'NATS JetStream · 点分 Subject'
+        : 'MQTT 3.1.1 · 斜杠 Topic · QoS 1';
       status.className = 'panel-head__status ' + (proto === 'nats' ? 'is-nats' : 'is-mqtt');
     }
     if (topicEl) topicEl.value = topicFor(proto);
@@ -1136,6 +1688,33 @@
       });
     });
 
+    SCENARIOS.forEach(function (s) {
+      paletteAll.push({
+        group: '场景用例',
+        title: s.no + ' ' + s.title,
+        meta: s.caps.join(' · '),
+        run: function () { switchTab('scenarios'); }
+      });
+    });
+
+    VIZ_VIEWS.forEach(function (v) {
+      paletteAll.push({
+        group: '2.5D 可视化',
+        title: v.title,
+        meta: v.route + ' · ' + v.desc,
+        run: function () { switchTab('visualization'); }
+      });
+    });
+
+    BUS_PRESETS.forEach(function (p) {
+      paletteAll.push({
+        group: '总线动作',
+        title: '载入预设载荷 · ' + p.label,
+        meta: 'Bus · ' + p.hint,
+        run: function () { switchTab('bus'); applyBusPreset(p.key); }
+      });
+    });
+
     [
       { t: '切换到 NATS JetStream 载波', m: 'Bus · 点分 Subject', f: function () { switchTab('bus'); setBusProtocol('nats'); } },
       { t: '切换到 MQTT 3.1.1 载波', m: 'Bus · 斜杠 Topic · QoS 1', f: function () { switchTab('bus'); setBusProtocol('mqtt'); } },
@@ -1438,12 +2017,18 @@
     renderSubsystems();
     renderPipeline();
     renderPoints();
+    renderBusPresets();
+    renderScenarios();
+    renderIsoScene();
+    renderVisualViews();
 
     setDrawerCollapsed(false);
     selectSubsystem(0);
     setBusProtocol('mqtt', true);
+    applyBusPreset('write', true);
     buildPalette();
     initPalette();
+    initIsoHud();
     initTelemetryClock();
     initTelemetryStream();
 
@@ -1480,6 +2065,17 @@
 
     $$('[data-nav-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () { switchTab(btn.dataset.navTab); });
+    });
+
+    /* 顶部胶囊中的滚动型按钮（系统总览 / 场景用例 / 文档）此前没有任何绑定，点击无响应 */
+    $$('[data-nav-scroll]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.dataset.navScroll;
+        Object.keys(SCROLL_TABS).forEach(function (k) {
+          if (SCROLL_TABS[k] === key) key = k;
+        });
+        switchTab(key);
+      });
     });
 
     switchTab('explorer', { skipScroll: true });

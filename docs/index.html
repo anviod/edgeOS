@@ -130,6 +130,8 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
       <button type="button" class="nav-segment__btn" data-nav-tab="bus">双通道总线</button>
       <button type="button" class="nav-segment__btn" data-nav-tab="pipeline">流水线</button>
       <button type="button" class="nav-segment__btn" data-nav-tab="specs">点位规范</button>
+      <button type="button" class="nav-segment__btn" data-nav-tab="scenarios">场景用例</button>
+      <button type="button" class="nav-segment__btn" data-nav-tab="visualization">2.5D 可视化</button>
     </div>
   </section>
 
@@ -191,32 +193,37 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
       <div class="bus-panel__grid">
         <div class="bus-stack">
           <div class="panel-head">
-            <span class="panel-head__label">指令报文调测台 · Command Injector</span>
-            <span class="panel-head__status is-mqtt" id="bus-carrier-status">CARRIER: MQTT 3.1.1 · 斜杠 Topic · QoS 1</span>
+            <span class="panel-head__label">指令报文调测台</span>
+            <span class="panel-head__status is-mqtt" id="bus-carrier-status">MQTT 3.1.1 · 斜杠 Topic · QoS 1</span>
           </div>
 
           <div class="proto-switch" role="group" aria-label="选择载波">
-            <button type="button" class="proto-switch__btn is-active" data-proto="mqtt">MQTT 3.1.1 · 斜杠 Topic</button>
-            <button type="button" class="proto-switch__btn" data-proto="nats">NATS JetStream · 点分 Subject</button>
+            <button type="button" class="proto-switch__btn is-active" data-proto="mqtt">MQTT · 斜杠 Topic</button>
+            <button type="button" class="proto-switch__btn" data-proto="nats">NATS · 点分 Subject</button>
           </div>
 
           <div>
-            <label class="field-label" for="bus-input-topic">统一寻址 Topic / Subject（切换载波时自动改写分隔符）</label>
+            <label class="field-label" for="bus-input-topic">统一寻址 Topic / Subject（切换载波自动改写分隔符）</label>
             <input class="field-input" type="text" id="bus-input-topic" value="$edgeos/invoke/edgeCore-node-001" spellcheck="false" />
           </div>
 
           <div>
-            <label class="field-label" for="bus-input-payload">控制载荷 · invoke_capability 信封（非合法 JSON 将被严格模式阻断）</label>
-            <textarea class="field-textarea" id="bus-input-payload" rows="11" spellcheck="false">{
+            <label class="field-label">载荷预设</label>
+            <div class="preset-row" id="bus-presets" role="group" aria-label="载荷预设"></div>
+          </div>
+
+          <div>
+            <label class="field-label" for="bus-input-payload">控制载荷 · invoke_capability 信封</label>
+            <textarea class="field-textarea" id="bus-input-payload" rows="9" spellcheck="false">{
   "header": {
-    "message_id": "msg-invoke-001",
+    "message_id": "msg-1001",
     "source": "edgeos-planner-001",
     "destination": "edgeCore-node-001",
     "message_type": "invoke_capability",
     "version": "2.0"
   },
   "body": {
-    "invoke_id": "invoke-001",
+    "invoke_id": "invoke-1001",
     "target": "edgeCore-node-001",
     "capability": "modbus_tcp.write_point",
     "arguments": { "device_id": "slave-1", "address": "40001", "value": 25.5 },
@@ -226,14 +233,14 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
           </div>
 
           <div class="bus-actions">
-            <button type="button" class="btn btn--primary btn--sm" id="btn-dispatch">下发 invoke_capability (DISPATCH)</button>
-            <button type="button" class="btn btn--amber btn--sm" id="btn-failover">模拟链路超时降级</button>
+            <button type="button" class="btn btn--primary btn--sm" id="btn-dispatch">下发指令</button>
+            <button type="button" class="btn btn--amber btn--sm" id="btn-failover">模拟链路降级</button>
           </div>
         </div>
 
         <div class="bus-stack">
           <div class="panel-head">
-            <span class="panel-head__label">总线物理收发回环监控</span>
+            <span class="panel-head__label">总线物理收发回环</span>
             <span class="panel-head__label">QoS 1 · AT LEAST ONCE</span>
           </div>
 
@@ -276,16 +283,6 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
 
           <p class="pipeline-detail__text" id="pipe-text"></p>
 
-          <div class="gate-list">
-            <div class="gate-list__title">工业现场物理合规准则</div>
-            <ul>
-              <li>Agent / Capability Descriptor 必须携带 <code>version: "2.0"</code> 与硬件元数据，防范重放伪造</li>
-              <li>Invoke 前必须校验 target / Capability / permission，越权请求回 <code>rejected</code></li>
-              <li>并发写入必须申请 <code>resource_locks</code>（device / channel 作用域），避免同点位冲突</li>
-              <li>AI 逆向与文档解析产出的一切配置均为草案，须经 AI 任务 Confirm API 签字后方可落库</li>
-            </ul>
-          </div>
-
           <div class="hero-actions">
             <button type="button" class="btn btn--primary btn--sm" id="btn-advance">下一步单步验证 →</button>
           </div>
@@ -300,6 +297,36 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
             </div>
             <pre id="pipe-code"></pre>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 合规门禁：对全部六个工步生效，独立成行，避免堆在工步详情里 -->
+    <div class="gate-strip">
+      <div class="gate-strip__head">
+        <span class="gate-strip__title">工业现场合规门禁</span>
+        <span class="gate-strip__note">以下四条硬性约束对全部六个工步生效</span>
+      </div>
+      <div class="gate-grid">
+        <div class="gate-card">
+          <span class="gate-card__no">01</span>
+          <h4>版本与元数据</h4>
+          <p>Descriptor 必须携带 <code>version: "2.0"</code> 与硬件元数据，防范重放伪造。</p>
+        </div>
+        <div class="gate-card">
+          <span class="gate-card__no">02</span>
+          <h4>越权请求拦截</h4>
+          <p>Invoke 前校验 target / Capability / 权限，越权请求一律回 <code>rejected</code>。</p>
+        </div>
+        <div class="gate-card">
+          <span class="gate-card__no">03</span>
+          <h4>并发写入串行化</h4>
+          <p>同设备 / 同通道写入须先申请 <code>resource_locks</code>，避免点位冲突。</p>
+        </div>
+        <div class="gate-card">
+          <span class="gate-card__no">04</span>
+          <h4>工程师终审</h4>
+          <p>AI 产出的一切配置均为草案，须经 Confirm API 签字后方可落库。</p>
         </div>
       </div>
     </div>
@@ -340,6 +367,96 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
         </table>
       </div>
     </div>
+  </section>
+
+  <!-- ============================================================
+       典型场景用例
+       ============================================================ -->
+  <section class="landing-section" id="scenarios">
+    <div class="section-heading">
+      <div>
+        <div class="section-heading__eyebrow">FIELD SCENARIOS</div>
+        <h2>典型场景用例</h2>
+      </div>
+      <p class="section-heading__note">
+        四类已在工业现场落地的协同场景，覆盖异构接入、跨工位调度、AI 辅助与链路容灾。
+      </p>
+    </div>
+
+    <div class="scenario-grid" id="scenario-grid"></div>
+  </section>
+
+  <!-- ============================================================
+       2.5D 可视化能力
+       ============================================================ -->
+  <section class="landing-section" id="visualization">
+    <div class="section-heading">
+      <div>
+        <div class="section-heading__eyebrow">2.5D VISUALIZATION</div>
+        <h2>2.5D 工业场景可视化</h2>
+      </div>
+      <p class="section-heading__note">
+        纯 CSS 3D 变换实现的等轴场景，零 WebGL 依赖；同一套等轴组件拼装出八个工业现场视图。
+      </p>
+    </div>
+
+    <div class="viz-panel">
+      <div class="viz-panel__head">
+        <div>
+          <div class="viz-panel__eyebrow">产线展示 · 2.5D 车间视图</div>
+          <h3>车间 A · 总装</h3>
+        </div>
+        <div class="viz-panel__meta">
+          <span>2 条产线 · 5 台主机</span>
+          <span class="is-live"><i></i>生产运行</span>
+        </div>
+      </div>
+
+      <div class="viz-metrics">
+        <div class="viz-metric">
+          <span class="viz-metric__label">产线节拍</span>
+          <span class="viz-metric__value">82<i>%</i></span>
+        </div>
+        <div class="viz-metric">
+          <span class="viz-metric__label">一次良率</span>
+          <span class="viz-metric__value">98.2<i>%</i></span>
+        </div>
+        <div class="viz-metric">
+          <span class="viz-metric__label">平均 OEE</span>
+          <span class="viz-metric__value">87.6<i>%</i></span>
+        </div>
+        <div class="viz-metric">
+          <span class="viz-metric__label">在制品 WIP</span>
+          <span class="viz-metric__value">36<i>件</i></span>
+        </div>
+        <div class="viz-metric">
+          <span class="viz-metric__label">累计产出</span>
+          <span class="viz-metric__value">12 680<i>件</i></span>
+        </div>
+      </div>
+
+      <div class="iso-stage" id="iso-stage">
+        <div class="iso-world" id="iso-world"></div>
+        <div class="iso-hud" id="iso-hud" role="tooltip"></div>
+        <span class="iso-corner iso-corner--tl"></span>
+        <span class="iso-corner iso-corner--tr"></span>
+        <span class="iso-corner iso-corner--bl"></span>
+        <span class="iso-corner iso-corner--br"></span>
+        <span class="iso-scan"></span>
+      </div>
+
+      <div class="viz-foot">
+        <div class="viz-legend">
+          <span><i style="background:#10B981"></i>运行</span>
+          <span><i style="background:#F59E0B"></i>关注</span>
+          <span><i style="background:#94A3B8"></i>待机</span>
+          <span><i style="background:#EF4444"></i>故障</span>
+        </div>
+        <span class="viz-foot__tech">rotateX(60°) · rotateZ(-45°) · CSS 3D · 无 WebGL</span>
+      </div>
+    </div>
+
+    <div class="viz-grid" id="viz-grid"></div>
   </section>
 
   <!-- ============================================================

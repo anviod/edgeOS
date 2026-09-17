@@ -28,7 +28,7 @@
         document.documentElement.dataset.themeSource = source;
       })();
     </script>
-    <link rel="stylesheet" href="{{ '/assets/portal.css' | relative_url }}?v=6" />
+    <link rel="stylesheet" href="{{ '/assets/portal.css' | relative_url }}?v=7" />
   </head>
   <body class="landing-body">
     <div class="landing-shell">
@@ -56,6 +56,8 @@
               <button type="button" class="nav-segment__btn" data-nav-tab="bus">双通道总线</button>
               <button type="button" class="nav-segment__btn" data-nav-tab="pipeline">流水线</button>
               <button type="button" class="nav-segment__btn" data-nav-tab="specs">点位规范</button>
+              <button type="button" class="nav-segment__btn" data-nav-scroll="#scenarios">场景用例</button>
+              <button type="button" class="nav-segment__btn" data-nav-scroll="#visualization">2.5D 可视化</button>
               <button type="button" class="nav-segment__btn" data-nav-scroll="#documents">文档</button>
             </div>
           </nav>
@@ -94,6 +96,8 @@
             <button type="button" class="nav-segment__btn" data-nav-tab="bus">总线</button>
             <button type="button" class="nav-segment__btn" data-nav-tab="pipeline">流水线</button>
             <button type="button" class="nav-segment__btn" data-nav-tab="specs">点位库</button>
+            <button type="button" class="nav-segment__btn" data-nav-scroll="#scenarios">场景</button>
+            <button type="button" class="nav-segment__btn" data-nav-scroll="#visualization">可视化</button>
             <button type="button" class="nav-segment__btn" data-nav-scroll="#documents">文档</button>
           </div>
         </nav>
@@ -110,6 +114,6 @@
 
     {% include portal-chrome.html %}
 
-    <script src="{{ '/assets/portal.js' | relative_url }}?v=6"></script>
+    <script src="{{ '/assets/portal.js' | relative_url }}?v=7"></script>
   </body>
 </html>
