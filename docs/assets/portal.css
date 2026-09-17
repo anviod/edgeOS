@@ -103,6 +103,9 @@
   --shell: 90%;
   --shell-max: 1920px;
   --header-h: 60px;
+  /* 窄屏下顶栏会多出一行缩写版导航条（.mobile-nav），
+     锚点偏移必须把它算进去，否则跳转后标题会被压在页头下面 */
+  --nav-row-h: 0px;
   --gutter: 24px;
   --section-gap: 96px;
 }
@@ -163,7 +166,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--header-h) + 24px);
+  scroll-padding-top: calc(var(--header-h) + var(--nav-row-h) + 24px);
 }
 
 body {
@@ -3668,6 +3671,40 @@ canvas {
 }
 
 @media (max-width: 1080px) {
+  /* —— 导航形态切换 ——
+     桌面胶囊放不下 8 段：实测 980px 视口下胶囊可用宽 529px，而 8 段内容需 570px，
+     末段「文档」会被挤出可视区（横向滚动无提示，被裁的段落根本点不到）。
+     可用宽随视口约 0.9/px 增长，1026px 以上才容得下，故在此断点整体换成
+     缩写版导航条（.mobile-nav），保证每段都可见可点。 */
+  :root {
+    /* 第二行导航条高度（实测 52px），用于锚点偏移补偿 */
+    --nav-row-h: 52px;
+  }
+
+  .site-nav--tabs {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: flex;
+    gap: 2px;
+    width: var(--shell);
+    max-width: var(--shell-max);
+    margin: 0 auto;
+    padding: 6px 0;
+    overflow-x: auto;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    border-bottom: 1px solid var(--line-hair);
+    box-shadow: none;
+    scrollbar-width: none;
+  }
+
+  .mobile-nav::-webkit-scrollbar {
+    display: none;
+  }
+
   .feature-grid--three {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -3699,30 +3736,6 @@ canvas {
 
   .landing-main {
     padding-top: 56px;
-  }
-
-  .site-nav--tabs {
-    display: none;
-  }
-
-  .mobile-nav {
-    display: flex;
-    gap: 2px;
-    width: var(--shell);
-    max-width: var(--shell-max);
-    margin: 0 auto;
-    padding: 6px 0;
-    overflow-x: auto;
-    background: none;
-    border: 0;
-    border-radius: 0;
-    border-bottom: 1px solid var(--line-hair);
-    box-shadow: none;
-    scrollbar-width: none;
-  }
-
-  .mobile-nav::-webkit-scrollbar {
-    display: none;
   }
 
   .bus-panel__grid,
