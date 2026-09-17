@@ -12,23 +12,95 @@
 
 > 系统阐述 EdgeOS 架构设计、EAN 2.0 协议、AI 协同与 N+2 冗余，含 11 章节架构图与性能测试数据。
 
+## 文档站点
+
+`docs/` 经 GitHub Actions（`.github/workflows/pages.yml`）发布到 GitHub Pages：<https://anviod.github.io/edgeOS/>
+
+站点采用零依赖的 **Apple Pro Monochrome** 单色系设计（`docs/assets/portal.css`，无 CDN、无构建步骤）：浅灰底
+`#F5F5F7` / 纯白卡片 `#FFFFFF` / 主文字 `#1D1D1F` / 副文字 `#6E6E73`；全局仅保留单一品牌强调色
+Apple System Blue `#0071E3`（深色 `#0A84FF`），状态点只用 `#34C759` / `#FF9500`。
+主题切换持久化在 `localStorage`，首屏由内联引导脚本落地，避免刷新闪白。
+
+**首页能力**
+
+| 分区 | 内容 |
+|------|------|
+| 胶囊分段控制器 | 顶部与中部各一组，系统总览 / 控制子系统 / 双通道总线 / 流水线 / 点位规范 / 文档 双向联动，切换时同步刷新眉标、标题与说明 |
+| 集群遥测条 | 单调时钟（µs 级）、Capability 计数、Router 延迟、Registry 状态、人机签核门禁与事件总线实时流 |
+| 架构检查器 | 六大控制平面卡片 → 抽屉式检查器，内嵌 macOS 风格代码窗（红黄绿窗钮 + 一键复制），展示 EAN 2.0 真实报文与 SLO 表 |
+| 双通道总线 | MQTT 斜杠 Topic ↔ NATS 点分 Subject 对称寻址演示，可下发 `invoke_capability`、模拟链路超时降级并观察 wire trace |
+| 点位规范 | 63 项 Capability 与 40001+ Modbus 寄存器映射表，支持按地址 / 语义 / 权限过滤 |
+| 文档导航 | 后端架构、通信协议、AI 协同、EAN 2.0 改造指南、测试方案与样式规范等 8 个入口 |
+
+<div align="center">
+  <img src="./docs/img/portal-home.png" width="100%" />
+</div>
+
+> 架构检查器 · 抽屉内的 macOS 代码窗（EAN 2.0 真实报文）与文档导航
+
+<div align="center">
+  <img src="./docs/img/portal-inspector.png" width="100%" />
+</div>
+
+> 双通道总线 · 指令报文调试台与总物理回环监控
+
+<div align="center">
+  <img src="./docs/img/portal-bus.png" width="100%" />
+</div>
+
+**目录结构**
+
+```
+docs/
+├── index.html                  # 首页（layout: landing）
+├── _layouts/landing.html       # 首页版式
+├── _layouts/default.html       # 内页版式（kramdown + rouge 代码高亮）
+├── _includes/portal-chrome.html / portal-footer.html
+├── assets/portal.css           # 设计系统（Apple Pro Monochrome）
+├── assets/portal.js            # 交互：分段器 / 检查器 / 命令面板 / 主题持久化
+├── edgeos/                     # EAN 2.0 改造指南、通信协议规范、AI 协同规划等
+└── paper-edgeos/               # 学术论文（HTML + PDF）
+```
+
+**本地预览**
+
+仓库未提供 Gemfile，需先安装 Jekyll 与站点声明的 `jekyll-relative-links` 插件：
+
+```bash
+gem install jekyll jekyll-relative-links
+cd docs && jekyll serve
+```
+
+> 不要直接用浏览器打开 `docs/index.html`。页面资源走 `relative_url` 生成绝对路径
+> （线上为 `/edgeOS/assets/...`，本地 baseurl 为空时为 `/assets/...`），
+> `file://` 下会丢失全部样式。
+
 ## 快速开始
 
 ### 环境要求
 
-- Go 1.21+
-- Node.js 18+
-- npm 9+
+- Go 1.25+（模块名 `github.com/anviod/edgeOS`）
+- Node.js 20+ / npm 10+（前端构建）
+- 可选：Ruby + Jekyll（仅用于本地预览文档站点）
 
 ### 后端服务
 
 ```bash
-cd server
 go mod tidy
-go run main.go
+go run ./cmd
 ```
 
-后端默认运行在 `http://localhost:8080`。
+后端默认监听 `:80`（见 `internal/config/config.go` 的 `DefaultConfig`），运行期数据落在 `data/`：
+`config.db`（配置）与 `edgeos.db`（运行态），均为 bbolt。Prometheus 指标独立监听 `:9090`。
+
+编译二进制：
+
+```bash
+go build -o bin/edgeOS ./cmd
+```
+
+`dist/` 已提供 linux/amd64、linux/arm64、linux/arm7、windows/amd64 的 `tar.gz` 与 `deb` / `rpm` 包，
+配套仓库根目录的 `edgeOS.service`（systemd）与 `scripts/` 下的 pre/post 安装脚本。
 
 ### 前端开发
 
@@ -38,13 +110,17 @@ npm install
 npm run dev
 ```
 
-前端开发服务器运行在 `http://localhost:5173`，API 请求通过 `/api` 前缀自动代理到 `http://localhost:8080`。
-
-构建生产版本：
+前端开发服务器运行在 `http://localhost:3000`，`/api` 请求经 Vite 代理转发到后端
+（默认 `http://localhost:80`，与 `internal/config/config.go` 中 `cfg.Node.Listen` 的默认值一致）。
 
 ```bash
-npm run build
+npm run build     # 生产构建
+npm run test      # vitest
+npm run lint      # eslint
 ```
+
+> 后端监听端口与默认值不一致时，用 `EDGEOS_API` 覆盖即可，无需改动仓库文件：
+> `EDGEOS_API=http://localhost:8080 npm run dev`
 
 ## EAN 2.0 核心功能
 
@@ -227,10 +303,12 @@ AI 协同组件通过 EAN 网络暴露为可调用的 Capability：
 
 ### 相关文档
 
+- **文档站点**：[anviod.github.io/edgeOS](https://anviod.github.io/edgeOS/) · [论文](./docs/paper-edgeos/index.html) · [后端架构实现指南](./docs/EdgeOS%20后端实现指南.md)
 - **学术论文**：[基于 EdgeCore 数字底座的工业边缘协调平台 EdgeOS 的设计与实现](./docs/paper-edgeos/index.html)
 - EAN 2.0 改造指南：[docs/edgeos/EAN2.0-edgeCore-EdgeOS改造指南.md](./docs/edgeos/EAN2.0-edgeCore-EdgeOS改造指南.md)
 - EAN 2.0 升级报告：[docs/edgeos/EdgeOS-EAN2.0改造升级报告.md](./docs/edgeos/EdgeOS-EAN2.0改造升级报告.md)
-- P3 规划文档：[docs/EdgeOS-2026-P3-TODO.md](./docs/EdgeOS-2026-P3-TODO.md)
+- 通信协议规范：[docs/edgeos/EdgeCore通信协议规范(MQTT-NATS).md](./docs/edgeos/EdgeCore%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%A7%84%E8%8C%83%28MQTT-NATS%29.md)
+- 安装包与 systemd 部署：`dist/` + [edgeOS.service](./edgeOS.service) + [scripts/](./scripts)
 - UI 样式规范：[docs/样式规范.md](./docs/%E6%A0%B7%E5%BC%8F%E8%A7%84%E8%8C%83.md)
 
 ## 前端最佳实践
