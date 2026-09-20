@@ -594,8 +594,8 @@
 
 .capability-card.is-active {
   border-color: var(--text);
-  box-shadow: inset 2px 0 0 var(--accent);
-  border-top-color: var(--accent-line);
+  box-shadow: inset 2px 0 0 var(--text);
+  border-top-color: var(--line-strong);
   background: var(--surface);
 }
 
@@ -900,7 +900,7 @@
 
 .proto-switch__btn.is-active {
   background: var(--text);
-  color: var(--accent-deep);
+  color: var(--surface);
   box-shadow: var(--sh-sm);
 }
 
@@ -1113,7 +1113,7 @@
 
 .pipeline-step.is-active {
   border-color: var(--text);
-  box-shadow: inset 0 2px 0 var(--accent);
+  box-shadow: inset 0 2px 0 var(--text);
   background: var(--surface);
 }
 
@@ -2245,7 +2245,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* —— Editorial：版面级标题走衬线，卡片与小标题维持无衬线 —— */
+/* —— 版面级标题：与大标题同库同重，收紧字距拉出层级 —— */
 .hero-copy h1,
 .section-heading h2 {
   font-family: var(--font-display);

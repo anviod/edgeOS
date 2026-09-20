@@ -5,89 +5,94 @@
         毛玻璃吸顶栏 · 方形品牌 mark · 胶囊分段导航 / 按钮 / 命令面板 /
         Toast / 页脚 / 文档内页 / 响应式 / 无障碍与降级 / 打印
 
-   视觉语言：明亮优先 · 工业金 · Editorial / Ledger · 发丝线分割 · 无卡片化
+   视觉语言：Apple Pro Monochrome · 系统蓝强调 · 高阶灰阶 · 发丝线分割 · 无卡片化
    首页专属样式在 landing.css，必须在本文件之后加载。
 
    沿革：本文件此前被 2026-08-06 的一次批量导入覆盖为一套
    "Black Gold Premium Theme"（从 edgeCore 老站反推的暗金暗色卡片主题），
-   全站零引用，已随本次样式统一整体移除，不再保留任何暗金卡片代码。
+   全站零引用，已随样式统一整体移除，不再保留任何暗金卡片代码。
    现内容为从原 portal.css 提取、合并并打磨后的基础层。
+   其后一度换成的「工业金 + 暖白纸面 + 衬线标题」已整体回退，
+   恢复为 portal.css 原本的 Apple Pro Monochrome 与系统无衬线标题。
    ========================================================================== */
 
 /* ==========================================================================
    1. 设计令牌
    --------------------------------------------------------------------------
-   工业金 · Editorial / Ledger
+   Apple Pro Monochrome · iOS 26 语义色
 
-   纸面是暖白，不是冷灰；分割一律用发丝线，不用卡片投影。
-   强调色只有一支工业金 —— 正文级金给文字与描边，深金做实心块底，
-   亮金只出现在深色表面上。绿 / 琥珀 / 红属状态语义，不作装饰。
+   单一色系 + 高阶灰阶：纸面 #F5F5F7，表面 #FFFFFF，
+   主文字 #1D1D1F，副文字 #6E6E73，三级 #86868B。
+   唯一品牌强调色是 Apple System Blue —— 链接、焦点环、主按钮、实时点用它；
+   选中 / 激活态一律走近黑单色（var(--text)），不抢强调色。
+   状态色（绿 / 橙 / 红）只在语义必要处微量出现，不作装饰。
+
+   分割一律用发丝线，不用卡片投影。
    四级苹果阴影收敛为「浮层层级」：只服务抽屉、命令面板、终端窗口、Toast，
    内容区块一律不投影 —— 这是与卡片化设计的根本区别。
+   标题与正文同走系统无衬线栈（SF Pro），与 iOS 26 观感一致。
    ========================================================================== */
 
 :root {
   color-scheme: light;
 
-  /* —— 表面：暖白纸面 —— */
-  --bg: #F4F2EC;
+  /* —— 表面 —— */
+  --bg: #F5F5F7;
   --surface: #FFFFFF;
-  --surface-sub: #FAF8F3;
-  --surface-sunken: rgba(56, 44, 18, 0.05);
-  --surface-hover: rgba(56, 44, 18, 0.035);
+  --surface-sub: #FAFAFC;
+  --surface-sunken: rgba(0, 0, 0, 0.035);
+  --surface-hover: rgba(0, 0, 0, 0.024);
 
   /* —— 发丝线：全站唯一的分割语言 —— */
-  --line: rgba(56, 44, 18, 0.16);
-  --line-strong: rgba(56, 44, 18, 0.34);
-  --line-hair: rgba(56, 44, 18, 0.1);
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.18);
+  --line-hair: rgba(0, 0, 0, 0.05);
 
-  /* —— 文字：暖墨 —— */
-  --text: #211e18;
-  --text-2: #6b6255;
-  --text-3: #948a79;
+  /* —— 文字：高阶灰阶 —— */
+  --text: #1D1D1F;
+  --text-2: #6E6E73;
+  --text-3: #86868B;
 
-  /* —— 品牌强调：工业金（全局唯一）—— */
-  --accent: #82661e;        /* 正文级金：白底对比 4.9:1，可做链接与激活文字 */
-  --accent-hover: #96762a;
-  --accent-deep: #7a5f1d;   /* 实心金底：配白字对比 6.0:1 */
-  --accent-bright: #d9be72; /* 深色表面上的金 */
-  --accent-soft: rgba(130, 102, 30, 0.1);
-  --accent-line: rgba(130, 102, 30, 0.32);
+  /* —— 品牌强调：Apple System Blue（全局唯一）—— */
+  --accent: #0071E3;
+  --accent-hover: #0077ED;
+  --accent-soft: rgba(0, 113, 227, 0.08);
+  --accent-line: rgba(0, 113, 227, 0.24);
 
   /* —— 状态（语义，非装饰）—— */
-  --green: #2e7d4f;
-  --green-deep: #1f5c39;
-  --green-soft: rgba(46, 125, 79, 0.1);
-  --orange: #b0741a;
-  --orange-deep: #8a5a12;
-  --orange-soft: rgba(176, 116, 26, 0.12);
-  --red: #b3372e;
-  --red-soft: rgba(179, 55, 46, 0.1);
+  --green: #34C759;
+  --green-deep: #248A3D;
+  --green-soft: rgba(52, 199, 89, 0.1);
+  --orange: #FF9500;
+  --orange-deep: #C93400;
+  --orange-soft: rgba(255, 149, 0, 0.1);
+  --red: #FF3B30;
+  --red-soft: rgba(255, 59, 48, 0.09);
 
   /* —— macOS 终端窗口：保留真实窗口语汇 —— */
-  --term-bg: #1e1c17;
-  --term-bar: #26231c;
+  --term-bg: #1E1E1E;
+  --term-bar: #262626;
   --term-line: rgba(255, 255, 255, 0.1);
-  --term-text: #ede8dd;
-  --term-dim: #918a7c;
-  --term-json: #7ee787;
-  --term-key: #9cdcfe;
-  --term-str: #7ee787;
-  --term-num: #f0a868;
-  --term-comment: #6e7681;
-  --dot-red: #ff5f56;
-  --dot-yellow: #ffbd2e;
-  --dot-green: #27c93f;
+  --term-text: #E8E8ED;
+  --term-dim: #8E8E93;
+  --term-json: #7EE787;
+  --term-key: #9CDCFE;
+  --term-str: #7EE787;
+  --term-num: #F0A868;
+  --term-comment: #6E7681;
+  --dot-red: #FF5F56;
+  --dot-yellow: #FFBD2E;
+  --dot-green: #27C93F;
 
   /* —— 苹果四级阴影：只服务于浮层 —— */
-  --sh-sm: 0 1px 2px rgba(33, 30, 24, 0.06), 0 2px 8px rgba(33, 30, 24, 0.05);
-  --sh-md: 0 4px 12px rgba(33, 30, 24, 0.07), 0 8px 24px rgba(33, 30, 24, 0.06);
-  --sh-lg: 0 8px 20px rgba(33, 30, 24, 0.08), 0 16px 40px rgba(33, 30, 24, 0.08);
-  --sh-float: 0 24px 60px rgba(33, 30, 24, 0.16), 0 2px 6px rgba(33, 30, 24, 0.06);
-  --sh-term: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(33, 30, 24, 0.16);
+  --sh-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --sh-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+  --sh-lg: 0 16px 40px rgba(0, 0, 0, 0.08);
+  --sh-float: 0 20px 48px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --sh-term: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.12);
 
   /* —— 毛玻璃 —— */
-  --glass-nav: rgba(244, 242, 236, 0.72);
+  --glass-nav: rgba(255, 255, 255, 0.72);
   --glass-blur: saturate(180%) blur(20px);
 
   /* —— 圆角：胶囊控制件保留，容器一律直角 —— */
@@ -102,8 +107,8 @@
   /* —— 版式 —— */
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text",
     "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC",
-    "Source Han Serif SC", "Noto Serif SC", Georgia, "Times New Roman", "SimSun", serif;
+  /* 标题同走系统无衬线栈：iOS 26 只有一个家族，靠字重与字号分层 */
+  --font-display: var(--font-sans);
   --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", "Cascadia Mono", Menlo,
     Consolas, "Liberation Mono", monospace;
 
@@ -125,46 +130,44 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #14120e;
-  --surface: #1c1915;
-  --surface-sub: #191713;
-  --surface-sunken: rgba(255, 255, 255, 0.07);
-  --surface-hover: rgba(255, 255, 255, 0.045);
+  --bg: #000000;
+  --surface: #1D1D1F;
+  --surface-sub: #161617;
+  --surface-sunken: rgba(255, 255, 255, 0.08);
+  --surface-hover: rgba(255, 255, 255, 0.04);
 
-  --line: rgba(233, 220, 190, 0.16);
-  --line-strong: rgba(233, 220, 190, 0.34);
-  --line-hair: rgba(233, 220, 190, 0.1);
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.3);
+  --line-hair: rgba(255, 255, 255, 0.07);
 
-  --text: #f2ede2;
-  --text-2: #b5ac9b;
-  --text-3: #8c8475;
+  --text: #F5F5F7;
+  --text-2: #A1A1A6;
+  --text-3: #86868B;
 
-  --accent: #d9be72;
-  --accent-hover: #e7d18e;
-  --accent-deep: #b99a46;
-  --accent-bright: #ead9a0;
-  --accent-soft: rgba(217, 190, 114, 0.14);
-  --accent-line: rgba(217, 190, 114, 0.34);
+  --accent: #0A84FF;
+  --accent-hover: #3D9BFF;
+  --accent-soft: rgba(10, 132, 255, 0.16);
+  --accent-line: rgba(10, 132, 255, 0.38);
 
-  --green: #3fa86a;
-  --green-deep: #3fa86a;
-  --green-soft: rgba(63, 168, 106, 0.14);
-  --orange: #d99a3c;
-  --orange-deep: #d99a3c;
-  --orange-soft: rgba(217, 154, 60, 0.14);
-  --red: #d9564a;
-  --red-soft: rgba(217, 86, 74, 0.14);
+  --green: #30D158;
+  --green-deep: #30D158;
+  --green-soft: rgba(48, 209, 88, 0.14);
+  --orange: #FF9F0A;
+  --orange-deep: #FF9F0A;
+  --orange-soft: rgba(255, 159, 10, 0.14);
+  --red: #FF453A;
+  --red-soft: rgba(255, 69, 58, 0.14);
 
-  --term-bg: #17150f;
-  --term-bar: #201d16;
+  --term-bg: #161617;
+  --term-bar: #1F1F21;
 
-  --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.42), 0 2px 8px rgba(0, 0, 0, 0.34);
-  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.46), 0 8px 24px rgba(0, 0, 0, 0.42);
-  --sh-lg: 0 8px 20px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.46);
-  --sh-float: 0 24px 60px rgba(0, 0, 0, 0.68), 0 2px 6px rgba(0, 0, 0, 0.4);
+  --sh-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --sh-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --sh-lg: 0 16px 40px rgba(0, 0, 0, 0.58);
+  --sh-float: 0 20px 48px rgba(0, 0, 0, 0.66), 0 1px 2px rgba(0, 0, 0, 0.4);
   --sh-term: 0 8px 24px rgba(0, 0, 0, 0.5);
 
-  --glass-nav: rgba(20, 18, 14, 0.72);
+  --glass-nav: rgba(22, 22, 23, 0.72);
 }
 
 /* ==========================================================================
@@ -286,7 +289,7 @@ canvas {
   font-variant-numeric: tabular-nums;
 }
 
-/* —— Editorial 大标题：衬线只给版面级标题，正文与小标题仍走无衬线 —— */
+/* —— 版面级标题：家族统一走系统无衬线，靠字号与字重分层 —— */
 .doc-content h1,
 .doc-content h2 {
   font-family: var(--font-display);
@@ -473,8 +476,8 @@ canvas {
   width: 28px;
   height: 28px;
   border-radius: 3px;
-  background: var(--accent-deep);
-  color: #fff;
+  background: var(--text);
+  color: var(--surface);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0;
@@ -482,11 +485,11 @@ canvas {
 }
 
 .site-brand:hover .site-brand__mark {
-  background: var(--accent);
+  background: #000;
 }
 
 [data-theme="dark"] .site-brand:hover .site-brand__mark {
-  background: var(--accent-bright);
+  background: #fff;
 }
 
 .site-brand__pulse {
@@ -576,19 +579,19 @@ canvas {
 
 .nav-segment__btn.is-active {
   background: var(--surface);
-  color: var(--accent-deep);
+  color: var(--text);
   box-shadow: var(--sh-sm);
 }
 
 /* 深色下容器本身接近纯黑，选中项必须显著提亮才有层级（对齐苹果 HIG 深色分段控制器） */
 [data-theme="dark"] .nav-segment {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(120, 120, 128, 0.24);
   border-color: transparent;
 }
 
 [data-theme="dark"] .nav-segment__btn.is-active {
-  background: rgba(255, 255, 255, 0.16);
-  color: var(--accent-bright);
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
   box-shadow: none;
 }
 
@@ -752,13 +755,13 @@ canvas {
 }
 
 .btn--primary {
-  background: var(--accent-deep);
+  background: var(--accent);
   color: #fff;
   box-shadow: var(--sh-sm);
 }
 
 .btn--primary:hover {
-  background: var(--accent);
+  background: var(--accent-hover);
 }
 
 .btn--ghost {
