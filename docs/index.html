@@ -77,7 +77,387 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
         <div class="hero-zone hero-zone--mid">
           <!-- 去框化：不铺承载面、不画角标与扫描线，机台直接落在纯白纸面上 -->
           <div class="iso-stage" id="iso-stage">
-            <div class="iso-world" id="iso-world"></div>
+            <!-- 2.5D 车间视图：纯矢量 SVG（30° 等轴），无 WebGL、无 3D 变换。
+                 光学语言：阳极氧化铝渐变 + 冷青/浅靛紫/琥珀灰三种光学树脂 +
+                 顶面镜面高光倒角；设备与纸面的关系只由接触阴影表达。
+                 所有工件都坐在输送带托盘限位上，场景内没有漂浮孤立物体。 -->
+            <svg class="iso-svg" id="iso-svg" viewBox="0 0 1100 660"
+                 preserveAspectRatio="xMidYMid meet" role="img"
+                 aria-label="车间 A 总装线 2.5D 等轴视图：智能立体库、五台主机、双线输送总线与光学终检工位">
+              <defs>
+                <!-- 接触阴影：只做设备底部与纸面交界处的一层极浅漫反射遮蔽 -->
+                <radialGradient id="aoSoftGround" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#0f172a" stop-opacity="0.13"/>
+                  <stop offset="50%" stop-color="#0f172a" stop-opacity="0.05"/>
+                  <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+                </radialGradient>
+                <linearGradient id="aoLinearConveyor" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#0f172a" stop-opacity="0.11"/>
+                  <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+                </linearGradient>
+
+                <!-- 阳极氧化铝挤出型材：顶面最亮、前面中灰、侧面最暗 -->
+                <linearGradient id="alumRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ffffff"/>
+                  <stop offset="50%" stop-color="#f8fafc"/>
+                  <stop offset="100%" stop-color="#e2e8f0"/>
+                </linearGradient>
+                <linearGradient id="alumFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#e2e8f0"/>
+                  <stop offset="50%" stop-color="#cbd5e1"/>
+                  <stop offset="100%" stop-color="#94a3b8"/>
+                </linearGradient>
+                <linearGradient id="alumSide" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#94a3b8"/>
+                  <stop offset="100%" stop-color="#64748b"/>
+                </linearGradient>
+
+                <!-- 光学树脂 · 冷青（加工 / 输送 / 终检） -->
+                <linearGradient id="glassCyanRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#e0f2fe" stop-opacity="0.75"/>
+                  <stop offset="100%" stop-color="#bae6fd" stop-opacity="0.45"/>
+                </linearGradient>
+                <linearGradient id="glassCyanFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#0284c7" stop-opacity="0.48"/>
+                </linearGradient>
+                <linearGradient id="glassCyanSide" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#0369a1" stop-opacity="0.45"/>
+                  <stop offset="100%" stop-color="#075985" stop-opacity="0.65"/>
+                </linearGradient>
+
+                <!-- 光学树脂 · 浅靛紫（立体库 / 备料缓存） -->
+                <linearGradient id="glassIndigoRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#eef2ff" stop-opacity="0.6"/>
+                  <stop offset="100%" stop-color="#c7d2fe" stop-opacity="0.34"/>
+                </linearGradient>
+                <linearGradient id="glassIndigoFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#6366f1" stop-opacity="0.18"/>
+                  <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.38"/>
+                </linearGradient>
+                <linearGradient id="glassIndigoSide" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#4338ca" stop-opacity="0.42"/>
+                  <stop offset="100%" stop-color="#3730a3" stop-opacity="0.62"/>
+                </linearGradient>
+
+                <!-- 光学树脂 · 琥珀灰（关注态 M3） -->
+                <linearGradient id="glassAmberRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#fef3c7" stop-opacity="0.75"/>
+                  <stop offset="100%" stop-color="#fde68a" stop-opacity="0.45"/>
+                </linearGradient>
+                <linearGradient id="glassAmberFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#d97706" stop-opacity="0.45"/>
+                </linearGradient>
+                <linearGradient id="glassAmberSide" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#b45309" stop-opacity="0.45"/>
+                  <stop offset="100%" stop-color="#78350f" stop-opacity="0.62"/>
+                </linearGradient>
+
+                <!-- 顶面倒角镜面高光（Liquid Glass 的 chamfer） -->
+                <linearGradient id="specularEdge" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+                  <stop offset="50%" stop-color="#ffffff" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"/>
+                </linearGradient>
+
+                <!-- 结构光检测光锥 -->
+                <linearGradient id="laserFan" x1="50%" y1="0%" x2="50%" y2="100%">
+                  <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.7"/>
+                  <stop offset="60%" stop-color="#0ea5e9" stop-opacity="0.26"/>
+                  <stop offset="100%" stop-color="#0284c7" stop-opacity="0.04"/>
+                </linearGradient>
+              </defs>
+
+              <!-- 1. 接触阴影（唯一表达「落在纸面上」的手段） -->
+              <g id="contactShadows">
+                <polygon points="170,465 890,465 840,495 120,495" fill="url(#aoLinearConveyor)"/>
+                <ellipse cx="270" cy="385" rx="145" ry="32" fill="url(#aoSoftGround)"/>
+                <ellipse cx="760" cy="345" rx="115" ry="26" fill="url(#aoSoftGround)"/>
+                <ellipse cx="715" cy="275" rx="175" ry="40" fill="url(#aoSoftGround)"/>
+                <ellipse cx="955" cy="425" rx="80" ry="24" fill="url(#aoSoftGround)"/>
+              </g>
+
+              <!-- 2. 上部龙门导轨梁（带等距刻度） -->
+              <g id="structuralSpine" opacity="0.85">
+                <polygon points="120,225 890,225 870,233 100,233" fill="url(#alumRoof)" stroke="#cbd5e1" stroke-width="0.75"/>
+                <polygon points="100,233 870,233 870,238 100,238" fill="url(#alumFront)"/>
+                <g stroke="#94a3b8" stroke-width="1" opacity="0.7">
+                  <line x1="200" y1="233" x2="200" y2="236"/>
+                  <line x1="300" y1="233" x2="300" y2="236"/>
+                  <line x1="400" y1="233" x2="400" y2="236"/>
+                  <line x1="500" y1="233" x2="500" y2="236"/>
+                  <line x1="600" y1="233" x2="600" y2="236"/>
+                  <line x1="700" y1="233" x2="700" y2="236"/>
+                  <line x1="800" y1="233" x2="800" y2="236"/>
+                </g>
+              </g>
+
+              <!-- 3. 智能立体库 ASRS（含堆垛机立柱与货架矩阵） -->
+              <g id="cell-asrs" class="cad-target"
+                 data-code="STATION_ASRS_01"
+                 data-name="智能立体仓储单元 (E-ASRS 01)"
+                 data-protocol="OPC-UA / TCP (NodeId: ns=2;s=RackMatrix)"
+                 data-perf="调度就绪 99.98% · 存取节拍 3.2s"
+                 data-stat="36 库位全在线 · 出入库零等待"
+                 data-status="READY">
+                <g stroke="#a5b4fc" stroke-width="0.8" stroke-opacity="0.5">
+                  <line x1="620" y1="165" x2="760" y2="165" stroke-dasharray="2 2"/>
+                  <line x1="620" y1="200" x2="760" y2="200" stroke-dasharray="2 2"/>
+                  <line x1="620" y1="235" x2="760" y2="235" stroke-dasharray="2 2"/>
+                  <line x1="650" y1="145" x2="650" y2="265"/>
+                  <line x1="695" y1="145" x2="695" y2="265"/>
+                  <line x1="740" y1="145" x2="740" y2="265"/>
+                </g>
+                <polygon points="625,188 642,188 642,198 625,198" fill="#38bdf8" fill-opacity="0.6"/>
+                <polygon points="642,188 650,183 650,193 642,198" fill="#0284c7" fill-opacity="0.6"/>
+                <polygon points="670,155 687,155 687,165 670,165" fill="#34d399" fill-opacity="0.6"/>
+                <polygon points="687,155 695,150 695,160 687,165" fill="#059669" fill-opacity="0.6"/>
+                <polygon points="715,190 732,190 732,200 715,200" fill="#fbbf24" fill-opacity="0.6"/>
+                <polygon points="732,190 740,185 740,195 732,200" fill="#d97706" fill-opacity="0.6"/>
+                <rect x="655" y="130" width="4" height="135" fill="#cbd5e1" stroke="#94a3b8" stroke-width="0.5"/>
+                <rect x="650" y="172" width="14" height="7" rx="1.5" fill="#6366f1"/>
+                <circle cx="657" cy="175.5" r="1" fill="#ffffff"/>
+                <polygon points="600,140 780,140 780,270 600,270" fill="url(#glassIndigoFront)" stroke="rgba(129,140,248,0.45)" stroke-width="1"/>
+                <polygon points="780,140 850,100 850,230 780,270" fill="url(#glassIndigoSide)" stroke="rgba(99,102,241,0.5)" stroke-width="1"/>
+                <polygon points="600,140 670,100 850,100 780,140" fill="url(#glassIndigoRoof)" stroke="url(#specularEdge)" stroke-width="1.2"/>
+                <text class="iso-lbl" x="690" y="125" fill="#3730a3" font-size="10" font-weight="700" letter-spacing="0.8" text-anchor="middle">ASRS · 智能立体库</text>
+                <circle cx="620" cy="122" r="2.5" fill="#6366f1"/>
+                <text class="iso-lbl iso-lbl--mono" x="626" y="125" fill="#4f46e5" font-size="8">BAY: 36/36</text>
+              </g>
+
+              <!-- 4. 一号产线主机 M1 / M2 / M3 -->
+              <g id="cell-m1" class="cad-target"
+                 data-code="STATION_CNC_M1"
+                 data-name="粗铣成型加工单元 M1"
+                 data-protocol="Modbus-TCP / SECS-GEM (Spindle_ID: 01)"
+                 data-perf="主轴 12,000 RPM · 震动幅值 0.018mm"
+                 data-stat="节拍 14.2s · 一次装夹完成"
+                 data-status="RUNNING">
+                <polygon points="140,360 200,360 230,340 170,340" fill="url(#alumFront)"/>
+                <rect x="150" y="275" width="6" height="70" fill="#94a3b8"/>
+                <rect x="215" y="260" width="6" height="70" fill="#64748b"/>
+                <polygon points="145,295 195,295 195,355 145,355" fill="url(#alumRoof)" stroke="#cbd5e1" stroke-width="0.75"/>
+                <polygon points="195,295 225,275 225,335 195,355" fill="url(#alumSide)"/>
+                <polygon points="145,295 175,275 225,275 195,295" fill="#ffffff" stroke="url(#specularEdge)" stroke-width="1"/>
+                <rect x="165" y="305" width="10" height="24" rx="2" fill="#059669"/>
+                <polygon points="167,329 173,329 170,336" fill="#f59e0b"/>
+                <rect x="152" y="300" width="20" height="9" rx="2" fill="#d1fae5"/>
+                <text class="iso-lbl" x="162" y="307" fill="#065f46" font-size="8" font-weight="700" text-anchor="middle">M1</text>
+                <circle cx="188" cy="305" r="2" fill="#10b981" class="led-pulse"/>
+              </g>
+
+              <g id="cell-m2" class="cad-target"
+                 data-code="STATION_GRIND_M2"
+                 data-name="超精密研磨单元 M2"
+                 data-protocol="EtherCAT @ 1000µs cycle (Encoder_Dev)"
+                 data-perf="轮廓公差 ±0.002mm · 冷却液 20.8°C"
+                 data-stat="在线激光干涉测厚已完成"
+                 data-status="RUNNING">
+                <polygon points="215,360 275,360 305,340 245,340" fill="url(#alumFront)"/>
+                <rect x="225" y="275" width="6" height="70" fill="#94a3b8"/>
+                <rect x="290" y="260" width="6" height="70" fill="#64748b"/>
+                <polygon points="220,295 270,295 270,355 220,355" fill="url(#alumRoof)" stroke="#cbd5e1" stroke-width="0.75"/>
+                <polygon points="270,295 300,275 300,335 270,355" fill="url(#alumSide)"/>
+                <polygon points="220,295 250,275 300,275 270,295" fill="#ffffff" stroke="url(#specularEdge)" stroke-width="1"/>
+                <rect x="240" y="302" width="10" height="26" rx="2" fill="#0284c7"/>
+                <line x1="245" y1="328" x2="245" y2="340" stroke="#38bdf8" stroke-width="1.5"/>
+                <rect x="227" y="300" width="20" height="9" rx="2" fill="#d1fae5"/>
+                <text class="iso-lbl" x="237" y="307" fill="#065f46" font-size="8" font-weight="700" text-anchor="middle">M2</text>
+                <circle cx="263" cy="305" r="2" fill="#10b981" class="led-pulse"/>
+              </g>
+
+              <g id="cell-m3" class="cad-target"
+                 data-code="STATION_LASER_M3"
+                 data-name="激光精密微刻单元 M3"
+                 data-protocol="NATS pub/sub (Topic: telemetry.m3.drift)"
+                 data-perf="温漂补偿矩阵已载入 · 动态聚焦"
+                 data-stat="复核告警: 热膨胀差值超标 0.4µm (受控)"
+                 data-status="ATTENTION">
+                <polygon points="290,360 350,360 380,340 320,340" fill="url(#alumFront)"/>
+                <polygon points="295,295 345,295 345,355 295,355" fill="url(#glassAmberFront)" stroke="rgba(245,158,11,0.4)" stroke-width="0.75"/>
+                <polygon points="345,295 375,275 375,335 345,355" fill="url(#glassAmberSide)"/>
+                <polygon points="295,295 325,275 375,275 345,295" fill="url(#glassAmberRoof)" stroke="url(#specularEdge)" stroke-width="1"/>
+                <rect x="330" y="260" width="3" height="15" fill="#94a3b8"/>
+                <ellipse cx="331.5" cy="258" rx="5" ry="3" fill="#f59e0b"/>
+                <circle cx="331.5" cy="258" r="8" fill="#fbbf24" fill-opacity="0.35" class="led-pulse"/>
+                <rect x="302" y="300" width="20" height="9" rx="2" fill="#fef3c7"/>
+                <text class="iso-lbl" x="312" y="307" fill="#b45309" font-size="8" font-weight="700" text-anchor="middle">M3</text>
+                <circle cx="338" cy="305" r="2" fill="#f59e0b" class="led-pulse"/>
+              </g>
+
+              <!-- 5. 主轴伺服滚筒输送总线（双线导轨 + 支腿 + 调平脚） -->
+              <g id="cell-conveyor" class="cad-target"
+                 data-code="CONVEYOR_MAIN_01"
+                 data-name="主轴伺服滚筒输送总线 (Modular Conveyor 01)"
+                 data-protocol="PROFINET / TSN (Deterministic Bus)"
+                 data-perf="传输线速 0.48 m/s · 轴向跳动 &lt; 0.02mm"
+                 data-stat="连续无故障工时 2,410h · 双通道同步"
+                 data-status="RUNNING">
+                <g stroke="#94a3b8" stroke-width="3" stroke-linecap="round">
+                  <line x1="160" y1="440" x2="160" y2="480"/>
+                  <line x1="320" y1="440" x2="320" y2="480"/>
+                  <line x1="480" y1="440" x2="480" y2="480"/>
+                  <line x1="640" y1="440" x2="640" y2="480"/>
+                  <line x1="800" y1="440" x2="800" y2="480"/>
+                  <line x1="940" y1="440" x2="940" y2="480"/>
+                </g>
+                <g fill="#475569">
+                  <circle cx="160" cy="482" r="4"/><circle cx="320" cy="482" r="4"/>
+                  <circle cx="480" cy="482" r="4"/><circle cx="640" cy="482" r="4"/>
+                  <circle cx="800" cy="482" r="4"/><circle cx="940" cy="482" r="4"/>
+                </g>
+                <polygon points="120,432 940,432 940,446 120,446" fill="url(#alumFront)" stroke="#cbd5e1" stroke-width="0.5"/>
+                <polygon points="940,432 975,412 975,426 940,446" fill="url(#alumSide)"/>
+                <polygon points="120,432 155,412 975,412 940,432" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>
+                <line x1="120" y1="431" x2="940" y2="431" stroke="#0284c7" stroke-width="1.2" stroke-opacity="0.8"/>
+                <line x1="155" y1="413" x2="975" y2="413" stroke="#94a3b8" stroke-width="1.2" stroke-opacity="0.8"/>
+                <line class="conveyor-belt-anim" x1="140" y1="422" x2="955" y2="422" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+                <line class="conveyor-belt-anim" x1="145" y1="427" x2="948" y2="427" stroke="#38bdf8" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+              </g>
+
+              <!-- 6. 在制品 edgeCore 节点：全部落在托盘限位上（y:422 带面） -->
+              <g id="payload-01" class="cad-target"
+                 data-code="NODE_EC_401" data-name="edgeCore 计算节点 #401"
+                 data-protocol="MQTT 3.1.1 (Payload: JSON/Telemetry)"
+                 data-perf="已就绪 · 批次 Lot-2026A" data-stat="工序完成率 20% · 等待粗铣"
+                 data-status="RUNNING">
+                <polygon points="180,430 220,430 235,420 195,420" fill="#334155"/>
+                <polygon points="183,427 217,427 230,418 196,418" fill="#065f46" stroke="#047857" stroke-width="0.5"/>
+                <rect x="195" y="420" width="8" height="6" fill="#0f172a" stroke="#cbd5e1" stroke-width="0.3"/>
+                <circle cx="187" cy="425" r="0.8" fill="#fbbf24"/>
+                <circle cx="190" cy="424" r="0.8" fill="#fbbf24"/>
+                <circle cx="210" cy="425" r="0.8" fill="#fbbf24"/>
+                <polygon points="182,410 218,410 218,427 182,427" fill="url(#glassCyanFront)" stroke="rgba(56,189,248,0.6)" stroke-width="0.75"/>
+                <polygon points="218,410 232,400 232,417 218,427" fill="url(#glassCyanSide)"/>
+                <polygon points="182,410 196,400 232,400 218,410" fill="url(#glassCyanRoof)" stroke="url(#specularEdge)" stroke-width="1"/>
+                <circle cx="205" cy="415" r="1.2" fill="#38bdf8" class="led-pulse"/>
+              </g>
+
+              <g id="payload-02" class="cad-target"
+                 data-code="NODE_EC_402" data-name="edgeCore 计算节点 #402"
+                 data-protocol="NATS JetStream (Seq: 18492)"
+                 data-perf="已通过 M1 轮廓切削检验" data-stat="工序完成率 45% · 尺寸公差 0.001mm"
+                 data-status="RUNNING">
+                <polygon points="340,430 380,430 395,420 355,420" fill="#334155"/>
+                <polygon points="343,427 377,427 390,418 356,418" fill="#065f46" stroke="#047857" stroke-width="0.5"/>
+                <rect x="355" y="420" width="8" height="6" fill="#0f172a" stroke="#cbd5e1" stroke-width="0.3"/>
+                <circle cx="347" cy="425" r="0.8" fill="#fbbf24"/>
+                <circle cx="370" cy="425" r="0.8" fill="#fbbf24"/>
+                <polygon points="342,410 378,410 378,427 342,427" fill="url(#glassCyanFront)" stroke="rgba(16,185,129,0.6)" stroke-width="0.75"/>
+                <polygon points="378,410 392,400 392,417 378,427" fill="url(#glassCyanSide)"/>
+                <polygon points="342,410 356,400 392,400 378,410" fill="url(#glassCyanRoof)" stroke="url(#specularEdge)" stroke-width="1"/>
+                <circle cx="365" cy="415" r="1.2" fill="#10b981" class="led-pulse"/>
+              </g>
+
+              <g id="payload-03" class="cad-target"
+                 data-code="NODE_EC_403" data-name="edgeCore 计算节点 #403"
+                 data-protocol="MQTT telemetry.payload.drift"
+                 data-perf="刻蚀中 · 激光功率 45W 闭环" data-stat="工序完成率 65% · 复核校准就绪"
+                 data-status="ATTENTION">
+                <polygon points="500,430 540,430 555,420 515,420" fill="#334155"/>
+                <polygon points="503,427 537,427 550,418 516,418" fill="#065f46" stroke="#047857" stroke-width="0.5"/>
+                <rect x="515" y="420" width="8" height="6" fill="#0f172a" stroke="#cbd5e1" stroke-width="0.3"/>
+                <circle cx="507" cy="425" r="0.8" fill="#fbbf24"/>
+                <circle cx="530" cy="425" r="0.8" fill="#fbbf24"/>
+                <polygon points="502,410 538,410 538,427 502,427" fill="url(#glassAmberFront)" stroke="rgba(245,158,11,0.6)" stroke-width="0.75"/>
+                <polygon points="538,410 552,400 552,417 538,427" fill="url(#glassAmberSide)"/>
+                <polygon points="502,410 516,400 552,400 538,410" fill="url(#glassAmberRoof)" stroke="url(#specularEdge)" stroke-width="1"/>
+                <circle cx="525" cy="415" r="1.2" fill="#f59e0b" class="led-pulse"/>
+              </g>
+
+              <g id="payload-04" class="cad-target"
+                 data-code="NODE_EC_404" data-name="edgeCore 计算节点 #404"
+                 data-protocol="OPC-UA Tag: Node404_Complete"
+                 data-perf="状态正常 · 准备进入贴装" data-stat="工序完成率 80% · 等待机械臂拾取"
+                 data-status="RUNNING">
+                <polygon points="660,430 700,430 715,420 675,420" fill="#334155"/>
+                <polygon points="663,427 697,427 710,418 676,418" fill="#065f46" stroke="#047857" stroke-width="0.5"/>
+                <rect x="675" y="420" width="8" height="6" fill="#0f172a" stroke="#cbd5e1" stroke-width="0.3"/>
+                <polygon points="662,410 698,410 698,427 662,427" fill="url(#glassIndigoFront)" stroke="rgba(129,140,248,0.6)" stroke-width="0.75"/>
+                <polygon points="698,410 712,400 712,417 698,427" fill="url(#glassIndigoSide)"/>
+                <polygon points="662,410 676,400 712,400 698,410" fill="url(#glassIndigoRoof)" stroke="url(#specularEdge)" stroke-width="1"/>
+                <circle cx="685" cy="415" r="1.2" fill="#6366f1" class="led-pulse"/>
+              </g>
+
+              <g id="payload-05" class="cad-target"
+                 data-code="NODE_EC_405" data-name="edgeCore 计算节点 #405 (终端终检)"
+                 data-protocol="TCP / GigE-Vision Camera Stream"
+                 data-perf="激光 3D 轮廓扫描中 · 极差 0.001mm" data-stat="一次良率合格 · 即将出库封装"
+                 data-status="RUNNING">
+                <polygon points="820,430 860,430 875,420 835,420" fill="#334155"/>
+                <polygon points="823,427 857,427 870,418 836,418" fill="#065f46" stroke="#047857" stroke-width="0.5"/>
+                <rect x="835" y="420" width="8" height="6" fill="#0f172a" stroke="#cbd5e1" stroke-width="0.3"/>
+                <polygon points="822,410 858,410 858,427 822,427" fill="url(#glassCyanFront)" stroke="rgba(14,165,233,0.7)" stroke-width="0.75"/>
+                <polygon points="858,410 872,400 872,417 858,427" fill="url(#glassCyanSide)"/>
+                <polygon points="822,410 836,400 872,400 858,410" fill="url(#glassCyanRoof)" stroke="url(#specularEdge)" stroke-width="1.2"/>
+                <circle cx="845" cy="415" r="1.2" fill="#0ea5e9" class="led-pulse"/>
+              </g>
+
+              <!-- 7. 二号产线 M4 / M5 -->
+              <g id="cell-m4" class="cad-target"
+                 data-code="STATION_SMT_M4"
+                 data-name="精密贴装单元 M4 (高速拾放)"
+                 data-protocol="CANopen / DS402 Drive Control"
+                 data-perf="贴装速度 32,000 CPH · 压力 3.8N"
+                 data-stat="真空吸嘴负压 -85 kPa · 正常"
+                 data-status="RUNNING">
+                <polygon points="680,335 735,335 765,315 710,315" fill="url(#alumFront)"/>
+                <polygon points="685,275 730,275 730,330 685,330" fill="url(#alumRoof)" stroke="#cbd5e1" stroke-width="0.75"/>
+                <polygon points="730,275 755,255 755,310 730,330" fill="url(#alumSide)"/>
+                <polygon points="685,275 710,255 755,255 730,275" fill="#ffffff" stroke="url(#specularEdge)" stroke-width="1"/>
+                <line x1="710" y1="285" x2="710" y2="365" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+                <rect x="706" y="365" width="8" height="5" rx="1" fill="#0284c7"/>
+                <circle cx="710" cy="370" r="1.2" fill="#38bdf8"/>
+                <rect x="692" y="280" width="20" height="9" rx="2" fill="#d1fae5"/>
+                <text class="iso-lbl" x="702" y="287" fill="#065f46" font-size="8" font-weight="700" text-anchor="middle">M4</text>
+                <circle cx="724" cy="285" r="2" fill="#10b981" class="led-pulse"/>
+              </g>
+
+              <g id="cell-m5" class="cad-target"
+                 data-code="STATION_STANDBY_M5"
+                 data-name="热备柔性冗余单元 M5"
+                 data-protocol="EAN Hot-Pluggable Cluster Bus"
+                 data-perf="热插拔同步就绪 · 0 毫秒切流"
+                 data-stat="状态: 待机受控中 · 自检通过"
+                 data-status="STANDBY">
+                <polygon points="755,335 810,335 840,315 785,315" fill="url(#alumFront)"/>
+                <polygon points="760,275 805,275 805,330 760,330" fill="url(#alumRoof)" stroke="#cbd5e1" stroke-width="0.75"/>
+                <polygon points="805,275 830,255 830,310 805,330" fill="url(#alumSide)"/>
+                <polygon points="760,275 785,255 830,255 805,275" fill="#ffffff" stroke="url(#specularEdge)" stroke-width="1"/>
+                <rect x="767" y="280" width="20" height="9" rx="2" fill="#f1f5f9"/>
+                <text class="iso-lbl" x="777" y="287" fill="#475569" font-size="8" font-weight="700" text-anchor="middle">M5</text>
+                <circle cx="799" cy="285" r="2" fill="#94a3b8"/>
+              </g>
+
+              <!-- 8. 结构光 3D 终检工位（含检测光锥） -->
+              <g id="cell-qc" class="cad-target"
+                 data-code="STATION_QC_SCAN"
+                 data-name="结构光 3D 终检工位 (AOI &amp; QC)"
+                 data-protocol="GigE Vision / GenICam (Stream: 60 FPS)"
+                 data-perf="一次通过率 98.2% · 视场 120x80mm"
+                 data-stat="检测指标: 焊点连锡 / 芯片极性 / 封装平面度"
+                 data-status="RUNNING">
+                <polygon points="900,430 980,430 1020,400 940,400" fill="url(#alumFront)"/>
+                <polygon points="915,315 975,315 975,415 915,415" fill="url(#glassCyanFront)" stroke="rgba(14,165,233,0.5)" stroke-width="1"/>
+                <polygon points="975,315 1010,290 1010,390 975,415" fill="url(#glassCyanSide)"/>
+                <polygon points="915,315 950,290 1010,290 975,315" fill="url(#glassCyanRoof)" stroke="url(#specularEdge)" stroke-width="1.2"/>
+                <rect x="945" y="270" width="16" height="35" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1"/>
+                <circle cx="953" cy="307" r="4" fill="#0284c7"/>
+                <circle cx="953" cy="307" r="2" fill="#e0f2fe"/>
+                <polygon class="laser-cone-anim" points="953,307 830,410 870,410" fill="url(#laserFan)"/>
+                <line x1="830" y1="410" x2="870" y2="410" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round"/>
+                <text class="iso-lbl" x="965" y="340" fill="#0369a1" font-size="10" font-weight="700" letter-spacing="0.5" text-anchor="middle">质检台 AOI</text>
+                <circle cx="930" cy="337" r="2" fill="#0ea5e9" class="led-pulse"/>
+              </g>
+
+              <!-- 9. 回流支线（包装分流） -->
+              <g id="cell-return-belt">
+                <polygon points="640,490 910,490 910,500 640,500" fill="url(#alumFront)"/>
+                <polygon points="640,490 670,472 940,472 910,490" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.75"/>
+                <line class="conveyor-belt-anim" x1="660" y1="481" x2="925" y2="481" stroke="#6366f1" stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>
+              </g>
+            </svg>
             <div class="iso-hud" id="iso-hud" role="tooltip"></div>
           </div>
 
@@ -88,7 +468,7 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
               <span><i style="background:#94A3B8"></i>待机</span>
               <span><i style="background:#EF4444"></i>故障</span>
             </div>
-            <span class="viz-foot__tech">rotateX(60°) · rotateZ(-45°) · CSS 3D · 无 WebGL</span>
+            <span class="viz-foot__tech">30° ISOMETRIC · PURE SVG · 无 WebGL</span>
           </div>
         </div>
 

@@ -683,66 +683,87 @@
   ];
 
   /* ======================================================================
-     7.3 首页数据：2.5D 可视化场景
-     与产品内 ui/src/components/visual 同源：世界平面统一施加
-     rotateX(60deg) rotateZ(-45deg)，每个立体物由「顶面 + 前面 + 侧面」三片
-     沿 Z 轴拼合。这里用同一套几何在文档站静态复刻「产线展示」画面，
-     坐标与 store/visual.ts 中的 M1~M5、AGV 完全一致。
+     7.3 首页 2.5D 车间视图
+     场景是 index.html 里的一段内联 SVG：30° 等轴纯矢量，无 WebGL、无 CSS 3D。
+     几何、光学渐变与动画都写在标记里，这里只负责悬停遥测浮层——
+     每个可交互工位 <g class="cad-target"> 自带 data-code / data-name /
+     data-protocol / data-perf / data-stat / data-status 六个遥测字段。
      ====================================================================== */
 
+  /* 状态 → 浮层徽标配色，与页面图例同一套色阶 */
   var ISO_STATUS = {
-    running: {
-      top: 'rgba(16,185,129,0.20)', front: 'rgba(16,185,129,0.40)',
-      side: 'rgba(5,150,105,0.55)', color: '#10B981', label: '运行中',
-      glow: false, foot: '设备运行正常'
-    },
-    standby: {
-      top: 'rgba(148,163,184,0.20)', front: 'rgba(148,163,184,0.38)',
-      side: 'rgba(100,116,139,0.52)', color: '#94A3B8', label: '待机',
-      glow: false, foot: '设备运行正常'
-    },
-    warn: {
-      top: 'rgba(245,158,11,0.22)', front: 'rgba(245,158,11,0.42)',
-      side: 'rgba(180,120,10,0.55)', color: '#F59E0B', label: '关注',
-      glow: true, foot: '设备状态需关注'
-    },
-    fault: {
-      top: 'rgba(239,68,68,0.24)', front: 'rgba(239,68,68,0.44)',
-      side: 'rgba(185,28,28,0.55)', color: '#EF4444', label: '故障',
-      glow: true, foot: '设备状态需关注'
-    }
+    RUNNING: { color: '#10B981', label: '运行中' },
+    ATTENTION: { color: '#F59E0B', label: '关注' },
+    STANDBY: { color: '#94A3B8', label: '待机' },
+    READY: { color: '#0EA5E9', label: '就绪' },
+    FAULT: { color: '#EF4444', label: '故障' }
   };
 
-  var ISO_GRID = { cols: 10, rows: 7, cell: 48, scale: 0.94 };
-
-  var ISO_MACHINES = [
-    { id: 'M1', name: '1 号线 1 号机', col: 0, row: 2, status: 'running', oee: 92.4, rate: 46, temp: 58.2 },
-    { id: 'M2', name: '1 号线 2 号机', col: 1, row: 2, status: 'running', oee: 91.8, rate: 45, temp: 61.5 },
-    { id: 'M3', name: '1 号线 3 号机', col: 2, row: 2, status: 'warn', oee: 84.6, rate: 41, temp: 74.9 },
-    { id: 'M4', name: '2 号线 1 号机', col: 6, row: 4, status: 'running', oee: 93.1, rate: 47, temp: 56.8 },
-    { id: 'M5', name: '2 号线 2 号机', col: 7, row: 4, status: 'standby', oee: 78.2, rate: 33, temp: 42.1 }
-  ];
-
-  var ISO_AGVS = [
-    { id: 'AGV-01', x: 130, y: 200, tx: 200, ty: 240, load: true, color: '#0EA5E9' },
-    { id: 'AGV-02', x: 310, y: 140, tx: 360, ty: 120, load: false, color: '#8B5CF6' }
-  ];
-
-  /* 静态物：顶面 / 前面 / 侧面三档色阶 */
-  function box(top, front, side) {
-    return { top: top, front: front, side: side };
+  function isoHudHtml(d) {
+    var st = ISO_STATUS[d.status] || ISO_STATUS.RUNNING;
+    return '' +
+      '<div class="iso-hud__top">' +
+      '<span class="iso-hud__title">' + escapeHtml(d.name) + '</span>' +
+      '<span class="iso-hud__badge" style="color:' + st.color +
+      ';background:' + st.color + '1a">' + st.label + '</span>' +
+      '</div>' +
+      (d.code ? '<div class="iso-hud__code">' + escapeHtml(d.code) + '</div>' : '') +
+      (d.protocol
+        ? '<div class="iso-hud__row"><span>接入协议</span><b>' + escapeHtml(d.protocol) + '</b></div>'
+        : '') +
+      (d.perf
+        ? '<div class="iso-hud__row"><span>实时指标</span><b>' + escapeHtml(d.perf) + '</b></div>'
+        : '') +
+      (d.stat ? '<div class="iso-hud__foot">' + escapeHtml(d.stat) + '</div>' : '');
   }
 
-  var ISO_STATIC = {
-    wall: box('rgba(100,116,139,0.16)', 'rgba(100,116,139,0.26)', 'rgba(71,85,105,0.36)'),
-    warehouse: box('rgba(139,92,246,0.14)', 'rgba(139,92,246,0.28)', 'rgba(109,66,215,0.40)'),
-    inspect: box('rgba(56,189,248,0.16)', 'rgba(56,189,248,0.32)', 'rgba(2,132,199,0.44)')
-  };
+  function initIsoHud() {
+    var stage = $('#iso-stage');
+    var hud = $('#iso-hud');
+    if (!stage || !hud) return;
+
+    function hide() {
+      hud.classList.remove('is-visible');
+      hud.removeAttribute('data-for');
+    }
+
+    function place(node) {
+      var sr = stage.getBoundingClientRect();
+      var nr = node.getBoundingClientRect();
+      var hw = hud.offsetWidth;
+      var hh = hud.offsetHeight;
+      var left = nr.left - sr.left + nr.width / 2 - hw / 2;
+      var top = nr.top - sr.top - hh - 10;
+      // 留 16px 边距，避免浮层贴住舞台边缘
+      left = Math.max(16, Math.min(left, sr.width - hw - 16));
+      if (top < 16) top = nr.bottom - sr.top + 12;
+      top = Math.min(top, sr.height - hh - 16);
+      hud.style.left = left + 'px';
+      hud.style.top = top + 'px';
+    }
+
+    stage.addEventListener('mouseover', function (e) {
+      var node = e.target.closest ? e.target.closest('.cad-target') : null;
+      if (!node) return;
+      var d = node.dataset || {};
+      if (!d.name) return;
+
+      var key = d.code || d.name;
+      if (hud.dataset.for !== key) {
+        hud.innerHTML = isoHudHtml(d);
+        hud.dataset.for = key;
+      }
+      hud.classList.add('is-visible');
+      place(node);
+    });
+
+    stage.addEventListener('mouseleave', hide);
+  }
 
   var VIZ_VIEWS = [
     {
       route: '/visual/production-line', title: '产线展示', current: true,
-      desc: '车间等距视图：主机、输送带与 AGV 转运实时状态。'
+      desc: '车间等距矢量视图：立体库、五台主机、输送总线与光学终检工位。'
     },
     {
       route: '/visual', title: '可视化中心总览',
@@ -971,253 +992,6 @@
         '</div>' +
         '</article>';
     }).join('');
-  }
-
-  /* —— 2.5D 等轴场景 —— */
-
-  var isoHudStore = [];
-
-  function registerHud(data) {
-    isoHudStore.push(isoHudHtml(data));
-    return isoHudStore.length - 1;
-  }
-
-  function isoHudHtml(d) {
-    return '' +
-      '<div class="iso-hud__top">' +
-      '<span class="iso-hud__title">' + escapeHtml(d.title) + '</span>' +
-      (d.badge
-        ? '<span class="iso-hud__badge" style="color:' + d.accent +
-          ';background:' + d.accent + '1f">' + escapeHtml(d.badge) + '</span>'
-        : '') +
-      '</div>' +
-      d.rows.map(function (r) {
-        return '<div class="iso-hud__row">' +
-          '<span>' + escapeHtml(r.label) + '</span>' +
-          '<b>' + escapeHtml(r.value) + '</b>' +
-          '</div>';
-      }).join('') +
-      (d.foot ? '<div class="iso-hud__foot">' + escapeHtml(d.foot) + '</div>' : '');
-  }
-
-  /**
-   * 一个等轴长方体：平铺面（width × depth）+ 抬升 height。
-   * 三片分别落在顶面 translateZ(h)、前面 rotateX(90deg)、侧面 rotateY(-90deg)。
-   */
-  function isoCube(x, y, w, d, h, style, opts) {
-    var o = opts || {};
-    var hudIdx = o.hud ? ' data-hud="' + registerHud(o.hud) + '"' : '';
-    return '' +
-      '<div class="iso-cube" style="left:' + x + 'px;top:' + y + 'px;width:' + w +
-      'px;height:' + d + 'px;--h:' + h + 'px"' + hudIdx + '>' +
-      // 贴地椭圆 AO 先画（Z 轴最低），随后立方体三面盖在其上
-      '<i class="iso-cube__ao"></i>' +
-      '<span class="iso-face iso-face--roof" style="background:' + style.top + '"></span>' +
-      '<span class="iso-face iso-face--front" style="background:' + style.front + '"></span>' +
-      '<span class="iso-face iso-face--side" style="background:' + style.side + '"></span>' +
-      (o.beacon
-        ? '<span class="iso-cube__beacon" style="background:' + o.beaconColor +
-          ';box-shadow:0 0 6px ' + o.beaconColor + '66"></span>'
-        : '') +
-      (o.label ? '<span class="iso-cube__label">' + escapeHtml(o.label) + '</span>' : '') +
-      '</div>';
-  }
-
-  var ISO_BELT_PALETTE = ['#38BDF8', '#34D399', '#FBBF24', '#A78BFA', '#F472B6', '#22D3EE'];
-
-  function isoBelt(x, y, w, d, h, color, speed, itemCount) {
-    var items = '';
-    for (var i = 0; i < itemCount; i++) {
-      var c = ISO_BELT_PALETTE[i % ISO_BELT_PALETTE.length];
-      items += '' +
-        '<span class="iso-belt__item" style="left:' + (w / itemCount) * i + 6 +
-        'px;--idly:' + (speed / itemCount) * i + 's">' +
-        '<span class="iso-belt__item-roof" style="background:' + c + '"></span>' +
-        '<span class="iso-belt__item-front" style="background:' + c + 'cc"></span>' +
-        '<span class="iso-belt__item-side" style="background:' + c + '99"></span>' +
-        '</span>';
-    }
-    var hudIdx = registerHud({
-      title: '输送带',
-      accent: color,
-      rows: [
-        { label: '长度', value: w + ' px' },
-        { label: '节拍', value: speed + ' s' },
-        { label: '在线工件', value: itemCount + ' 件' }
-      ],
-      foot: '输送带运行中'
-    });
-    return '' +
-      '<div class="iso-belt" data-hud="' + hudIdx + '" style="left:' + x + 'px;top:' + y +
-      'px;width:' + w + 'px;height:' + d + 'px;--bh:' + h + 'px;--belt:' + (w - 24) +
-      'px;--dur:' + speed + 's">' +
-      '<span class="iso-face iso-face--roof" style="background:' + color +
-      '26;border:1px solid ' + color + '55"></span>' +
-      '<span class="iso-face iso-face--front" style="background:' + color + '44"></span>' +
-      '<span class="iso-face iso-face--side" style="background:' + color + '33"></span>' +
-      items +
-      '</div>';
-  }
-
-  function isoFlowDot(y, left, range, dur, delay, color) {
-    return '' +
-      '<span class="iso-dot" style="top:' + y + 'px;left:' + left +
-      'px;--dh:8px;--dc:' + color + ';--dr:' + range + 'px;--dd:' + dur +
-      's;--dly:' + delay + 's">' +
-      '<span class="iso-dot__face iso-dot__face--roof" style="background:' + color +
-      '55;border:1px solid ' + color + '"></span>' +
-      '<span class="iso-dot__face iso-dot__face--front" style="background:' + color + '99"></span>' +
-      '<span class="iso-dot__face iso-dot__face--side" style="background:' + color + 'bb"></span>' +
-      '</span>';
-  }
-
-  function machineHud(m) {
-    var st = ISO_STATUS[m.status];
-    return {
-      title: m.name + ' · ' + m.id,
-      accent: st.color,
-      badge: st.label,
-      rows: [
-        { label: 'OEE', value: m.oee.toFixed(1) + '%' },
-        { label: '节拍', value: m.rate + ' 件/分' },
-        { label: '温度', value: m.temp.toFixed(1) + '℃' }
-      ],
-      foot: st.foot
-    };
-  }
-
-  function renderIsoScene() {
-    var world = $('#iso-world');
-    if (!world) return;
-
-    var cell = ISO_GRID.cell;
-    var w = ISO_GRID.cols * cell;
-    var h = ISO_GRID.rows * cell;
-
-    // 按舞台宽度自适应缩放：世界旋转 -45° 后投影宽 ≈ (w + h) × cos30°，
-    // 场景收进 Hero 右栏等窄容器时按可用宽度收缩，避免左右裁切。
-    var stageEl = world.parentElement;
-    var fit = 1;
-    if (stageEl && stageEl.clientWidth > 0) {
-      // 0.75 ≈ 等距投影实际占宽系数 0.707 再留一点余量（旧值 0.87 过于保守，
-      // 模型被缩得偏小、右栏显轻飘）；改后场景比原先大约 17%，且不触到舞台边。
-      var proj = (w + h) * 0.75 + 16;
-      if (proj > stageEl.clientWidth) {
-        fit = Math.max(0.45, stageEl.clientWidth / proj);
-      }
-    }
-
-    world.style.width = w + 'px';
-    world.style.height = h + 'px';
-    world.style.marginLeft = (-w / 2) + 'px';
-    world.style.marginTop = (-h / 2) + 'px';
-    world.style.setProperty('--iso-scale', ISO_GRID.scale * fit);
-
-    isoHudStore = [];
-    // 去框化：不再铺网格承载面与地面光晕，机台直接落在纯白纸面上，
-    // 与「地面」的关系只由每个立方体自身的接触阴影（.iso-cube__ao）表达。
-    var out = [];
-
-    // 车间墙体 + 立体库
-    out.push(isoCube(4, 24, 440, 10, 14, ISO_STATIC.wall, {}));
-    out.push(isoCube(264, 48, 180, 26, 86, ISO_STATIC.warehouse, { label: '立体库' }));
-
-    // 一号线主机（M1~M3）
-    ISO_MACHINES.forEach(function (m) {
-      if (m.id === 'M4' || m.id === 'M5') return;
-      var st = ISO_STATUS[m.status];
-      out.push(isoCube(m.col * cell + 8, m.row * cell, 44, 44, 54, st, {
-        glow: st.glow,
-        beacon: m.status === 'warn' || m.status === 'fault',
-        beaconColor: st.color,
-        label: m.id,
-        hud: machineHud(m)
-      }));
-    });
-
-    out.push(isoBelt(0, 168, 336, 18, 9, '#0EA5E9', 6, 5));
-
-    // 二号线主机（M4~M5）
-    ISO_MACHINES.forEach(function (m) {
-      if (m.id !== 'M4' && m.id !== 'M5') return;
-      var st = ISO_STATUS[m.status];
-      out.push(isoCube(m.col * cell + 8, m.row * cell, 44, 44, 54, st, {
-        glow: st.glow,
-        beacon: m.status === 'warn' || m.status === 'fault',
-        beaconColor: st.color,
-        label: m.id,
-        hud: machineHud(m)
-      }));
-    });
-
-    out.push(isoBelt(264, 216, 120, 18, 9, '#8B5CF6', 5, 3));
-
-    // AGV 转运车
-    ISO_AGVS.forEach(function (agv) {
-      out.push(isoCube(agv.x - 10, agv.y - 10, 20, 20, 16, {
-        top: agv.color + '44', front: agv.color + '88', side: agv.color + 'aa'
-      }, {
-        glow: true,
-        label: agv.id + (agv.load ? ' ●' : ''),
-        hud: {
-          title: agv.id,
-          accent: agv.color,
-          badge: agv.load ? '载货' : '空载',
-          rows: [
-            { label: '当前位置', value: '(' + agv.x + ', ' + agv.y + ')' },
-            { label: '目标', value: '(' + agv.tx + ', ' + agv.ty + ')' }
-          ],
-          foot: 'AGV 自动转运中'
-        }
-      }));
-    });
-
-    // 质检工位
-    out.push(isoCube(408, 240, 44, 44, 38, ISO_STATIC.inspect, { label: '质检台' }));
-
-    // AGV 路径流光
-    out.push(isoFlowDot(150, 10, 440, 7, 0, '#38BDF8'));
-    out.push(isoFlowDot(240, 10, 440, 8.5, 2, '#34D399'));
-
-    world.innerHTML = out.join('');
-  }
-
-  function initIsoHud() {
-    var stage = $('#iso-stage');
-    var hud = $('#iso-hud');
-    if (!stage || !hud) return;
-
-    function hide() {
-      hud.classList.remove('is-visible');
-      hud.removeAttribute('data-for');
-    }
-
-    stage.addEventListener('mouseover', function (e) {
-      var node = e.target.closest ? e.target.closest('[data-hud]') : null;
-      if (!node) return;
-
-      var idx = node.dataset.hud;
-      if (hud.dataset.for !== idx) {
-        hud.innerHTML = isoHudStore[Number(idx)] || '';
-        hud.dataset.for = idx;
-      }
-      hud.classList.add('is-visible');
-
-      var sr = stage.getBoundingClientRect();
-      var nr = node.getBoundingClientRect();
-      var hw = hud.offsetWidth;
-      var hh = hud.offsetHeight;
-      var left = nr.left - sr.left + nr.width / 2 - hw / 2;
-      var top = nr.top - sr.top - hh - 10;
-      // 留 16px 边距，避免浮层文字贴住舞台描边
-      left = Math.max(16, Math.min(left, sr.width - hw - 16));
-      if (top < 16) top = nr.bottom - sr.top + 12;
-      top = Math.min(top, sr.height - hh - 16);
-      hud.style.left = left + 'px';
-      hud.style.top = top + 'px';
-    });
-
-    stage.addEventListener('mouseleave', hide);
   }
 
   function renderVisualViews() {
@@ -2033,15 +1807,7 @@
     renderPoints();
     renderBusPresets();
     renderScenarios();
-    renderIsoScene();
     renderVisualViews();
-
-    // 断点跨越时舞台宽度变化，场景缩放需随之重算
-    var isoResizeTimer = 0;
-    window.addEventListener('resize', function () {
-      clearTimeout(isoResizeTimer);
-      isoResizeTimer = setTimeout(renderIsoScene, 160);
-    });
 
     setDrawerCollapsed(false);
     selectSubsystem(0);

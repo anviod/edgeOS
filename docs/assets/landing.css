@@ -1887,227 +1887,99 @@
   background: transparent;
 }
 
-.iso-world {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform-style: preserve-3d;
-  transform-origin: 50% 50%;
-  transform: rotateX(60deg) rotateZ(-45deg) scale(var(--iso-scale, 0.94));
+/* 场景画布：SVG 自带 30° 等轴投影，铺满舞台并垂直居中 */
+.iso-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.iso-svg text {
+  font-family: var(--font-sans);
+}
+
+.iso-svg .iso-lbl--mono {
+  font-family: var(--font-mono);
 }
 
 /* 网格承载面与地面光晕已整体移除：不再有「外层方形承载面」，
    设备与纸面的关系只靠接触阴影表达。 */
 
-/* —— 等轴长方体 —— */
-.iso-cube {
-  position: absolute;
-  transform-style: preserve-3d;
-  transform-origin: center center;
+/* —— 2.5D 车间视图：纯矢量 SVG ——
+   等轴投影与光学渐变都写在 SVG 里，CSS 只负责铺满舞台与呼吸灯 / 流光动画。
+   不再有 CSS 3D 变换，也就不存在 filter 把 preserve-3d 扁平化的隐患。 */
+
+/* 可交互工位：悬停只给一层极浅的光晕，不加描边、不改色 */
+.cad-target {
+  cursor: pointer;
+  transition: filter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 接触阴影（Contact Shadow）：只做模型底部与纸面交界处的一层极浅、
-   极收敛的漫反射遮蔽，不做大范围扩散阴影，避免设备「漂浮无力」。
-   ——注意：filter 不能加在 .iso-world / .iso-cube 上，那会让
-     transform-style: preserve-3d 被强制扁平化、整个等距场景塌成平面；
-     所以 AO 用平面椭圆（.iso-cube__ao）落在世界平面上，
-     光学漫反射只加在没有 3D 子节点的叶子面（roof/front/side）上。 */
-.iso-cube__ao {
-  position: absolute;
-  left: 2%;
-  right: 2%;
-  top: 30%;
-  bottom: 4%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side,
-    rgba(15, 23, 42, 0.10),
-    rgba(15, 23, 42, 0.035) 55%,
-    transparent 78%);
-  transform: translateZ(0.4px);
-  pointer-events: none;
+.cad-target:hover {
+  filter: drop-shadow(0 6px 14px rgba(14, 165, 233, 0.22));
 }
 
-.iso-face {
-  position: absolute;
+/* 输送带节距流光 */
+.conveyor-belt-anim {
+  stroke-dasharray: 6 14;
+  animation: iso-belt-flow 1.2s linear infinite;
 }
 
-.iso-face--roof {
-  inset: 0;
-  transform: translateZ(var(--h));
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+@keyframes iso-belt-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -40; }
 }
 
-.iso-face--front {
-  left: 0;
-  top: 100%;
-  width: 100%;
-  height: var(--h);
-  transform-origin: center top;
-  transform: rotateX(90deg);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+/* 设备心跳指示灯 */
+.led-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: iso-led 1.8s ease-in-out infinite;
 }
 
-.iso-face--side {
-  left: 0;
-  top: 0;
-  width: var(--h);
-  height: 100%;
-  transform-origin: left center;
-  transform: rotateY(-90deg);
-  border-right: 1px solid rgba(15, 23, 42, 0.05);
+@keyframes iso-led {
+  0%, 100% { opacity: 0.95; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(1.4); }
 }
 
-/* 极克制的漫反射遮蔽：只给叶子面（无 3D 子节点）加，
-   三个面各自投出一层 4% 的软影，合起来就是设备底部的接触阴影。 */
-.iso-face--roof,
-.iso-face--front,
-.iso-face--side {
-  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.04));
+/* 终检结构光扫描扇面 */
+.laser-cone-anim {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: iso-laser 2.2s ease-in-out infinite;
 }
 
-.iso-cube__label {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: translateZ(calc(var(--h) + 3px));
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-  color: #334155;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85);
-  pointer-events: none;
+@keyframes iso-laser {
+  0%, 100% { opacity: 0.25; transform: translateY(-3px); }
+  50% { opacity: 0.7; transform: translateY(5px); }
 }
 
-.iso-cube__beacon {
-  position: absolute;
-  right: -5px;
-  top: -5px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  transform: translateZ(calc(var(--h) + 1px));
-  animation: iso-beacon 1s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes iso-beacon {
-  0%, 100% { opacity: 1; transform: translateZ(calc(var(--h) + 1px)) scale(1); }
-  50% { opacity: 0.35; transform: translateZ(calc(var(--h) + 1px)) scale(0.7); }
-}
-
-/* —— 输送带：带面 + 沿 X 轴循环的工件 —— */
-.iso-belt {
-  position: absolute;
-  transform-style: preserve-3d;
-}
-
-.iso-belt .iso-face--roof {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
-}
-
-.iso-belt__item {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  transform-style: preserve-3d;
-  animation: iso-belt-run var(--dur) linear infinite;
-  animation-delay: var(--idly);
-}
-
-.iso-belt__item-roof {
-  position: absolute;
-  inset: 0;
-  transform: translateZ(10px);
-  border: 1px solid rgba(15, 23, 42, 0.12);
-}
-
-.iso-belt__item-front {
-  position: absolute;
-  left: 0;
-  top: 100%;
-  width: 100%;
-  height: 10px;
-  transform-origin: center top;
-  transform: rotateX(90deg);
-}
-
-.iso-belt__item-side {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 10px;
-  height: 100%;
-  transform-origin: left center;
-  transform: rotateY(-90deg);
-}
-
-@keyframes iso-belt-run {
-  from { left: 6px; }
-  to { left: var(--belt); }
-}
-
-/* —— AGV 路径流光 —— */
-.iso-dot {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  transform-style: preserve-3d;
-  animation: iso-dot-move var(--dd) linear infinite;
-  animation-delay: var(--dly);
-  pointer-events: none;
-}
-
-.iso-dot__face {
-  position: absolute;
-}
-
-.iso-dot__face--roof {
-  inset: 0;
-  transform: translateZ(var(--dh));
-}
-
-.iso-dot__face--front {
-  left: 0;
-  top: 100%;
-  width: 100%;
-  height: var(--dh);
-  transform-origin: center top;
-  transform: rotateX(90deg);
-}
-
-.iso-dot__face--side {
-  left: 0;
-  top: 0;
-  width: var(--dh);
-  height: 100%;
-  transform-origin: left center;
-  transform: rotateY(-90deg);
-}
-
-@keyframes iso-dot-move {
-  from { left: 0; }
-  to { left: var(--dr); }
+@media (prefers-reduced-motion: reduce) {
+  .conveyor-belt-anim,
+  .led-pulse,
+  .laser-cone-anim {
+    animation: none;
+  }
 }
 
 /* —— 悬停 HUD ——
-   白玻璃浮层：与页面控制层同一套光学语言。 */
+   白玻璃浮层：半透白底 + 背景模糊 + 一圈反光描边 + 极浅外投影。
+   刻意不做深色面板——深色会在浅色纸面上砸出一个「洞」，
+   打断设备与背景的连续感。圆角取 --r-md（8px），与玻璃浮层语言一致。 */
 .iso-hud {
   position: absolute;
   z-index: 3;
   min-width: 178px;
+  max-width: 288px;
   padding: 13px 16px;
-  border-radius: var(--r-xs);
-  background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  backdrop-filter: blur(16px) saturate(1.4);
-  border: 0;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
-  color: #1D1D1F;
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.1);
+  color: #1E293B;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--t-fast);
@@ -2128,6 +2000,7 @@
 .iso-hud__title {
   font-size: 12px;
   font-weight: 600;
+  color: #0284C7;
 }
 
 .iso-hud__badge {
@@ -2138,11 +2011,19 @@
   white-space: nowrap;
 }
 
+.iso-hud__code {
+  margin-bottom: 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #94A3B8;
+}
+
 .iso-hud__row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
+  gap: 14px;
   padding: 3px 0;
   font-size: 11px;
   color: #64748B;
@@ -2151,17 +2032,26 @@
 .iso-hud__row b {
   font-family: var(--font-mono);
   font-weight: 600;
-  color: #1D1D1F;
+  font-variant-numeric: tabular-nums;
+  color: #0F172A;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+[data-theme="dark"] .iso-hud__code {
+  color: rgba(226, 232, 240, 0.5);
 }
 
 .iso-hud__foot {
   margin-top: 8px;
   padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
   font-size: 10.5px;
-  color: #94A3B8;
+  color: #64748B;
 }
 
-/* 四角装饰与扫描线已整体删除：任何人工线框都会打断纯白纸面的连续感。 */
+/* 四角装饰、扫描线与 AGV 无轨流光（.iso-dot）已整体删除：
+   任何人工线框或没有轨道承载的游离体块都会打断纯白纸面的连续感。 */
 
 /* —— 图例与注脚 —— */
 .viz-foot {
@@ -2479,55 +2369,12 @@
   background: transparent;
 }
 
-[data-theme="dark"] .iso-cube__ao {
-  background: radial-gradient(closest-side,
-    rgba(2, 6, 23, 0.45),
-    rgba(2, 6, 23, 0.18) 55%,
-    transparent 78%);
+[data-theme="dark"] .iso-svg {
+  opacity: 0.94;
 }
 
-[data-theme="dark"] .iso-face--roof {
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.06);
-}
-
-[data-theme="dark"] .iso-face--front {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .iso-face--side {
-  border-right-color: rgba(255, 255, 255, 0.08);
-}
-
-[data-theme="dark"] .iso-cube__label {
-  color: rgba(226, 232, 240, 0.92);
-  text-shadow: 0 1px 4px rgba(2, 6, 23, 0.9);
-}
-
-[data-theme="dark"] .iso-belt .iso-face--roof {
-  box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="dark"] .iso-belt__item-roof {
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-[data-theme="dark"] .iso-hud {
-  background: rgba(9, 16, 28, 0.94);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-  color: #E2E8F0;
-}
-
-[data-theme="dark"] .iso-hud__row {
-  color: rgba(226, 232, 240, 0.62);
-}
-
-[data-theme="dark"] .iso-hud__row b {
-  color: #E2E8F0;
-}
-
-[data-theme="dark"] .iso-hud__foot {
-  color: rgba(226, 232, 240, 0.5);
+[data-theme="dark"] .cad-target:hover {
+  filter: drop-shadow(0 6px 14px rgba(56, 189, 248, 0.34));
 }
 
 /* 暗色主题下 KPI 的硬编码墨色要翻过来：标签仍是冷灰，数值转亮灰 */
