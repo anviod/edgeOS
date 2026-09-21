@@ -7,8 +7,8 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
 <div id="portal-home">
 
   <!-- ============================================================
-       HERO · 居中文案 + 横跨版宽的集群遥测台
-       ============================================================ -->
+        HERO · 左文右图两栏（文案 + 2.5D 车间视图），下方横跨版宽的集群遥测台
+        ============================================================ -->
   <section class="hero-section" id="overview">
     <div class="hero-inner">
       <div class="hero-copy">
@@ -51,20 +51,10 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
       </div>
 
       <!-- ============================================================
-           2.5D 可视化能力（置于集群遥测台之前 · 首屏即展示车间场景）
+           2.5D 车间视图：并入 Hero 右栏（左文右图 · 参考 edgeCore 首页版式）
            ============================================================ -->
-      <section class="landing-section" id="visualization">
-        <div class="section-heading">
-          <div>
-            <div class="section-heading__eyebrow">2.5D VISUALIZATION</div>
-            <h2>2.5D 工业场景可视化</h2>
-          </div>
-          <p class="section-heading__note">
-            纯 CSS 3D 变换实现的等轴场景，零 WebGL 依赖；同一套等轴组件拼装出八个工业现场视图。
-          </p>
-        </div>
-
-        <div class="viz-panel">
+      <aside class="hero-stage" aria-label="产线展示 · 2.5D 车间视图">
+        <div class="viz-panel hero-stage__panel">
           <div class="viz-panel__head">
             <div>
               <div class="viz-panel__eyebrow">产线展示 · 2.5D 车间视图</div>
@@ -74,6 +64,16 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
               <span>2 条产线 · 5 台主机</span>
               <span class="is-live"><i></i>生产运行</span>
             </div>
+          </div>
+
+          <div class="iso-stage" id="iso-stage">
+            <div class="iso-world" id="iso-world"></div>
+            <div class="iso-hud" id="iso-hud" role="tooltip"></div>
+            <span class="iso-corner iso-corner--tl"></span>
+            <span class="iso-corner iso-corner--tr"></span>
+            <span class="iso-corner iso-corner--bl"></span>
+            <span class="iso-corner iso-corner--br"></span>
+            <span class="iso-scan"></span>
           </div>
 
           <div class="viz-metrics">
@@ -99,16 +99,6 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
             </div>
           </div>
 
-          <div class="iso-stage" id="iso-stage">
-            <div class="iso-world" id="iso-world"></div>
-            <div class="iso-hud" id="iso-hud" role="tooltip"></div>
-            <span class="iso-corner iso-corner--tl"></span>
-            <span class="iso-corner iso-corner--tr"></span>
-            <span class="iso-corner iso-corner--bl"></span>
-            <span class="iso-corner iso-corner--br"></span>
-            <span class="iso-scan"></span>
-          </div>
-
           <div class="viz-foot">
             <div class="viz-legend">
               <span><i style="background:#10B981"></i>运行</span>
@@ -119,9 +109,7 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
             <span class="viz-foot__tech">rotateX(60°) · rotateZ(-45°) · CSS 3D · 无 WebGL</span>
           </div>
         </div>
-
-        <div class="viz-grid" id="viz-grid"></div>
-      </section>
+      </aside>
 
       <!-- 集群遥测台 -->
       <div class="hero-visual">
@@ -183,6 +171,23 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- ============================================================
+       2.5D 视图导航（车间场景已内嵌首屏，此处汇总其余七个视图）
+       ============================================================ -->
+  <section class="landing-section" id="visualization">
+    <div class="section-heading">
+      <div>
+        <div class="section-heading__eyebrow">2.5D VISUALIZATION</div>
+        <h2>2.5D 工业场景可视化</h2>
+      </div>
+      <p class="section-heading__note">
+        纯 CSS 3D 变换实现的等轴场景，零 WebGL 依赖；产线车间视图已内嵌首屏，其余七个工业现场视图内嵌在对应文档页。
+      </p>
+    </div>
+
+    <div class="viz-grid" id="viz-grid"></div>
   </section>
 
   <!-- ============================================================

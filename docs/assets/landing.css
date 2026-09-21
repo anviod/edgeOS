@@ -9,7 +9,7 @@
    ========================================================================== */
 
 /* ==========================================================================
-   8. 首页 Hero（居中版式 · 大留白）
+   8. 首页 Hero（左文右图两栏 · 参考 edgeCore 首页版式）
    ========================================================================== */
 
 .hero-section {
@@ -17,19 +17,18 @@
 }
 
 .hero-inner {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
   align-items: center;
-  gap: 64px;
+  gap: 56px;
 }
 
-/* —— 居中文案区 —— */
+/* —— 左栏 · 文案区（左对齐）—— */
 .hero-copy {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  max-width: 860px;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .hero-badge {
@@ -37,7 +36,7 @@
   align-items: center;
   gap: 8px;
   padding: 6px 14px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   border-radius: var(--r-pill);
   background: var(--surface);
   border: 1px solid var(--line-hair);
@@ -66,11 +65,11 @@
 }
 
 .hero-copy h1 {
-  font-size: clamp(32px, 5.4vw, 56px);
+  font-size: clamp(30px, 2.8vw, 40px);
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.18;
   letter-spacing: -0.03em;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 /* 标题副行：不加彩虹渐变，仅以次级灰度形成层次 */
@@ -79,10 +78,10 @@
 }
 
 .hero-desc {
-  max-width: 720px;
-  margin-bottom: 32px;
-  font-size: 16px;
-  line-height: 1.65;
+  max-width: 640px;
+  margin-bottom: 28px;
+  font-size: 15.5px;
+  line-height: 1.7;
   color: var(--text-2);
 }
 
@@ -101,9 +100,9 @@
 .hero-values {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .value-tag {
@@ -124,37 +123,41 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 10px;
+}
+
+/* —— 右栏 · 2.5D 车间视图（产线展示）——
+   viz-panel 原为全宽区块，收进右栏后收紧内距与舞台高度；
+   场景世界由 portal.js 按舞台实际宽度自适应缩放，窄栏不裁切。 */
+.hero-stage {
+  min-width: 0;
+}
+
+.hero-stage__panel {
+  padding: 20px 22px;
+}
+
+.hero-stage .iso-stage {
+  height: 400px;
+}
+
+.hero-stage .viz-metrics {
+  margin: 14px 0 12px;
+}
+
+.hero-stage .viz-metric {
+  padding: 10px 12px;
+}
+
+.hero-stage .viz-metric__value {
+  font-size: 15px;
 }
 
 /* —— 遥测台：横跨版宽，苹果规格矩阵语汇 —— */
 .hero-visual {
+  grid-column: 1 / -1;
   width: 100%;
-}
-
-/* 2.5D 场景已上移到 Hero 内（排在遥测台之前）。
-   .hero-inner 是 align-items:center 的纵向 flex，子 section 默认会被收缩成
-   内容宽度，必须显式撑满；间距交给 .hero-inner 的 gap，避免叠加 section 外边距。
-   标题跟随 Hero 文案一并居中，并去掉分隔线，衔接更顺。 */
-.hero-inner > .landing-section {
-  width: 100%;
-  margin-bottom: 0;
-}
-
-.hero-inner > .landing-section .section-heading {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding-bottom: 0;
-  margin-bottom: 26px;
-  border-bottom: 0;
-  text-align: center;
-}
-
-.hero-inner > .landing-section .section-heading__note {
-  max-width: 680px;
 }
 
 .telemetry {
@@ -2278,6 +2281,12 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
+  /* 两栏 Hero 在中部断点回退为纵向堆叠：文案在上，车间视图在下 */
+  .hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 48px;
+  }
+
   .pipeline-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -2310,6 +2319,10 @@
 
   .iso-stage {
     height: 360px;
+  }
+
+  .hero-stage .iso-stage {
+    height: 340px;
   }
 
   .telemetry__grid {
@@ -2349,8 +2362,16 @@
     padding: 20px 18px;
   }
 
+  .hero-stage__panel {
+    padding: 18px 16px;
+  }
+
   .iso-stage {
     height: 300px;
+  }
+
+  .hero-stage .iso-stage {
+    height: 280px;
   }
 
   .pipeline-grid {

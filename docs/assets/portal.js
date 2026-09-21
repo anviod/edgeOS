@@ -1094,11 +1094,22 @@
     var w = ISO_GRID.cols * cell;
     var h = ISO_GRID.rows * cell;
 
+    // 按舞台宽度自适应缩放：世界旋转 -45° 后投影宽 ≈ (w + h) × cos30°，
+    // 场景收进 Hero 右栏等窄容器时按可用宽度收缩，避免左右裁切。
+    var stageEl = world.parentElement;
+    var fit = 1;
+    if (stageEl && stageEl.clientWidth > 0) {
+      var proj = (w + h) * 0.87 + 24;
+      if (proj > stageEl.clientWidth) {
+        fit = Math.max(0.45, stageEl.clientWidth / proj);
+      }
+    }
+
     world.style.width = w + 'px';
     world.style.height = h + 'px';
     world.style.marginLeft = (-w / 2) + 'px';
     world.style.marginTop = (-h / 2) + 'px';
-    world.style.setProperty('--iso-scale', ISO_GRID.scale);
+    world.style.setProperty('--iso-scale', ISO_GRID.scale * fit);
 
     isoHudStore = [];
     var out = [
@@ -2021,6 +2032,13 @@
     renderScenarios();
     renderIsoScene();
     renderVisualViews();
+
+    // 断点跨越时舞台宽度变化，场景缩放需随之重算
+    var isoResizeTimer = 0;
+    window.addEventListener('resize', function () {
+      clearTimeout(isoResizeTimer);
+      isoResizeTimer = setTimeout(renderIsoScene, 160);
+    });
 
     setDrawerCollapsed(false);
     selectSubsystem(0);
