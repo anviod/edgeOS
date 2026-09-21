@@ -12,19 +12,22 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
   <section class="hero-section" id="overview">
     <div class="hero-inner">
       <div class="hero-copy">
-        <span class="hero-badge">
-          <span class="hero-badge__dot"></span>
-          <span>工业边缘集群协调平面</span>
-          <span class="hero-badge__sep">|</span>
-          <span class="hero-badge__accent">EAN 2.0</span>
-        </span>
+        <div class="hero-zone hero-zone--top">
+          <span class="hero-badge">
+            <span class="hero-badge__dot"></span>
+            <span>工业边缘集群协调平面</span>
+            <span class="hero-badge__sep">|</span>
+            <span class="hero-badge__accent">EAN 2.0</span>
+          </span>
+        </div>
 
-        <h1>
-          离散的边缘节点 edgeCore，<br />
-          由 edgeOS 编排成一台工业整机。
-        </h1>
+        <div class="hero-zone hero-zone--mid">
+          <h1>
+            离散的边缘节点 edgeCore，<br />
+            由 edgeOS 编排成一台工业整机。
+          </h1>
 
-        <p class="hero-desc">
+          <p class="hero-desc">
           edgeOS 以 EAN 2.0 Capability 模型统一发现、编排与治理散落的 edgeCore 节点。
           双通道对称总线承载 MQTT ↔ NATS 指令与事件流，µs 级单调时钟保证时序可复核，
           并保留严苛的「工程师终审」人机回环。
@@ -35,18 +38,21 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
           <span class="value-tag">MQTT ↔ NATS 对称寻址</span>
           <span class="value-tag">Shadow previous_value 事件流</span>
         </div>
+        </div>
 
-        <div class="hero-actions">
-          <a class="btn btn--primary" href="#workbench">
-            <span>探索六大控制平面</span>
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-            </svg>
-          </a>
-          <a class="btn btn--ghost" href="#panel-bus">
-            <span class="btn__dot"></span>
-            <span>调测双协议总线</span>
-          </a>
+        <div class="hero-zone hero-zone--bot">
+          <div class="hero-actions">
+            <a class="btn btn--primary" href="#workbench">
+              <span>探索六大控制平面</span>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </a>
+            <a class="btn btn--ghost" href="#panel-bus">
+              <span class="btn__dot"></span>
+              <span>调测双协议总线</span>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -55,27 +61,38 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
            ============================================================ -->
       <aside class="hero-stage" aria-label="产线展示 · 2.5D 车间视图">
         <div class="viz-panel hero-stage__panel">
-          <div class="viz-panel__head">
-            <div>
-              <div class="viz-panel__eyebrow">产线展示 · 2.5D 车间视图</div>
-              <h3>车间 A · 总装</h3>
-            </div>
-            <div class="viz-panel__meta">
-              <span>2 条产线 · 5 台主机</span>
-              <span class="is-live"><i></i>生产运行</span>
+          <div class="hero-zone hero-zone--top">
+            <div class="viz-panel__head">
+              <div>
+                <div class="viz-panel__eyebrow">产线示范 · 2.5D 车间视图</div>
+                <h3 class="viz-panel__title">车间 A · 总装</h3>
+              </div>
+              <div class="viz-panel__meta">
+                <span>2 条产线 · 5 台主机</span>
+                <span class="is-live"><i></i>生产运行</span>
+              </div>
             </div>
           </div>
 
+        <div class="hero-zone hero-zone--mid">
+          <!-- 去框化：不铺承载面、不画角标与扫描线，机台直接落在纯白纸面上 -->
           <div class="iso-stage" id="iso-stage">
             <div class="iso-world" id="iso-world"></div>
             <div class="iso-hud" id="iso-hud" role="tooltip"></div>
-            <span class="iso-corner iso-corner--tl"></span>
-            <span class="iso-corner iso-corner--tr"></span>
-            <span class="iso-corner iso-corner--bl"></span>
-            <span class="iso-corner iso-corner--br"></span>
-            <span class="iso-scan"></span>
           </div>
 
+          <div class="viz-foot">
+            <div class="viz-legend">
+              <span><i style="background:#10B981"></i>运行</span>
+              <span><i style="background:#F59E0B"></i>关注</span>
+              <span><i style="background:#94A3B8"></i>待机</span>
+              <span><i style="background:#EF4444"></i>故障</span>
+            </div>
+            <span class="viz-foot__tech">rotateX(60°) · rotateZ(-45°) · CSS 3D · 无 WebGL</span>
+          </div>
+        </div>
+
+        <div class="hero-zone hero-zone--bot">
           <div class="viz-metrics">
             <div class="viz-metric">
               <span class="viz-metric__label">产线节拍</span>
@@ -98,16 +115,7 @@ description: EdgeOS — edgeCore 上层协调平面，统一管理边缘节点�
               <span class="viz-metric__value">12 680<i>件</i></span>
             </div>
           </div>
-
-          <div class="viz-foot">
-            <div class="viz-legend">
-              <span><i style="background:#10B981"></i>运行</span>
-              <span><i style="background:#F59E0B"></i>关注</span>
-              <span><i style="background:#94A3B8"></i>待机</span>
-              <span><i style="background:#EF4444"></i>故障</span>
-            </div>
-            <span class="viz-foot__tech">rotateX(60°) · rotateZ(-45°) · CSS 3D · 无 WebGL</span>
-          </div>
+        </div>
         </div>
       </aside>
 

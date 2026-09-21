@@ -48,10 +48,10 @@
   --line-strong: rgba(0, 0, 0, 0.18);
   --line-hair: rgba(0, 0, 0, 0.05);
 
-  /* —— 文字：高阶灰阶 —— */
+  /* —— 文字：高阶灰阶（辅助层统一石板灰，带极轻冷调）—— */
   --text: #1D1D1F;
   --text-2: #6E6E73;
-  --text-3: #86868B;
+  --text-3: #94A3B8;
 
   /* —— 品牌强调：Apple System Blue（全局唯一）—— */
   --accent: #0071E3;
@@ -91,7 +91,15 @@
   --sh-float: 0 20px 48px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
   --sh-term: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.12);
 
-  /* —— 毛玻璃 —— */
+  /* —— Liquid Glass：控制层统一光学质感 ——
+     半透白底 + 背景模糊 + 顶部内高光 + 通透边缘高光（0 0 0 1px 高光圈）
+     + 极淡外投影。背后必须有内容/色场，blur 才有意义。 */
+  --glass-panel: rgba(255, 255, 255, 0.58);
+  --glass-border: rgba(255, 255, 255, 0.66);
+  --glass-edge: rgba(15, 23, 42, 0.055);
+  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --glass-shadow: 0 1px 0 1px rgba(255, 255, 255, 0.4) inset,
+    0 16px 40px rgba(15, 23, 42, 0.07), 0 2px 8px rgba(15, 23, 42, 0.035);
   --glass-nav: rgba(255, 255, 255, 0.72);
   --glass-blur: saturate(180%) blur(20px);
 
@@ -142,7 +150,7 @@
 
   --text: #F5F5F7;
   --text-2: #A1A1A6;
-  --text-3: #86868B;
+  --text-3: #64748B;
 
   --accent: #0A84FF;
   --accent-hover: #3D9BFF;
@@ -167,6 +175,12 @@
   --sh-float: 0 20px 48px rgba(0, 0, 0, 0.66), 0 1px 2px rgba(0, 0, 0, 0.4);
   --sh-term: 0 8px 24px rgba(0, 0, 0, 0.5);
 
+  /* Liquid Glass（暗色）：半透深板 + 顶缘弱高光 + 冷灰外投影 */
+  --glass-panel: rgba(30, 32, 38, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-edge: rgba(0, 0, 0, 0.5);
+  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.42), 0 2px 8px rgba(0, 0, 0, 0.3);
   --glass-nav: rgba(22, 22, 23, 0.72);
 }
 
@@ -320,13 +334,23 @@ canvas {
    4. 面板基类
    ========================================================================== */
 
-/* .glass：纯白卡片 —— 全站唯一的容器语言，取代此前的多层嵌套玻璃 */
+/* .glass：Liquid Glass 控制面板 —— 全站统一的容器光学语言。
+   半透底 + 背景模糊让下层色场透出；顶部 1px 内高光 + 通透边缘高光
+   （0 0 0 1px 白圈）勾出玻璃厚度；外投影极淡，只求浮起不抢内容。 */
 .glass {
-  background: var(--surface);
-  border: 1px solid var(--line-hair);
+  background: var(--glass-panel);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: 0;
-  box-shadow: none;
-  border-top-color: var(--line);
+  box-shadow: var(--glass-inset), var(--glass-shadow);
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  /* 支持 backdrop 时边缘高光圈改画在 box-shadow 上，避免 outline 参与层叠 */
+  .glass {
+    box-shadow: var(--glass-inset), 0 0 0 1px var(--glass-edge), var(--glass-shadow);
+  }
 }
 
 .glass--soft {

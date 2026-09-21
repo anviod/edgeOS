@@ -1010,14 +1010,14 @@
     return '' +
       '<div class="iso-cube" style="left:' + x + 'px;top:' + y + 'px;width:' + w +
       'px;height:' + d + 'px;--h:' + h + 'px"' + hudIdx + '>' +
+      // 贴地椭圆 AO 先画（Z 轴最低），随后立方体三面盖在其上
+      '<i class="iso-cube__ao"></i>' +
       '<span class="iso-face iso-face--roof" style="background:' + style.top + '"></span>' +
-      '<span class="iso-face iso-face--front" style="background:' + style.front + ';' +
-      (o.glow ? 'box-shadow:0 0 26px ' + style.front : '') + '"></span>' +
-      '<span class="iso-face iso-face--side" style="background:' + style.side + ';' +
-      (o.glow ? 'box-shadow:0 0 18px ' + style.side : '') + '"></span>' +
+      '<span class="iso-face iso-face--front" style="background:' + style.front + '"></span>' +
+      '<span class="iso-face iso-face--side" style="background:' + style.side + '"></span>' +
       (o.beacon
         ? '<span class="iso-cube__beacon" style="background:' + o.beaconColor +
-          ';box-shadow:0 0 10px ' + o.beaconColor + '"></span>'
+          ';box-shadow:0 0 6px ' + o.beaconColor + '66"></span>'
         : '') +
       (o.label ? '<span class="iso-cube__label">' + escapeHtml(o.label) + '</span>' : '') +
       '</div>';
@@ -1099,7 +1099,9 @@
     var stageEl = world.parentElement;
     var fit = 1;
     if (stageEl && stageEl.clientWidth > 0) {
-      var proj = (w + h) * 0.87 + 24;
+      // 0.75 ≈ 等距投影实际占宽系数 0.707 再留一点余量（旧值 0.87 过于保守，
+      // 模型被缩得偏小、右栏显轻飘）；改后场景比原先大约 17%，且不触到舞台边。
+      var proj = (w + h) * 0.75 + 16;
       if (proj > stageEl.clientWidth) {
         fit = Math.max(0.45, stageEl.clientWidth / proj);
       }
@@ -1112,10 +1114,9 @@
     world.style.setProperty('--iso-scale', ISO_GRID.scale * fit);
 
     isoHudStore = [];
-    var out = [
-      '<span class="iso-grid-sheet" style="width:' + w + 'px;height:' + h + 'px"></span>',
-      '<span class="iso-floor" style="width:' + w + 'px;height:' + h + 'px"></span>'
-    ];
+    // 去框化：不再铺网格承载面与地面光晕，机台直接落在纯白纸面上，
+    // 与「地面」的关系只由每个立方体自身的接触阴影（.iso-cube__ao）表达。
+    var out = [];
 
     // 车间墙体 + 立体库
     out.push(isoCube(4, 24, 440, 10, 14, ISO_STATIC.wall, {}));
@@ -1208,8 +1209,10 @@
       var hh = hud.offsetHeight;
       var left = nr.left - sr.left + nr.width / 2 - hw / 2;
       var top = nr.top - sr.top - hh - 10;
-      left = Math.max(8, Math.min(left, sr.width - hw - 8));
-      if (top < 8) top = nr.bottom - sr.top + 10;
+      // 留 16px 边距，避免浮层文字贴住舞台描边
+      left = Math.max(16, Math.min(left, sr.width - hw - 16));
+      if (top < 16) top = nr.bottom - sr.top + 12;
+      top = Math.min(top, sr.height - hh - 16);
       hud.style.left = left + 'px';
       hud.style.top = top + 'px';
     });

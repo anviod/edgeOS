@@ -16,11 +16,32 @@
   padding: 0 0 8px;
 }
 
+/* 两列等高栅格：只有等高，左右才可能共享「顶 / 中 / 底」三条基线。
+   之前 align-items: center 让两栏各自垂直居中，高度不同 → 顶线一高一低、
+   底线互相脱节；改回 stretch，由栏内的三段式分区来对齐。 */
 .hero-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
-  align-items: center;
-  gap: 56px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 48px;
+}
+
+/* 三段式分区：顶区贴顶、底区贴底、中区吃掉剩余高度并把内容垂直居中，
+   于是顶部基准线贯通、中段几何中心对齐、底部收在同一水平行。 */
+.hero-zone--top {
+  flex: 0 0 auto;
+}
+
+.hero-zone--mid {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+}
+
+.hero-zone--bot {
+  flex: 0 0 auto;
 }
 
 /* —— 左栏 · 文案区（左对齐）—— */
@@ -29,6 +50,7 @@
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
+  height: 100%;
 }
 
 .hero-badge {
@@ -41,6 +63,7 @@
   background: var(--surface);
   border: 1px solid var(--line-hair);
   box-shadow: none;
+  margin-bottom: 0;
   font-size: 12px;
   font-weight: 500;
   color: var(--text);
@@ -79,9 +102,10 @@
 
 .hero-desc {
   max-width: 640px;
-  margin-bottom: 28px;
+  margin-bottom: 30px;
   font-size: 15.5px;
-  line-height: 1.7;
+  line-height: 1.78;
+  letter-spacing: 0.001em;
   color: var(--text-2);
 }
 
@@ -102,7 +126,7 @@
   flex-wrap: wrap;
   justify-content: flex-start;
   gap: 8px;
-  margin-bottom: 28px;
+  margin-bottom: 0;
 }
 
 .value-tag {
@@ -129,29 +153,33 @@
 
 /* —— 右栏 · 2.5D 车间视图（产线展示）——
    viz-panel 原为全宽区块，收进右栏后收紧内距与舞台高度；
-   场景世界由 portal.js 按舞台实际宽度自适应缩放，窄栏不裁切。 */
+   场景世界由 portal.js 按舞台实际宽度自适应缩放，窄栏不裁切。
+   面板走 Liquid Glass：半透底 + 背景模糊 + 顶缘高光，指标小格再浮一层。 */
 .hero-stage {
   min-width: 0;
 }
 
+/* 内距归零：不再用容器包裹，靠版心栅格的 gap 与区块自身 margin 呼吸。
+   同时作为右栏的三段式分区容器，高度撑满与左栏等高的栅格行。 */
 .hero-stage__panel {
-  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  height: 100%;
 }
 
 .hero-stage .iso-stage {
-  height: 400px;
+  height: 420px;
 }
 
 .hero-stage .viz-metrics {
-  margin: 14px 0 12px;
-}
-
-.hero-stage .viz-metric {
-  padding: 10px 12px;
+  margin: 0;
+  gap: 32px;
 }
 
 .hero-stage .viz-metric__value {
-  font-size: 15px;
+  /* 宽屏给足 20px，窄栏按比例收到 16px 保单行 */
+  font-size: clamp(16px, 1.35vw, 20px);
 }
 
 /* —— 遥测台：横跨版宽，苹果规格矩阵语汇 —— */
@@ -161,11 +189,12 @@
 }
 
 .telemetry {
-  padding: 28px;
-  border-radius: 0;
+  padding: 30px 32px;
+  border: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   box-shadow: none;
-  border: 1px solid var(--line-hair);
-  background: var(--surface);
 }
 
 .telemetry__head {
@@ -701,10 +730,12 @@
 .drawer {
   margin-top: 20px;
   padding: 0;
-  border-radius: 0;
-  box-shadow: none;
   overflow: hidden;
-  border: 1px solid var(--line-hair);
+  border: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
 }
 
 .drawer__head {
@@ -909,9 +940,11 @@
 
 .bus-panel {
   padding: 24px;
-  border-radius: 0;
+  border: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   box-shadow: none;
-  border: 1px solid var(--line-hair);
 }
 
 .bus-panel__grid {
@@ -1148,9 +1181,11 @@
 
 .pipeline-detail {
   padding: 28px;
-  border-radius: 0;
+  border: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   box-shadow: none;
-  border: 1px solid var(--line-hair);
 }
 
 .pipeline-detail__grid {
@@ -1701,11 +1736,15 @@
    三片拼合。全部走 CSS 3D，不引入 WebGL 或任何第三方库。
    ========================================================================== */
 
+/* 容器彻底撤销：没有底色、没有描边、没有投影，
+   右栏的层级完全由留白与字重界定，元素自然「浮」在页面纸面上。 */
 .viz-panel {
-  padding: 26px 28px;
+  padding: 0;
   border-radius: 0;
-  background: var(--surface);
-  border: 1px solid var(--line-hair);
+  border: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   box-shadow: none;
 }
 
@@ -1717,19 +1756,22 @@
   gap: 16px;
 }
 
+/* 右栏文字整体降一档：eyebrow 从强调蓝退回中性灰，
+   标题减重收小，状态胶囊褪成细线框，让视觉重心留在左侧文案与场景本身。 */
 .viz-panel__eyebrow {
   margin-bottom: 6px;
   font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
 }
 
 .viz-panel__head h3 {
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-2);
 }
 
 .viz-panel__meta {
@@ -1738,16 +1780,16 @@
   align-items: center;
   gap: 8px;
   font-size: 11.5px;
-  color: var(--text-2);
+  color: var(--text-3);
 }
 
 .viz-panel__meta span {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--r-pill);
-  background: var(--surface-sunken);
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .viz-panel__meta .is-live {
@@ -1768,36 +1810,59 @@
 }
 
 /* —— 指标条 —— */
+/* —— KPI 数据栏：纯无框网格 ——
+   不画卡片、不画边框，层级只由字重与字号承担；
+   相邻项之间用一道 1×24px 的竖向渐变虚化线轻扫一下，粗到看得见就俗了。 */
 .viz-metrics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  gap: 32px;
   margin: 18px 0 16px;
 }
 
 .viz-metric {
-  padding: 12px 14px;
+  position: relative;
+  padding: 0;
   border-radius: 0;
   background: transparent;
-  border: 1px solid var(--line-hair);
-  border-left: 1px solid var(--line-hair);
+  border: 0;
+}
+
+.viz-metric + .viz-metric::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  width: 1px;
+  height: 24px;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 0, 0, 0.05) 50%,
+    transparent
+  );
+  pointer-events: none;
 }
 
 .viz-metric__label {
   display: block;
-  font-size: 10.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-3);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #86868B;
 }
 
 .viz-metric__value {
   display: block;
-  margin-top: 6px;
+  margin-top: 8px;
   font-family: var(--font-mono);
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 600;
-  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  color: #1D1D1F;
+  /* 窄栏下不许折行：一折行右栏底区就变高，底线和中线会同时错位 */
+  white-space: nowrap;
 }
 
 .viz-metric__value i {
@@ -1810,17 +1875,16 @@
 }
 
 /* —— 场景舞台 ——
-   深色底是刻意的：这代表产品屏幕上的画面，与页面里已有的 macOS 终端窗口
-   同属一类「设备画面」，因此画面内部沿用产品自身的状态配色。 */
+   浅色纸面（Liquid Glass 语义）：白底上机台的半透状态色自然变浅，
+   呈现低对比哑光材质；深色版霓虹发光全部退役。 */
+/* 舞台不再是「一块面板」，而是纸面本身：无边框、无底色、无承载面，
+   视窗内外连成一片，机台直接落在页面背景上。 */
 .iso-stage {
   position: relative;
   height: 424px;
   overflow: hidden;
-  border-radius: var(--r-lg);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background:
-    radial-gradient(circle at 50% 42%, rgba(56, 189, 248, 0.10), transparent 62%),
-    #0B1220;
+  border: 0;
+  background: transparent;
 }
 
 .iso-world {
@@ -1832,32 +1896,35 @@
   transform: rotateX(60deg) rotateZ(-45deg) scale(var(--iso-scale, 0.94));
 }
 
-.iso-grid-sheet {
-  position: absolute;
-  left: 0;
-  top: 0;
-  opacity: 0.9;
-  background-image:
-    linear-gradient(rgba(14, 165, 233, 0.16) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(14, 165, 233, 0.16) 1px, transparent 1px);
-  background-size: 48px 48px;
-}
-
-.iso-floor {
-  position: absolute;
-  left: 0;
-  top: 0;
-  background: radial-gradient(circle at 50% 50%,
-    rgba(14, 165, 233, 0.10),
-    rgba(14, 165, 233, 0.03) 60%,
-    transparent 75%);
-}
+/* 网格承载面与地面光晕已整体移除：不再有「外层方形承载面」，
+   设备与纸面的关系只靠接触阴影表达。 */
 
 /* —— 等轴长方体 —— */
 .iso-cube {
   position: absolute;
   transform-style: preserve-3d;
   transform-origin: center center;
+}
+
+/* 接触阴影（Contact Shadow）：只做模型底部与纸面交界处的一层极浅、
+   极收敛的漫反射遮蔽，不做大范围扩散阴影，避免设备「漂浮无力」。
+   ——注意：filter 不能加在 .iso-world / .iso-cube 上，那会让
+     transform-style: preserve-3d 被强制扁平化、整个等距场景塌成平面；
+     所以 AO 用平面椭圆（.iso-cube__ao）落在世界平面上，
+     光学漫反射只加在没有 3D 子节点的叶子面（roof/front/side）上。 */
+.iso-cube__ao {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  top: 30%;
+  bottom: 4%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side,
+    rgba(15, 23, 42, 0.10),
+    rgba(15, 23, 42, 0.035) 55%,
+    transparent 78%);
+  transform: translateZ(0.4px);
+  pointer-events: none;
 }
 
 .iso-face {
@@ -1867,8 +1934,8 @@
 .iso-face--roof {
   inset: 0;
   transform: translateZ(var(--h));
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .iso-face--front {
@@ -1878,7 +1945,7 @@
   height: var(--h);
   transform-origin: center top;
   transform: rotateX(90deg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
 }
 
 .iso-face--side {
@@ -1888,7 +1955,15 @@
   height: 100%;
   transform-origin: left center;
   transform: rotateY(-90deg);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(15, 23, 42, 0.05);
+}
+
+/* 极克制的漫反射遮蔽：只给叶子面（无 3D 子节点）加，
+   三个面各自投出一层 4% 的软影，合起来就是设备底部的接触阴影。 */
+.iso-face--roof,
+.iso-face--front,
+.iso-face--side {
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.04));
 }
 
 .iso-cube__label {
@@ -1903,8 +1978,8 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   white-space: nowrap;
-  color: rgba(226, 232, 240, 0.92);
-  text-shadow: 0 1px 4px rgba(2, 6, 23, 0.9);
+  color: #334155;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85);
   pointer-events: none;
 }
 
@@ -1932,7 +2007,7 @@
 }
 
 .iso-belt .iso-face--roof {
-  box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .iso-belt__item {
@@ -1948,7 +2023,7 @@
   position: absolute;
   inset: 0;
   transform: translateZ(10px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(15, 23, 42, 0.12);
 }
 
 .iso-belt__item-front {
@@ -1994,7 +2069,6 @@
 .iso-dot__face--roof {
   inset: 0;
   transform: translateZ(var(--dh));
-  box-shadow: 0 0 12px var(--dc);
 }
 
 .iso-dot__face--front {
@@ -2004,7 +2078,6 @@
   height: var(--dh);
   transform-origin: center top;
   transform: rotateX(90deg);
-  box-shadow: 0 0 10px var(--dc);
 }
 
 .iso-dot__face--side {
@@ -2014,7 +2087,6 @@
   height: 100%;
   transform-origin: left center;
   transform: rotateY(-90deg);
-  box-shadow: 0 0 8px var(--dc);
 }
 
 @keyframes iso-dot-move {
@@ -2022,17 +2094,20 @@
   to { left: var(--dr); }
 }
 
-/* —— 悬停 HUD —— */
+/* —— 悬停 HUD ——
+   白玻璃浮层：与页面控制层同一套光学语言。 */
 .iso-hud {
   position: absolute;
   z-index: 3;
   min-width: 178px;
-  padding: 12px 14px;
+  padding: 13px 16px;
   border-radius: var(--r-xs);
-  background: rgba(9, 16, 28, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-  color: #E2E8F0;
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border: 0;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+  color: #1D1D1F;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--t-fast);
@@ -2070,75 +2145,23 @@
   gap: 18px;
   padding: 3px 0;
   font-size: 11px;
-  color: rgba(226, 232, 240, 0.62);
+  color: #64748B;
 }
 
 .iso-hud__row b {
   font-family: var(--font-mono);
   font-weight: 600;
-  color: #E2E8F0;
+  color: #1D1D1F;
 }
 
 .iso-hud__foot {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 10.5px;
-  color: rgba(226, 232, 240, 0.5);
+  color: #94A3B8;
 }
 
-/* —— 四角装饰 + 扫描线 —— */
-.iso-corner {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-.iso-corner::before,
-.iso-corner::after {
-  content: "";
-  position: absolute;
-  background: #0EA5E9;
-}
-
-.iso-corner::before { width: 14px; height: 2px; }
-.iso-corner::after { width: 2px; height: 14px; }
-
-.iso-corner--tl { left: 8px; top: 8px; }
-.iso-corner--tl::before { top: 0; left: 0; }
-.iso-corner--tl::after { top: 0; left: 0; }
-
-.iso-corner--tr { right: 8px; top: 8px; }
-.iso-corner--tr::before { top: 0; right: 0; }
-.iso-corner--tr::after { top: 0; right: 0; }
-
-.iso-corner--bl { left: 8px; bottom: 8px; }
-.iso-corner--bl::before { bottom: 0; left: 0; }
-.iso-corner--bl::after { bottom: 0; left: 0; }
-
-.iso-corner--br { right: 8px; bottom: 8px; }
-.iso-corner--br::before { bottom: 0; right: 0; }
-.iso-corner--br::after { bottom: 0; right: 0; }
-
-.iso-scan {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.5), transparent);
-  box-shadow: 0 0 14px rgba(14, 165, 233, 0.35);
-  animation: iso-scan-move 7s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes iso-scan-move {
-  0%, 10% { top: 0; opacity: 0; }
-  20%, 88% { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
+/* 四角装饰与扫描线已整体删除：任何人工线框都会打断纯白纸面的连续感。 */
 
 /* —— 图例与注脚 —— */
 .viz-foot {
@@ -2147,15 +2170,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 14px;
+  margin-top: 22px;
 }
 
 .viz-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
-  font-size: 11.5px;
-  color: var(--text-2);
+  gap: 16px;
+  font-size: 11px;
+  color: #94A3B8;
+  opacity: 0.68;
 }
 
 .viz-legend span {
@@ -2173,7 +2197,8 @@
 .viz-foot__tech {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  color: var(--text-3);
+  color: #94A3B8;
+  opacity: 0.6;
 }
 
 /* —— 场景视图卡片 —— */
@@ -2301,6 +2326,12 @@
 
   .viz-metrics {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+  }
+
+  /* 换行后每行首项左侧不留分隔线 */
+  .viz-metric:nth-child(3n + 1)::before {
+    display: none;
   }
 }
 
@@ -2356,10 +2387,20 @@
 
   .viz-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  /* 两列布局下竖向虚化分隔线只出现在每行第二项的左侧 */
+  .viz-metric + .viz-metric::before {
+    left: -12px;
+  }
+
+  .viz-metric:nth-child(2n + 1)::before {
+    display: none;
   }
 
   .viz-panel {
-    padding: 20px 18px;
+    padding: 0;
   }
 
   .hero-stage__panel {
@@ -2426,4 +2467,79 @@
   .doc-card:hover {
     transform: none;
   }
+}
+
+/* ==========================================================================
+   23. 暗色主题：场景舞台回退深色屏
+   舞台是「设备画面」语义：亮色主题下随版面走浅色纸面，
+   暗色主题下恢复深底 + 蓝网格，机台半透色自动回到霓虹观感。
+   ========================================================================== */
+
+[data-theme="dark"] .iso-stage {
+  background: transparent;
+}
+
+[data-theme="dark"] .iso-cube__ao {
+  background: radial-gradient(closest-side,
+    rgba(2, 6, 23, 0.45),
+    rgba(2, 6, 23, 0.18) 55%,
+    transparent 78%);
+}
+
+[data-theme="dark"] .iso-face--roof {
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .iso-face--front {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .iso-face--side {
+  border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .iso-cube__label {
+  color: rgba(226, 232, 240, 0.92);
+  text-shadow: 0 1px 4px rgba(2, 6, 23, 0.9);
+}
+
+[data-theme="dark"] .iso-belt .iso-face--roof {
+  box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .iso-belt__item-roof {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .iso-hud {
+  background: rgba(9, 16, 28, 0.94);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  color: #E2E8F0;
+}
+
+[data-theme="dark"] .iso-hud__row {
+  color: rgba(226, 232, 240, 0.62);
+}
+
+[data-theme="dark"] .iso-hud__row b {
+  color: #E2E8F0;
+}
+
+[data-theme="dark"] .iso-hud__foot {
+  color: rgba(226, 232, 240, 0.5);
+}
+
+/* 暗色主题下 KPI 的硬编码墨色要翻过来：标签仍是冷灰，数值转亮灰 */
+[data-theme="dark"] .viz-metric__label {
+  color: #86868B;
+}
+
+[data-theme="dark"] .viz-metric__value {
+  color: #F5F5F7;
+}
+
+[data-theme="dark"] .viz-legend,
+[data-theme="dark"] .viz-foot__tech {
+  color: #64748B;
 }
